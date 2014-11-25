@@ -13,7 +13,7 @@ import (
 
 	"code.google.com/p/go.crypto/pbkdf2"
 
-	"github.com/larasync/lara/helpers"
+	"github.com/hoffie/lara/helpers"
 )
 
 const (

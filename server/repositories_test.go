@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/larasync/lara/sign/request"
+	"github.com/hoffie/lara/sign/request"
 )
 
 func TestRepoList(t *testing.T) {

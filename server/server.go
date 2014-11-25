@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/larasync/lara/sign/request"
+	"github.com/hoffie/lara/sign/request"
 )
 
 // Server represents our http environment.

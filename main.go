@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/larasync/lara/server"
+	"github.com/hoffie/lara/server"
 )
 
 // main is our service dispatcher.

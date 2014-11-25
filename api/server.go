@@ -1,4 +1,4 @@
-package server
+package api
 
 import (
 	"fmt"
@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-
-	"github.com/hoffie/larasync/sign/request"
 )
 
 // Server represents our http environment.
@@ -53,7 +51,7 @@ func (s *Server) setupRoutes() {
 // valid admin auth header
 func (s *Server) requireAdminAuth(f http.HandlerFunc) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
-		if !request.ValidateAdminSigned(req, s.adminSecret, s.maxRequestAge) {
+		if !ValidateAdminSigned(req, s.adminSecret, s.maxRequestAge) {
 			http.Error(rw, "Unauthorized", http.StatusUnauthorized)
 			return
 		}

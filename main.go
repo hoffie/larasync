@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/hoffie/larasync/server"
+	"github.com/hoffie/larasync/api"
 )
 
 // main is our service dispatcher.
@@ -16,8 +16,8 @@ func main() {
 	action := os.Args[1]
 	switch action {
 	case "server":
-		s := server.New([]byte("FIXME-broken-hardcoded-secret")) //FIXME: config!
-		log.Printf("Listening on :%d", server.DefaultPort)
+		s := api.New([]byte("FIXME-broken-hardcoded-secret")) //FIXME: config!
+		log.Printf("Listening on :%d", api.DefaultPort)
 		log.Fatal(s.ListenAndServe())
 		return
 	default:

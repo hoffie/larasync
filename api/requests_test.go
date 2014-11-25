@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 
 	"testing"
+	"time"
 )
 
 func adminSecret() []byte {
@@ -12,7 +13,7 @@ func adminSecret() []byte {
 }
 
 func getServer() *Server {
-	return New(adminSecret())
+	return New(adminSecret(), time.Minute)
 }
 
 func getRepositoriesRequest(t *testing.T) *http.Request {

@@ -20,7 +20,7 @@ func main() {
 	switch action {
 	case "server":
 		cfg := getServerConfig()
-		s := api.New([]byte(cfg.Signatures.AdminSecret))
+		s := api.New([]byte(cfg.Signatures.AdminSecret), cfg.Signatures.MaxAge)
 		log.Printf("Listening on %s", cfg.Server.Listen)
 		log.Fatal(s.ListenAndServe())
 		return

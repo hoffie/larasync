@@ -22,11 +22,11 @@ const (
 )
 
 // New returns a new Server.
-func New(adminSecret []byte) *Server {
+func New(adminSecret []byte, maxRequestAge time.Duration) *Server {
 	serveMux := http.NewServeMux()
 	s := Server{
 		adminSecret:   adminSecret,
-		maxRequestAge: time.Minute, //FIXME make configurable
+		maxRequestAge: maxRequestAge,
 		router:        mux.NewRouter(),
 		http: &http.Server{
 			Addr:    fmt.Sprintf(":%d", DefaultPort),

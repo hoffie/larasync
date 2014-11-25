@@ -8,12 +8,10 @@ import (
 	"time"
 )
 
-func adminSecret() []byte {
-	return []byte("foo")
-}
+var adminSecret = []byte("foo")
 
 func getServer() *Server {
-	return New(adminSecret(), time.Minute)
+	return New(adminSecret, time.Minute)
 }
 
 func getRepositoriesRequest(t *testing.T) *http.Request {
@@ -26,7 +24,7 @@ func getRepositoriesRequest(t *testing.T) *http.Request {
 
 func getRepositoriesAdminRequest(t *testing.T) *http.Request {
 	req := getRepositoriesRequest(t)
-	SignAsAdmin(req, adminSecret())
+	SignAsAdmin(req, adminSecret)
 	return req
 }
 

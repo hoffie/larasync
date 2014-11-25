@@ -18,8 +18,7 @@ func TestAuthorizationHeader(t *testing.T) {
 }
 
 func runSigningTestsWithMaxAge(req *http.Request, maxAge time.Duration) bool {
-	key := adminSecret()
-	return ValidateAdminSigned(req, key, maxAge)
+	return ValidateAdminSigned(req, adminSecret, maxAge)
 }
 
 func runSigningTest(req *http.Request) bool {
@@ -104,7 +103,7 @@ func TestAdminSigningOutdatedSignature(t *testing.T) {
 	// this will most likely send non-GMT time which is against the HTTP RFC;
 	// as we should handle this as well, it's ok for testing:
 	req.Header.Set("Date", tenSecsAgo.Format(time.RFC1123))
-	SignAsAdmin(req, adminSecret())
+	SignAsAdmin(req, adminSecret)
 	if runSigningTestsWithMaxAge(req, 9*time.Second) {
 		t.Fatal("validation succeeded even after reaching max signature age")
 	}

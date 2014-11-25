@@ -14,10 +14,14 @@ func main() {
 		os.Exit(1)
 	}
 	action := os.Args[1]
+	if len(os.Args) > 1 {
+		flags.Parse(os.Args[2:])
+	}
 	switch action {
 	case "server":
-		s := api.New([]byte("FIXME-broken-hardcoded-secret")) //FIXME: config!
-		log.Printf("Listening on :%d", api.DefaultPort)
+		cfg := getServerConfig()
+		s := api.New([]byte(cfg.Signatures.AdminSecret))
+		log.Printf("Listening on %s", cfg.Server.Listen)
 		log.Fatal(s.ListenAndServe())
 		return
 	default:

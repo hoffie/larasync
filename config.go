@@ -8,6 +8,8 @@ import (
 
 const defaultServerConfigPath = "larasync-server.gcfg"
 
+// getServerConfig reads the best-matching config file, sanitizes it
+// and returns the resulting config object.
 func getServerConfig() *config.ServerConfig {
 	cfg := &config.ServerConfig{}
 	if configPath == "" {

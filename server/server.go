@@ -15,6 +15,7 @@ type Server struct {
 	adminSecret   []byte
 	router        *mux.Router
 	maxRequestAge time.Duration
+	http          *http.Server
 }
 
 const (
@@ -24,13 +25,18 @@ const (
 
 // New returns a new Server.
 func New(adminSecret []byte) *Server {
+	serveMux := http.NewServeMux()
 	s := Server{
 		adminSecret:   adminSecret,
 		maxRequestAge: time.Minute, //FIXME make configurable
 		router:        mux.NewRouter(),
+		http: &http.Server{
+			Addr:    fmt.Sprintf(":%d", DefaultPort),
+			Handler: serveMux,
+		},
 	}
 	s.setupRoutes()
-	http.Handle("/", s.router)
+	serveMux.Handle("/", s.router)
 	return &s
 }
 
@@ -61,5 +67,5 @@ func (s *Server) repositoryList(rw http.ResponseWriter, req *http.Request) {
 
 // ListenAndServe starts serving requests on the default port.
 func (s *Server) ListenAndServe() error {
-	return http.ListenAndServe(fmt.Sprintf(":%d", DefaultPort), nil)
+	return s.http.ListenAndServe()
 }

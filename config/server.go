@@ -17,6 +17,9 @@ type ServerConfig struct {
 		AdminSecret string
 		MaxAge      time.Duration
 	}
+	Repository struct {
+		BasePath string
+	}
 }
 
 // Sanitize populates all zero values with sane defaults and ensures that any
@@ -27,6 +30,9 @@ func (c *ServerConfig) Sanitize() {
 	}
 	if len(c.Signatures.AdminSecret) == 0 {
 		log.Fatal("no admin secret configured; refusing to run")
+	}
+	if len(c.Repository.BasePath) == 0 {
+		log.Fatal("no repository base path configured; refusing to run")
 	}
 	if c.Signatures.MaxAge == 0 {
 		c.Signatures.MaxAge = 5 * time.Second

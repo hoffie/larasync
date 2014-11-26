@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/hoffie/larasync/api"
+	"github.com/hoffie/larasync/repository"
 )
 
 // main is our service dispatcher.
@@ -20,7 +21,12 @@ func main() {
 	switch action {
 	case "server":
 		cfg := getServerConfig()
-		s := api.New([]byte(cfg.Signatures.AdminSecret), cfg.Signatures.MaxAge)
+		rm, err := repository.NewManager(cfg.Repository.BasePath)
+		if err != nil {
+			log.Fatal("repository.Manager creation failure:", err)
+		}
+		s := api.New([]byte(cfg.Signatures.AdminSecret),
+			cfg.Signatures.MaxAge, rm)
 		log.Printf("Listening on %s", cfg.Server.Listen)
 		log.Fatal(s.ListenAndServe())
 		return

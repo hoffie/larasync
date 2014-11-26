@@ -30,7 +30,7 @@ func (m *Manager) ListNames() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	var res []string
+	res := make([]string, 0)
 	for _, e := range entries {
 		if !e.IsDir() {
 			continue

@@ -50,7 +50,7 @@ func (t *Tests) SetUpTest(c *C) {
 func (t *Tests) TestList(c *C) {
 	e, err := t.m.ListNames()
 	c.Assert(err, IsNil)
-	c.Assert(e, DeepEquals, []string(nil))
+	c.Assert(e, DeepEquals, []string{})
 }
 
 func (t *Tests) TestCreate(c *C) {

@@ -6,11 +6,14 @@ import (
 	"time"
 
 	. "gopkg.in/check.v1"
+
+	"github.com/hoffie/larasync/repository"
 )
 
 type RepoListTests struct {
 	server *Server
 	req    *http.Request
+	repos  string
 }
 
 var _ = Suite(&RepoListTests{})
@@ -22,7 +25,10 @@ func (t *RepoListTests) SetUpTest(c *C) {
 }
 
 func (t *RepoListTests) SetUpSuite(c *C) {
-	t.server = New(adminSecret, time.Minute)
+	t.repos = c.MkDir()
+	rm, err := repository.NewManager(t.repos)
+	c.Assert(err, IsNil)
+	t.server = New(adminSecret, time.Minute, rm)
 }
 
 func (t *RepoListTests) getResponse(req *http.Request) *httptest.ResponseRecorder {
@@ -47,5 +53,7 @@ func (t *RepoListTests) TestRepoListOutput(c *C) {
 	SignAsAdmin(t.req, adminSecret)
 	resp := t.getResponse(t.req)
 	//FIXME test repo list output
+	c.Assert(resp.Code, Equals, 200)
+	c.Assert(resp.Body.String(), Equals, "[]")
 	c.Assert(resp.Body.Len(), Not(Equals), 0)
 }

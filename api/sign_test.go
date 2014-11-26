@@ -7,128 +7,93 @@ import (
 	"net/url"
 	"time"
 
-	"testing"
+	. "gopkg.in/check.v1"
 )
 
-func TestAuthorizationHeader(t *testing.T) {
-	req := getRepositoriesAdminRequest(t)
-	if req.Header.Get("Authorization") == "" {
-		t.Fatal("no authorization header")
-	}
+type SignTests struct {
+	req *http.Request
 }
 
-func runSigningTestsWithMaxAge(req *http.Request, maxAge time.Duration) bool {
-	return ValidateAdminSigned(req, adminSecret, maxAge)
+var _ = Suite(&SignTests{})
+
+func (t *SignTests) SetUpTest(c *C) {
+	req, err := http.NewRequest("GET", "http://example.org/repositories", nil)
+	c.Assert(err, IsNil)
+	SignAsAdmin(req, adminSecret)
+	t.req = req
 }
 
-func runSigningTest(req *http.Request) bool {
-	return runSigningTestsWithMaxAge(req, time.Minute)
+func (t *SignTests) adminSigned() bool {
+	return ValidateAdminSigned(t.req, adminSecret, time.Minute)
 }
 
-func TestAdminSigningCorrectSignature(t *testing.T) {
-	req := getRepositoriesAdminRequest(t)
-	if !runSigningTest(req) {
-		buf := bytes.Buffer{}
-		concatenateTo(req, &buf)
-		t.Log(buf.String())
-		t.Fatal("validation failed")
-	}
+func (t *SignTests) TestAuthorizationHeader(c *C) {
+	c.Assert(t.req.Header.Get("Authorization"), Not(Equals), "")
 }
 
-func TestAdminSigningEmptyAuthorizationHeader(t *testing.T) {
-	req := getRepositoriesAdminRequest(t)
-	req.Header.Set("Authorization", "")
-
-	if runSigningTest(req) {
-		t.Fatal("validation succeeded even without Authorization header")
-	}
+func (t *SignTests) TestAdminSigningCorrectSignature(c *C) {
+	c.Assert(t.adminSigned(), Equals, true)
 }
 
-func TestAdminSigningNonLaraAuthorizationHeader(t *testing.T) {
-	req := getRepositoriesAdminRequest(t)
-	req.Header.Set("Authorization", "basic foo")
-
-	if runSigningTest(req) {
-		t.Fatal("validation succeeded even non-lara Authorization header")
-	}
+func (t *SignTests) TestAdminSigningEmptyAuthorizationHeader(c *C) {
+	t.req.Header.Set("Authorization", "")
+	c.Assert(t.adminSigned(), Equals, false)
 }
 
-func TestAdminSigningNonAdminAuthorizationHeader(t *testing.T) {
-	req := getRepositoriesAdminRequest(t)
-	req.Header.Set("Authorization", "lara foo")
-	if runSigningTest(req) {
-		t.Fatal("validation succeeded even non-admin Authorization header")
-	}
+func (t *SignTests) TestAdminSigningNonLaraAuthorizationHeader(c *C) {
+	t.req.Header.Set("Authorization", "basic foo")
+	c.Assert(t.adminSigned(), Equals, false)
 }
 
-func TestAdminSigningNonGivenAuthorizationHeader(t *testing.T) {
-	req := getRepositoriesAdminRequest(t)
-	req.Header.Set("Authorization", "lara admin ")
-	if runSigningTest(req) {
-		t.Fatal("validation succeeded even without hash in Authorization header")
-	}
+func (t *SignTests) TestAdminSigningNonAdminAuthorizationHeader(c *C) {
+	t.req.Header.Set("Authorization", "lara foo")
+	c.Assert(t.adminSigned(), Equals, false)
 }
 
-func TestAdminSigningChangedMethodAuthorizationHeader(t *testing.T) {
-	req := getRepositoriesAdminRequest(t)
-	req.Method = "POST"
-	if runSigningTest(req) {
-		t.Fatal("validation succeeded even after method change")
-	}
+func (t *SignTests) TestAdminSigningNonGivenAuthorizationHeader(c *C) {
+	t.req.Header.Set("Authorization", "lara admin ")
+	c.Assert(t.adminSigned(), Equals, false)
 }
 
-func TestAdminSigningAddedHeader(t *testing.T) {
-	req := getRepositoriesAdminRequest(t)
-	req.Header.Set("Test", "1")
-	if runSigningTest(req) {
-		t.Fatal("validation succeeded even after header addition")
-	}
+func (t *SignTests) TestAdminSigningChangedMethodAuthorizationHeader(c *C) {
+	t.req.Method = "POST"
+	c.Assert(t.adminSigned(), Equals, false)
 }
 
-func TestAdminSigningChangedUrl(t *testing.T) {
-	req := getRepositoriesAdminRequest(t)
+func (t *SignTests) TestAdminSigningAddedHeader(c *C) {
+	t.req.Header.Set("Test", "1")
+	c.Assert(t.adminSigned(), Equals, false)
+}
+
+func (t *SignTests) TestAdminSigningChangedUrl(c *C) {
 	newURL, err := url.Parse("http://example.org/repositories?x=3")
-	if err != nil {
-		t.Fatal(err)
-	}
-	req.URL = newURL
-	if runSigningTest(req) {
-		t.Fatal("validation succeeded even after URL changing addition")
-	}
+	c.Assert(err, IsNil)
+	t.req.URL = newURL
+	c.Assert(t.adminSigned(), Equals, false)
 }
 
-func TestAdminSigningOutdatedSignature(t *testing.T) {
-	req := getRepositoriesRequest(t)
+func (t *SignTests) TestAdminSigningOutdatedSignature(c *C) {
 	tenSecsAgo := time.Now().Add(-10 * time.Second)
 	// this will most likely send non-GMT time which is against the HTTP RFC;
 	// as we should handle this as well, it's ok for testing:
-	req.Header.Set("Date", tenSecsAgo.Format(time.RFC1123))
-	SignAsAdmin(req, adminSecret)
-	if runSigningTestsWithMaxAge(req, 9*time.Second) {
-		t.Fatal("validation succeeded even after reaching max signature age")
-	}
+	t.req.Header.Set("Date", tenSecsAgo.Format(time.RFC1123))
+	SignAsAdmin(t.req, adminSecret)
+	c.Assert(ValidateAdminSigned(t.req, adminSecret, 9*time.Second), Equals, false)
 }
 
-func changedBodyAdminRequestForValidation(t *testing.T) *http.Request {
-	req := getRepositoriesAdminRequest(t)
-	req.Body = ioutil.NopCloser(bytes.NewBuffer([]byte("changed body")))
-	return req
+func (t *SignTests) changeBody() {
+	t.req.Body = ioutil.NopCloser(bytes.NewBuffer([]byte("changed body")))
 }
 
-func TestAdminSigningBodyChange(t *testing.T) {
-	req := changedBodyAdminRequestForValidation(t)
-	if runSigningTest(req) {
-		t.Fatal("validation succeeded even after body change")
-	}
+func (t *SignTests) TestAdminSigningBodyChange(c *C) {
+	t.changeBody()
+	c.Assert(t.adminSigned(), Equals, false)
 }
 
-func TestAdminSigningBodyTextRead(t *testing.T) {
-	req := changedBodyAdminRequestForValidation(t)
-
-	runSigningTest(req)
+func (t *SignTests) TestAdminSigningBodyTextRead(c *C) {
+	t.changeBody()
+	c.Assert(t.adminSigned(), Equals, false)
 	buf := make([]byte, 100)
-	read, _ := req.Body.Read(buf)
-	if string(buf[:read]) != "changed body" {
-		t.Fatal("body no longer readable after signing")
-	}
+	read, _ := t.req.Body.Read(buf)
+	c.Assert(string(buf[:read]), Equals, "changed body")
 }

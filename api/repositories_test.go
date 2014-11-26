@@ -1,36 +1,51 @@
 package api
 
 import (
-	"testing"
+	"net/http"
+	"net/http/httptest"
+	"time"
+
+	. "gopkg.in/check.v1"
 )
 
-func TestRepoListUnauthorized(t *testing.T) {
-	resp := runTestRequest(
-		getRepositoriesRequest(t))
-	if resp.Code != 401 {
-		t.Fatal("expected unauthorized but got", resp.Code)
-	}
-	if resp.Body.String() != "Unauthorized\n" {
-		t.Fatal("unexpected unauthorized body")
-	}
+type RepoListTests struct {
+	server *Server
+	req    *http.Request
 }
 
-func TestRepoListAdmin(t *testing.T) {
-	req := getRepositoriesAdminRequest(t)
+var _ = Suite(&RepoListTests{})
 
-	resp := runTestRequest(req)
-	if resp.Code != 200 {
-		t.Fatal("expected HTTP 200 but got", resp.Code)
-	}
+func (t *RepoListTests) SetUpTest(c *C) {
+	req, err := http.NewRequest("GET", "http://example.org/repositories", nil)
+	c.Assert(err, IsNil)
+	t.req = req
 }
 
-func TestRepoListOutput(t *testing.T) {
-	req := getRepositoriesAdminRequest(t)
+func (t *RepoListTests) SetUpSuite(c *C) {
+	t.server = New(adminSecret, time.Minute)
+}
 
-	resp := runTestRequest(req)
+func (t *RepoListTests) getResponse(req *http.Request) *httptest.ResponseRecorder {
+	rw := httptest.NewRecorder()
+	t.server.router.ServeHTTP(rw, req)
+	return rw
+}
 
+func (t *RepoListTests) TestRepoListUnauthorized(c *C) {
+	resp := t.getResponse(t.req)
+	c.Assert(resp.Code, Equals, 401)
+	c.Assert(resp.Body.String(), Equals, "Unauthorized\n")
+}
+
+func (t *RepoListTests) TestRepoListAdmin(c *C) {
+	SignAsAdmin(t.req, adminSecret)
+	resp := t.getResponse(t.req)
+	c.Assert(resp.Code, Equals, 200)
+}
+
+func (t *RepoListTests) TestRepoListOutput(c *C) {
+	SignAsAdmin(t.req, adminSecret)
+	resp := t.getResponse(t.req)
 	//FIXME test repo list output
-	if resp.Body.Len() == 0 {
-		t.Fatal("expected HTTP body not to be empty.")
-	}
+	c.Assert(resp.Body.Len(), Not(Equals), 0)
 }

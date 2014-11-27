@@ -2,18 +2,26 @@ package helpers
 
 import (
 	"testing"
+
+	. "gopkg.in/check.v1"
 )
 
-func TestConstantTimeBytesEqual(t *testing.T) {
-	if ConstantTimeBytesEqual([]byte("a"), []byte("b")) {
-		t.Fatal("a == b")
-	}
+type Tests struct{}
 
-	if ConstantTimeBytesEqual([]byte("a"), []byte("aa")) {
-		t.Fatal("a == aa")
-	}
+var _ = Suite(&Tests{})
 
-	if !ConstantTimeBytesEqual([]byte("a"), []byte("a")) {
-		t.Fatal("a != a")
-	}
+func TestCompare(t *testing.T) {
+	TestingT(t)
+}
+
+func (t *Tests) TestConstantTimeBytesEqualDiff(c *C) {
+	c.Assert(ConstantTimeBytesEqual([]byte("a"), []byte("b")), Equals, false)
+}
+
+func (t *Tests) TestConstantTimeBytesEqualLengthDiff(c *C) {
+	c.Assert(ConstantTimeBytesEqual([]byte("a"), []byte("b")), Equals, false)
+}
+
+func (t *Tests) TestConstantTimeBytesEqualOk(c *C) {
+	c.Assert(ConstantTimeBytesEqual([]byte("a"), []byte("a")), Equals, true)
 }

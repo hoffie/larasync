@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"time"
 
-	. "gopkg.in/check.v1"
+	"gopkg.in/check.v1"
 
 	"github.com/hoffie/larasync/repository"
 )

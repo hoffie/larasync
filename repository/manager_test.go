@@ -63,6 +63,16 @@ func (t *Tests) TestList(c *C) {
 	c.Assert(e, DeepEquals, []string{})
 }
 
+func (t *Tests) TestListExcludeFile(c *C) {
+	const name = "test"
+	f, err := os.Create(filepath.Join(t.dir, name))
+	c.Assert(err, IsNil)
+	f.Close()
+	e, err := t.m.ListNames()
+	c.Assert(err, IsNil)
+	c.Assert(e, DeepEquals, []string{})
+}
+
 func (t *Tests) TestListBadBasePath(c *C) {
 	// fake error condition for testing
 	t.m.basePath = "/dev/null"

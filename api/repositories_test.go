@@ -3,6 +3,8 @@ package api
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"time"
 
 	. "gopkg.in/check.v1"
@@ -53,6 +55,17 @@ func (t *RepoListTests) TestRepoListOutput(c *C) {
 	SignAsAdmin(t.req, adminSecret)
 	resp := t.getResponse(t.req)
 	//FIXME test repo list output
+	c.Assert(resp.Code, Equals, 200)
+	c.Assert(resp.Body.String(), Equals, "[]")
+	c.Assert(resp.Body.Len(), Not(Equals), 0)
+}
+
+func (t *RepoListTests) TestRepoListOutputExcludeFiles(c *C) {
+	f, err := os.Create(filepath.Join(t.repos, "somefile"))
+	c.Assert(err, IsNil)
+	f.Close()
+	SignAsAdmin(t.req, adminSecret)
+	resp := t.getResponse(t.req)
 	c.Assert(resp.Code, Equals, 200)
 	c.Assert(resp.Body.String(), Equals, "[]")
 	c.Assert(resp.Body.Len(), Not(Equals), 0)

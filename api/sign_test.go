@@ -55,6 +55,16 @@ func (t *SignTests) TestAdminSigningNonGivenAuthorizationHeader(c *C) {
 	c.Assert(t.adminSigned(), Equals, false)
 }
 
+func (t *SignTests) TestAdminSigningBadHexHash(c *C) {
+	t.req.Header.Set("Authorization", "lara admin 123")
+	c.Assert(t.adminSigned(), Equals, false)
+}
+
+func (t *SignTests) TestAdminSigningHashTooShort(c *C) {
+	t.req.Header.Set("Authorization", "lara admin 1234")
+	c.Assert(t.adminSigned(), Equals, false)
+}
+
 func (t *SignTests) TestAdminSigningChangedMethodAuthorizationHeader(c *C) {
 	t.req.Method = "POST"
 	c.Assert(t.adminSigned(), Equals, false)
@@ -96,4 +106,9 @@ func (t *SignTests) TestAdminSigningBodyTextRead(c *C) {
 	buf := make([]byte, 100)
 	read, _ := t.req.Body.Read(buf)
 	c.Assert(string(buf[:read]), Equals, "changed body")
+}
+
+func (t *SignTests) TestYoungerThanBadHeader(c *C) {
+	t.req.Header.Set("Date", "123")
+	c.Assert(youngerThan(t.req, time.Minute), Equals, false)
 }

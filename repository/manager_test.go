@@ -40,6 +40,16 @@ func (t *CreationTests) TestNewBadTarget(c *C) {
 	c.Assert(err, NotNil)
 }
 
+func (t *CreationTests) TestNewOnFile(c *C) {
+	const name = "test"
+	f, err := os.Create(filepath.Join(t.dir, name))
+	c.Assert(err, IsNil)
+	f.Close()
+	m, err := NewManager(filepath.Join(t.dir, name))
+	c.Assert(m, IsNil)
+	c.Assert(err, NotNil)
+}
+
 func (t *Tests) SetUpTest(c *C) {
 	t.dir = c.MkDir()
 	m, err := NewManager(t.dir)
@@ -51,6 +61,14 @@ func (t *Tests) TestList(c *C) {
 	e, err := t.m.ListNames()
 	c.Assert(err, IsNil)
 	c.Assert(e, DeepEquals, []string{})
+}
+
+func (t *Tests) TestListBadBasePath(c *C) {
+	// fake error condition for testing
+	t.m.basePath = "/dev/null"
+	e, err := t.m.ListNames()
+	c.Assert(err, NotNil)
+	c.Assert(e, IsNil)
 }
 
 func (t *Tests) TestCreate(c *C) {

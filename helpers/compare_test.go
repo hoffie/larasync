@@ -19,7 +19,7 @@ func (t *Tests) TestConstantTimeBytesEqualDiff(c *C) {
 }
 
 func (t *Tests) TestConstantTimeBytesEqualLengthDiff(c *C) {
-	c.Assert(ConstantTimeBytesEqual([]byte("a"), []byte("b")), Equals, false)
+	c.Assert(ConstantTimeBytesEqual([]byte("a"), []byte("aa")), Equals, false)
 }
 
 func (t *Tests) TestConstantTimeBytesEqualOk(c *C) {

@@ -41,15 +41,20 @@ func (m *Manager) ListNames() ([]string, error) {
 }
 
 // Create registers a new repository.
-func (m *Manager) Create(name, pubKey string) error {
-	err := os.Mkdir(filepath.Join(m.basePath, name), 0700)
-	return err
+func (m *Manager) Create(name string, pubKey []byte) error {
+	r := &Repository{Path: filepath.Join(m.basePath, name)}
+	err := r.Create()
+	if err != nil {
+		return err
+	}
+	return r.SetAuthPubkey(pubKey)
 }
 
 // Open returns a handle for the given existing repository.
 func (m *Manager) Open(name string) (*Repository, error) {
-	r := &Repository{Name: name}
-	s, err := os.Stat(filepath.Join(m.basePath, name))
+	absPath := filepath.Join(m.basePath, name)
+	r := &Repository{Path: absPath}
+	s, err := os.Stat(absPath)
 	if err != nil {
 		return nil, err
 	}

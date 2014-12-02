@@ -82,7 +82,7 @@ func (t *Tests) TestListBadBasePath(c *C) {
 }
 
 func (t *Tests) TestCreate(c *C) {
-	err := t.m.Create("test", "pubkey")
+	err := t.m.Create("test", []byte("pubkey"))
 	c.Assert(err, IsNil)
 	e, err := t.m.ListNames()
 	c.Assert(err, IsNil)
@@ -90,11 +90,21 @@ func (t *Tests) TestCreate(c *C) {
 }
 
 func (t *Tests) TestOpen(c *C) {
-	t.m.Create("test", "pubkey")
+	t.m.Create("test", []byte("pubkey"))
 	r, err := t.m.Open("test")
 	c.Assert(err, IsNil)
 	c.Assert(r, FitsTypeOf, &Repository{})
-	c.Assert(r.Name, Equals, "test")
+	c.Assert(r.Path, Equals, filepath.Join(t.dir, "test"))
+}
+
+func (t *Tests) TestPubkey(c *C) {
+	t.m.Create("test", []byte("pubkey"))
+	r, err := t.m.Open("test")
+	c.Assert(err, IsNil)
+	c.Assert(r, FitsTypeOf, &Repository{})
+	key, err := r.GetAuthPubkey()
+	c.Assert(err, IsNil)
+	c.Assert(key, DeepEquals, []byte("pubkey"))
 }
 
 func (t *Tests) TestOpenNonExisting(c *C) {

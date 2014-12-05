@@ -24,7 +24,7 @@ func (t *SignTests) SetUpTest(c *C) {
 }
 
 func (t *SignTests) adminSigned() bool {
-	return ValidateAdminSigned(t.req, adminSecret, time.Minute)
+	return ValidateAdminSigned(t.req, adminPubkey, time.Minute)
 }
 
 func (t *SignTests) TestAuthorizationHeader(c *C) {
@@ -88,7 +88,7 @@ func (t *SignTests) TestAdminSigningOutdatedSignature(c *C) {
 	// as we should handle this as well, it's ok for testing:
 	t.req.Header.Set("Date", tenSecsAgo.Format(time.RFC1123))
 	SignAsAdmin(t.req, adminSecret)
-	c.Assert(ValidateAdminSigned(t.req, adminSecret, 9*time.Second), Equals, false)
+	c.Assert(ValidateAdminSigned(t.req, adminPubkey, 9*time.Second), Equals, false)
 }
 
 func (t *SignTests) changeBody() {

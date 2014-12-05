@@ -30,7 +30,7 @@ func (t *RepoListTests) SetUpSuite(c *C) {
 	t.repos = c.MkDir()
 	rm, err := repository.NewManager(t.repos)
 	c.Assert(err, IsNil)
-	t.server = New(adminSecret, time.Minute, rm)
+	t.server = New(adminPubkey, time.Minute, rm)
 }
 
 func (t *RepoListTests) getResponse(req *http.Request) *httptest.ResponseRecorder {

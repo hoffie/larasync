@@ -20,7 +20,7 @@ func (t *Tests) TestEd25519GetPublicFromPrivate(c *C) {
 	fakeRandReader := bytes.NewBufferString("012345678901234567890123456789012")
 	pub, priv, err := e.GenerateKey(fakeRandReader)
 	c.Assert(err, IsNil)
-	myPub, err := GetPublicKeyFromPrivate(*priv)
+	myPub := GetPublicKeyFromPrivate(*priv)
 	c.Assert(err, IsNil)
 	c.Assert(*pub, DeepEquals, myPub)
 }

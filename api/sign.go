@@ -1,49 +1,44 @@
 package api
 
 import (
-	"crypto/hmac"
-	"crypto/rand"
-	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
+	"bytes"
 
 	"code.google.com/p/go.crypto/pbkdf2"
+	"github.com/agl/ed25519"
 
-	"github.com/hoffie/larasync/helpers"
+	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
 )
 
 const (
-	// SaltLen is the length of our signing salts
-	SaltLen = 8
+	PubkeySize = ed25519.PublicKeySize
+	SignatureSize = ed25519.SignatureSize
 )
+var staticSalt = []byte("larasync")
 
 // SignAsAdmin signs the given request using the admin-shared-secret approach.
-func SignAsAdmin(req *http.Request, secret []byte) error {
-	salt, err := genSalt()
-	if err != nil {
-		return err
-	}
-	key := secretToKey(salt, secret)
+func SignAsAdmin(req *http.Request, secret []byte) {
+	key := secretToKey(secret)
 	if req.Header.Get("Date") == "" {
 		req.Header.Set("Date", time.Now().UTC().Format(http.TimeFormat))
 	}
-	hash := hmacSign(req, key)
+	hash := asymmetricSign(req, key)
 	req.Header.Set("Authorization",
-		fmt.Sprintf("lara admin %s%s",
-			hex.EncodeToString(salt),
+		fmt.Sprintf("lara admin %s",
 			hex.EncodeToString(hash)))
-	return nil
+	return
 }
 
 // ValidateAdminSigned checks whether the request is signed using the
 // admin-shared-secret approach, whether the signature is correct and whether
 // the request is not outdated according to the provided maxAge.
-func ValidateAdminSigned(req *http.Request, secret []byte, maxAge time.Duration) bool {
-	if !validateAdminSig(req, secret) {
+func ValidateAdminSigned(req *http.Request, pubkey [PubkeySize]byte, maxAge time.Duration) bool {
+	if !validateAdminSig(req, pubkey) {
 		return false
 	}
 	if !youngerThan(req, maxAge) {
@@ -54,7 +49,7 @@ func ValidateAdminSigned(req *http.Request, secret []byte, maxAge time.Duration)
 
 // adminValidateSig is a helper which ensures that the request's signature
 // is an admin signature and is valid.
-func validateAdminSig(req *http.Request, secret []byte) bool {
+func validateAdminSig(req *http.Request, pubkey [PubkeySize]byte) bool {
 	auth := req.Header.Get("Authorization")
 	if auth == "" {
 		return false
@@ -62,25 +57,20 @@ func validateAdminSig(req *http.Request, secret []byte) bool {
 	if !strings.HasPrefix(auth, "lara admin ") {
 		return false
 	}
-	hash := strings.TrimPrefix(auth, "lara admin ")
-	if hash == "" {
+	sig := strings.TrimPrefix(auth, "lara admin ")
+	if sig == "" {
 		return false
 	}
-	hashBytes, err := hex.DecodeString(hash)
+	sigBytes, err := hex.DecodeString(sig)
 	if err != nil {
 		return false
 	}
-	if len(hashBytes) < SaltLen {
+	if len(sigBytes) < SignatureSize {
 		return false
 	}
-	salt := hashBytes[:SaltLen]
-	hashBytes = hashBytes[SaltLen:]
-	key := secretToKey(salt, secret)
-	realHash := hmacSign(req, key)
-	if !helpers.ConstantTimeBytesEqual(hashBytes, realHash) {
-		return false
-	}
-	return true
+	sigArr := new([SignatureSize]byte)
+	copy(sigArr[:], sigBytes[:SignatureSize])
+	return asymmetricVerify(req, pubkey, *sigArr)
 }
 
 // youngerThan checks whether the request's Date header is at maximum
@@ -97,27 +87,36 @@ func youngerThan(req *http.Request, maxAge time.Duration) bool {
 	return true
 }
 
-// hmacSign returns the requests HMAC
-func hmacSign(req *http.Request, key []byte) []byte {
-	mac := hmac.New(sha256.New, key)
+// asymmetricSign uses public key cryptography to sign the request and return the
+// signature.
+func asymmetricSign(req *http.Request, key [ed25519.PrivateKeySize]byte) []byte {
+	mac := sha512.New()
 	concatenateTo(req, mac)
-	return mac.Sum(nil)
+	hash := mac.Sum(nil)
+	sig := ed25519.Sign(&key, hash)
+	slSig := make([]byte, len(sig))
+	copy(slSig, sig[0:len(sig)])
+	return slSig
 }
 
-// genSalt generates a new cryptographical salt.
-func genSalt() ([]byte, error) {
-	salt := make([]byte, SaltLen)
-	read, err := rand.Read(salt)
-	if read != SaltLen || err != nil {
-		return nil, errors.New("unable to generate salt")
-	}
-	return salt, nil
+func asymmetricVerify(req *http.Request, pubkey [PubkeySize]byte, sig [SignatureSize]byte) bool {
+	mac := sha512.New()
+	concatenateTo(req, mac)
+	hash := mac.Sum(nil)
+	return ed25519.Verify(&pubkey, hash, &sig)
 }
 
 // secretToKey converts the user-supplied password to a key, usable for
 // further signing purposes.
-func secretToKey(salt, secret []byte) []byte {
-	//PERFORMANCE: 4096 as a work factor may be too high as this runs per-request
-	key := pbkdf2.Key(secret, salt, 4096, sha256.Size, sha256.New)
-	return key
+func secretToKey(secret []byte) [ed25519.PrivateKeySize]byte {
+	//PERFORMANCE/SECURITY: 4096 as a work factor may have to be adapted (runs per request)
+	key := pbkdf2.Key(secret, staticSalt, 4096, sha512.Size, sha512.New)
+	reader := bytes.NewBuffer(key)
+	_, priv, _ := ed25519.GenerateKey(reader)
+	return *priv
+}
+
+func GetAdminSecretPubkey(secret []byte) [PubkeySize]byte {
+	key := secretToKey(secret)
+	return edhelpers.GetPublicKeyFromPrivate(key)
 }

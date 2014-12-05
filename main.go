@@ -25,7 +25,7 @@ func main() {
 		if err != nil {
 			log.Fatal("repository.Manager creation failure:", err)
 		}
-		s := api.New([]byte(cfg.Signatures.AdminSecret),
+		s := api.New(*cfg.Signatures.AdminPubkeyBinary,
 			cfg.Signatures.MaxAge, rm)
 		log.Printf("Listening on %s", cfg.Server.Listen)
 		log.Fatal(s.ListenAndServe())

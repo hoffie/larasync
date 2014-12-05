@@ -13,7 +13,7 @@ import (
 
 // Server represents our http environment.
 type Server struct {
-	adminSecret   []byte
+	adminPubkey   [PubkeySize]byte
 	router        *mux.Router
 	maxRequestAge time.Duration
 	http          *http.Server
@@ -26,10 +26,10 @@ const (
 )
 
 // New returns a new Server.
-func New(adminSecret []byte, maxRequestAge time.Duration, rm *repository.Manager) *Server {
+func New(adminPubkey [PubkeySize]byte, maxRequestAge time.Duration, rm *repository.Manager) *Server {
 	serveMux := http.NewServeMux()
 	s := Server{
-		adminSecret:   adminSecret,
+		adminPubkey:   adminPubkey,
 		maxRequestAge: maxRequestAge,
 		rm:            rm,
 		router:        mux.NewRouter(),
@@ -56,7 +56,7 @@ func (s *Server) setupRoutes() {
 // valid admin auth header
 func (s *Server) requireAdminAuth(f http.HandlerFunc) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
-		if !ValidateAdminSigned(req, s.adminSecret, s.maxRequestAge) {
+		if !ValidateAdminSigned(req, s.adminPubkey, s.maxRequestAge) {
 			http.Error(rw, "Unauthorized", http.StatusUnauthorized)
 			return
 		}

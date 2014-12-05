@@ -8,10 +8,10 @@ import (
 
 // GetPublicKeyFromPrivate takes an Ed25519 private key and generates the public
 // key compartment from it.
-func GetPublicKeyFromPrivate(privateKey [e.PrivateKeySize]byte) ([e.PublicKeySize]byte, error) {
+func GetPublicKeyFromPrivate(privateKey [e.PrivateKeySize]byte) [e.PublicKeySize]byte {
 	buf := make([]byte, len(privateKey))
 	copy(buf, privateKey[0:e.PrivateKeySize])
 	keyProvidingReader := bytes.NewBuffer([]byte(buf))
-	pub, _, err := e.GenerateKey(keyProvidingReader)
-	return *pub, err
+	pub, _, _ := e.GenerateKey(keyProvidingReader)
+	return *pub
 }

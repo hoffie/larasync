@@ -1,13 +1,13 @@
 package api
 
 import (
+	"bytes"
 	"crypto/sha512"
 	"encoding/hex"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
-	"bytes"
 
 	"code.google.com/p/go.crypto/pbkdf2"
 	"github.com/agl/ed25519"
@@ -16,9 +16,10 @@ import (
 )
 
 const (
-	PubkeySize = ed25519.PublicKeySize
+	PubkeySize    = ed25519.PublicKeySize
 	SignatureSize = ed25519.SignatureSize
 )
+
 var staticSalt = []byte("larasync")
 
 // SignAsAdmin signs the given request using the admin-shared-secret approach.

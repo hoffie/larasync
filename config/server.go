@@ -1,11 +1,11 @@
 package config
 
 import (
+	"encoding/hex"
+	"errors"
 	"fmt"
 	"log"
 	"time"
-	"errors"
-	"encoding/hex"
 
 	"github.com/hoffie/larasync/api"
 )
@@ -16,9 +16,9 @@ type ServerConfig struct {
 		Listen string
 	}
 	Signatures struct {
-		AdminPubkey string
+		AdminPubkey       string
 		AdminPubkeyBinary *[api.PubkeySize]byte
-		MaxAge      time.Duration
+		MaxAge            time.Duration
 	}
 	Repository struct {
 		BasePath string

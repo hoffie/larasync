@@ -16,15 +16,17 @@ import (
 )
 
 const (
-	PubkeySize    = ed25519.PublicKeySize
+	// PubkeySize denotes how many bytes a pubkey needs (binary encoded)
+	PubkeySize = ed25519.PublicKeySize
+	// SignatureSize denotes how many bytes a sig needs (binary encoded)
 	SignatureSize = ed25519.SignatureSize
 )
 
 var staticSalt = []byte("larasync")
 
-// SignAsAdmin signs the given request using the admin-shared-secret approach.
-func SignAsAdmin(req *http.Request, secret []byte) {
-	key := secretToKey(secret)
+// SignAsAdmin signs the given request using the given admin passphrase
+func SignAsAdmin(req *http.Request, passphrase []byte) {
+	key := passphraseToKey(passphrase)
 	if req.Header.Get("Date") == "" {
 		req.Header.Set("Date", time.Now().UTC().Format(http.TimeFormat))
 	}
@@ -36,7 +38,7 @@ func SignAsAdmin(req *http.Request, secret []byte) {
 }
 
 // ValidateAdminSigned checks whether the request is signed using the
-// admin-shared-secret approach, whether the signature is correct and whether
+// admin private key, whether the signature is correct and whether
 // the request is not outdated according to the provided maxAge.
 func ValidateAdminSigned(req *http.Request, pubkey [PubkeySize]byte, maxAge time.Duration) bool {
 	if !validateAdminSig(req, pubkey) {
@@ -107,17 +109,19 @@ func asymmetricVerify(req *http.Request, pubkey [PubkeySize]byte, sig [Signature
 	return ed25519.Verify(&pubkey, hash, &sig)
 }
 
-// secretToKey converts the user-supplied password to a key, usable for
+// passphraseToKey converts the user-supplied passphrase to a key, usable for
 // further signing purposes.
-func secretToKey(secret []byte) [ed25519.PrivateKeySize]byte {
+func passphraseToKey(passphrase []byte) [ed25519.PrivateKeySize]byte {
 	//PERFORMANCE/SECURITY: 4096 as a work factor may have to be adapted (runs per request)
-	key := pbkdf2.Key(secret, staticSalt, 4096, sha512.Size, sha512.New)
+	key := pbkdf2.Key(passphrase, staticSalt, 4096, sha512.Size, sha512.New)
 	reader := bytes.NewBuffer(key)
 	_, priv, _ := ed25519.GenerateKey(reader)
 	return *priv
 }
 
-func GetAdminSecretPubkey(secret []byte) [PubkeySize]byte {
-	key := secretToKey(secret)
+// GetAdminSecretPubkey transforms the given passphrase into a private key
+// and returns the accompying public key (e.g. for storage on the server)
+func GetAdminSecretPubkey(passphrase []byte) [PubkeySize]byte {
+	key := passphraseToKey(passphrase)
 	return edhelpers.GetPublicKeyFromPrivate(key)
 }

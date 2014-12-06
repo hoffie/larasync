@@ -46,13 +46,13 @@ func (t *RepoListTests) TestRepoListUnauthorized(c *C) {
 }
 
 func (t *RepoListTests) TestRepoListAdmin(c *C) {
-	SignAsAdmin(t.req, adminSecret)
+	SignWithPassphrase(t.req, adminSecret)
 	resp := t.getResponse(t.req)
 	c.Assert(resp.Code, Equals, 200)
 }
 
 func (t *RepoListTests) TestRepoListOutput(c *C) {
-	SignAsAdmin(t.req, adminSecret)
+	SignWithPassphrase(t.req, adminSecret)
 	resp := t.getResponse(t.req)
 	//FIXME test repo list output
 	c.Assert(resp.Code, Equals, 200)
@@ -64,7 +64,7 @@ func (t *RepoListTests) TestRepoListOutputExcludeFiles(c *C) {
 	f, err := os.Create(filepath.Join(t.repos, "somefile"))
 	c.Assert(err, IsNil)
 	f.Close()
-	SignAsAdmin(t.req, adminSecret)
+	SignWithPassphrase(t.req, adminSecret)
 	resp := t.getResponse(t.req)
 	c.Assert(resp.Code, Equals, 200)
 	c.Assert(resp.Body.String(), Equals, "[]")

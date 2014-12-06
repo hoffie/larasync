@@ -56,7 +56,7 @@ func (s *Server) setupRoutes() {
 // valid admin auth header
 func (s *Server) requireAdminAuth(f http.HandlerFunc) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
-		if !ValidateAdminSigned(req, s.adminPubkey, s.maxRequestAge) {
+		if !ValidateRequest(req, s.adminPubkey, s.maxRequestAge) {
 			http.Error(rw, "Unauthorized", http.StatusUnauthorized)
 			return
 		}

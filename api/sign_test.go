@@ -19,12 +19,12 @@ var _ = Suite(&SignTests{})
 func (t *SignTests) SetUpTest(c *C) {
 	req, err := http.NewRequest("GET", "http://example.org/repositories", nil)
 	c.Assert(err, IsNil)
-	SignAsAdmin(req, adminSecret)
+	SignWithPassphrase(req, adminSecret)
 	t.req = req
 }
 
 func (t *SignTests) adminSigned() bool {
-	return ValidateAdminSigned(t.req, adminPubkey, time.Minute)
+	return ValidateRequest(t.req, adminPubkey, time.Minute)
 }
 
 func (t *SignTests) TestAuthorizationHeader(c *C) {
@@ -45,23 +45,23 @@ func (t *SignTests) TestAdminSigningNonLaraAuthorizationHeader(c *C) {
 	c.Assert(t.adminSigned(), Equals, false)
 }
 
-func (t *SignTests) TestAdminSigningNonAdminAuthorizationHeader(c *C) {
-	t.req.Header.Set("Authorization", "lara foo")
+func (t *SignTests) TestAdminSigningShortSig(c *C) {
+	t.req.Header.Set("Authorization", "lara 111")
 	c.Assert(t.adminSigned(), Equals, false)
 }
 
-func (t *SignTests) TestAdminSigningNonGivenAuthorizationHeader(c *C) {
-	t.req.Header.Set("Authorization", "lara admin ")
+func (t *SignTests) TestAdminSigningMissingAuthorizationSig(c *C) {
+	t.req.Header.Set("Authorization", "lara ")
 	c.Assert(t.adminSigned(), Equals, false)
 }
 
 func (t *SignTests) TestAdminSigningBadHexHash(c *C) {
-	t.req.Header.Set("Authorization", "lara admin 123")
+	t.req.Header.Set("Authorization", "lara 123")
 	c.Assert(t.adminSigned(), Equals, false)
 }
 
 func (t *SignTests) TestAdminSigningHashTooShort(c *C) {
-	t.req.Header.Set("Authorization", "lara admin 1234")
+	t.req.Header.Set("Authorization", "lara 1234")
 	c.Assert(t.adminSigned(), Equals, false)
 }
 
@@ -87,8 +87,8 @@ func (t *SignTests) TestAdminSigningOutdatedSignature(c *C) {
 	// this will most likely send non-GMT time which is against the HTTP RFC;
 	// as we should handle this as well, it's ok for testing:
 	t.req.Header.Set("Date", tenSecsAgo.Format(time.RFC1123))
-	SignAsAdmin(t.req, adminSecret)
-	c.Assert(ValidateAdminSigned(t.req, adminPubkey, 9*time.Second), Equals, false)
+	SignWithPassphrase(t.req, adminSecret)
+	c.Assert(ValidateRequest(t.req, adminPubkey, 9*time.Second), Equals, false)
 }
 
 func (t *SignTests) changeBody() {

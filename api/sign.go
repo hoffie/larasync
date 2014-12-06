@@ -16,6 +16,8 @@ import (
 )
 
 const (
+	// PrivateKeySize denotes how many bytes a private key needs (binary encoded)
+	PrivateKeySize = ed25519.PrivateKeySize
 	// PubkeySize denotes how many bytes a pubkey needs (binary encoded)
 	PubkeySize = ed25519.PublicKeySize
 	// SignatureSize denotes how many bytes a sig needs (binary encoded)
@@ -24,24 +26,26 @@ const (
 
 var staticSalt = []byte("larasync")
 
-// SignAsAdmin signs the given request using the given admin passphrase
-func SignAsAdmin(req *http.Request, passphrase []byte) {
+// SignWithPassphrase signs the given request using the given admin passphrase
+func SignWithPassphrase(req *http.Request, passphrase []byte) {
 	key := passphraseToKey(passphrase)
+	signWithKey(req, key)
+}
+
+func signWithKey(req *http.Request, key [PrivateKeySize]byte) {
 	if req.Header.Get("Date") == "" {
 		req.Header.Set("Date", time.Now().UTC().Format(http.TimeFormat))
 	}
-	hash := asymmetricSign(req, key)
-	req.Header.Set("Authorization",
-		fmt.Sprintf("lara admin %s",
-			hex.EncodeToString(hash)))
-	return
+	sig := getSignature(req, key)
+	req.Header.Set("Authorization", fmt.Sprintf("lara %s",
+		hex.EncodeToString(sig)))
 }
 
-// ValidateAdminSigned checks whether the request is signed using the
-// admin private key, whether the signature is correct and whether
-// the request is not outdated according to the provided maxAge.
-func ValidateAdminSigned(req *http.Request, pubkey [PubkeySize]byte, maxAge time.Duration) bool {
-	if !validateAdminSig(req, pubkey) {
+// ValidateRequest checks whether the request signature is valid and
+// matches the given public key. It also checks whether the request
+// is not outdated according to the provided maxAge.
+func ValidateRequest(req *http.Request, pubkey [PubkeySize]byte, maxAge time.Duration) bool {
+	if !validateRequestSig(req, pubkey) {
 		return false
 	}
 	if !youngerThan(req, maxAge) {
@@ -50,17 +54,17 @@ func ValidateAdminSigned(req *http.Request, pubkey [PubkeySize]byte, maxAge time
 	return true
 }
 
-// adminValidateSig is a helper which ensures that the request's signature
-// is an admin signature and is valid.
-func validateAdminSig(req *http.Request, pubkey [PubkeySize]byte) bool {
+// validateRequestSig is a helper which ensures that the request's signature
+// is valid. It extracts the signature on its own.
+func validateRequestSig(req *http.Request, pubkey [PubkeySize]byte) bool {
 	auth := req.Header.Get("Authorization")
 	if auth == "" {
 		return false
 	}
-	if !strings.HasPrefix(auth, "lara admin ") {
+	if !strings.HasPrefix(auth, "lara ") {
 		return false
 	}
-	sig := strings.TrimPrefix(auth, "lara admin ")
+	sig := strings.TrimPrefix(auth, "lara ")
 	if sig == "" {
 		return false
 	}
@@ -73,7 +77,7 @@ func validateAdminSig(req *http.Request, pubkey [PubkeySize]byte) bool {
 	}
 	sigArr := new([SignatureSize]byte)
 	copy(sigArr[:], sigBytes[:SignatureSize])
-	return asymmetricVerify(req, pubkey, *sigArr)
+	return verifySig(req, pubkey, *sigArr)
 }
 
 // youngerThan checks whether the request's Date header is at maximum
@@ -90,9 +94,9 @@ func youngerThan(req *http.Request, maxAge time.Duration) bool {
 	return true
 }
 
-// asymmetricSign uses public key cryptography to sign the request and return the
-// signature.
-func asymmetricSign(req *http.Request, key [ed25519.PrivateKeySize]byte) []byte {
+// getSignature uses public key cryptography to sign the request
+// and return the resulting signature.
+func getSignature(req *http.Request, key [PrivateKeySize]byte) []byte {
 	mac := sha512.New()
 	concatenateTo(req, mac)
 	hash := mac.Sum(nil)
@@ -102,7 +106,9 @@ func asymmetricSign(req *http.Request, key [ed25519.PrivateKeySize]byte) []byte 
 	return slSig
 }
 
-func asymmetricVerify(req *http.Request, pubkey [PubkeySize]byte, sig [SignatureSize]byte) bool {
+// verifySig checks if the signature matches the provided
+// public key and is valid for the given request.
+func verifySig(req *http.Request, pubkey [PubkeySize]byte, sig [SignatureSize]byte) bool {
 	mac := sha512.New()
 	concatenateTo(req, mac)
 	hash := mac.Sum(nil)
@@ -111,7 +117,7 @@ func asymmetricVerify(req *http.Request, pubkey [PubkeySize]byte, sig [Signature
 
 // passphraseToKey converts the user-supplied passphrase to a key, usable for
 // further signing purposes.
-func passphraseToKey(passphrase []byte) [ed25519.PrivateKeySize]byte {
+func passphraseToKey(passphrase []byte) [PrivateKeySize]byte {
 	//PERFORMANCE/SECURITY: 4096 as a work factor may have to be adapted (runs per request)
 	key := pbkdf2.Key(passphrase, staticSalt, 4096, sha512.Size, sha512.New)
 	reader := bytes.NewBuffer(key)

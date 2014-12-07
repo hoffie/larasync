@@ -72,7 +72,7 @@ func (t *RepoListTests) TestRepoListOutputExcludeFiles(c *C) {
 }
 
 func (t *RepoListTests) TestRepoListMangled(c *C) {
-	SignAsAdmin(t.req, adminSecret)
+	SignWithPassphrase(t.req, adminSecret)
 	t.req.Header.Set("Mangled", "Yes")
 	resp := t.getResponse(t.req)
 	c.Assert(resp.Code, Equals, 401)

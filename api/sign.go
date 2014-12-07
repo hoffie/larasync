@@ -27,9 +27,13 @@ const (
 var staticSalt = []byte("larasync")
 
 // SignWithPassphrase signs the given request using the given admin passphrase
-func SignWithPassphrase(req *http.Request, passphrase []byte) {
-	key := passphraseToKey(passphrase)
+func SignWithPassphrase(req *http.Request, passphrase []byte) error {
+	key, err := passphraseToKey(passphrase)
+	if err != nil {
+		return err
+	}
 	signWithKey(req, key)
+	return nil
 }
 
 func signWithKey(req *http.Request, key [PrivateKeySize]byte) {
@@ -117,17 +121,23 @@ func verifySig(req *http.Request, pubkey [PubkeySize]byte, sig [SignatureSize]by
 
 // passphraseToKey converts the user-supplied passphrase to a key, usable for
 // further signing purposes.
-func passphraseToKey(passphrase []byte) [PrivateKeySize]byte {
+func passphraseToKey(passphrase []byte) ([PrivateKeySize]byte, error) {
 	//PERFORMANCE/SECURITY: 4096 as a work factor may have to be adapted (runs per request)
 	key := pbkdf2.Key(passphrase, staticSalt, 4096, sha512.Size, sha512.New)
 	reader := bytes.NewBuffer(key)
-	_, priv, _ := ed25519.GenerateKey(reader)
-	return *priv
+	_, priv, err := ed25519.GenerateKey(reader)
+	if err != nil {
+		return [PrivateKeySize]byte{}, err
+	}
+	return *priv, nil
 }
 
 // GetAdminSecretPubkey transforms the given passphrase into a private key
 // and returns the accompying public key (e.g. for storage on the server)
-func GetAdminSecretPubkey(passphrase []byte) [PubkeySize]byte {
-	key := passphraseToKey(passphrase)
-	return edhelpers.GetPublicKeyFromPrivate(key)
+func GetAdminSecretPubkey(passphrase []byte) ([PubkeySize]byte, error) {
+	key, err := passphraseToKey(passphrase)
+	if err != nil {
+		return [PubkeySize]byte{}, err
+	}
+	return edhelpers.GetPublicKeyFromPrivate(key), nil
 }

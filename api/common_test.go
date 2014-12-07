@@ -11,4 +11,12 @@ func Test(t *testing.T) {
 }
 
 var adminSecret = []byte("foo")
-var adminPubkey = GetAdminSecretPubkey(adminSecret)
+var adminPubkey [PubkeySize]byte
+
+func init() {
+	var err error
+	adminPubkey, err = GetAdminSecretPubkey(adminSecret)
+	if err != nil{
+		panic(err)
+	}
+}

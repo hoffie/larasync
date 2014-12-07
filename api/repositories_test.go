@@ -70,3 +70,10 @@ func (t *RepoListTests) TestRepoListOutputExcludeFiles(c *C) {
 	c.Assert(resp.Body.String(), Equals, "[]")
 	c.Assert(resp.Body.Len(), Not(Equals), 0)
 }
+
+func (t *RepoListTests) TestRepoListMangled(c *C) {
+	SignAsAdmin(t.req, adminSecret)
+	t.req.Header.Set("Mangled", "Yes")
+	resp := t.getResponse(t.req)
+	c.Assert(resp.Code, Equals, 401)
+}

@@ -32,11 +32,14 @@ func SignWithPassphrase(req *http.Request, passphrase []byte) error {
 	if err != nil {
 		return err
 	}
-	signWithKey(req, key)
+	SignWithKey(req, key)
 	return nil
 }
 
-func signWithKey(req *http.Request, key [PrivateKeySize]byte) {
+// SignWithKey signs the request with the given private key by adding an
+// appropriate authorization header.
+// A Date header is also appended if not yet existing
+func SignWithKey(req *http.Request, key [PrivateKeySize]byte) {
 	if req.Header.Get("Date") == "" {
 		req.Header.Set("Date", time.Now().UTC().Format(http.TimeFormat))
 	}

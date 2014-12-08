@@ -24,19 +24,27 @@ func dispatch(args []string) int {
 	}
 	switch action {
 	case "server":
-		cfg := getServerConfig()
-		rm, err := repository.NewManager(cfg.Repository.BasePath)
-		if err != nil {
-			log.Fatal("repository.Manager creation failure:", err)
-		}
-		s := api.New(*cfg.Signatures.AdminPubkeyBinary,
-			cfg.Signatures.MaxAge, rm)
-		log.Printf("Listening on %s", cfg.Server.Listen)
-		log.Fatal(s.ListenAndServe())
-		return 1
+		return serverAction()
 	default:
-		log.Fatal("unsupported action; possible actions: server")
-		return 1
+		return defaultAction()
 	}
 	return 0
+}
+
+func serverAction() int {
+	cfg := getServerConfig()
+	rm, err := repository.NewManager(cfg.Repository.BasePath)
+	if err != nil {
+		log.Fatal("repository.Manager creation failure:", err)
+	}
+	s := api.New(*cfg.Signatures.AdminPubkeyBinary,
+		cfg.Signatures.MaxAge, rm)
+	log.Printf("Listening on %s", cfg.Server.Listen)
+	log.Fatal(s.ListenAndServe())
+	return 1
+}
+
+func defaultAction() int {
+	log.Fatal("unsupported action; possible actions: server")
+	return 1
 }

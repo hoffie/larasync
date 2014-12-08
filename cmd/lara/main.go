@@ -10,13 +10,17 @@ import (
 
 // main is our service dispatcher.
 func main() {
-	if len(os.Args) <= 1 {
+	os.Exit(dispatch(os.Args[1:]))
+}
+
+func dispatch(args []string) int {
+	if len(args) < 1 {
 		log.Fatal("no action specified")
-		os.Exit(1)
+		return 1
 	}
-	action := os.Args[1]
-	if len(os.Args) > 1 {
-		flags.Parse(os.Args[2:])
+	action := args[0]
+	if len(args) > 1 {
+		flags.Parse(args[1:])
 	}
 	switch action {
 	case "server":
@@ -29,9 +33,10 @@ func main() {
 			cfg.Signatures.MaxAge, rm)
 		log.Printf("Listening on %s", cfg.Server.Listen)
 		log.Fatal(s.ListenAndServe())
-		return
+		return 1
 	default:
 		log.Fatal("unsupported action; possible actions: server")
-		os.Exit(1)
+		return 1
 	}
+	return 0
 }

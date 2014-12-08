@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	flags *flag.FlagSet
+	flags      *flag.FlagSet
 	configPath string
 )
 

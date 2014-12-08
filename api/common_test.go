@@ -16,7 +16,7 @@ var adminPubkey [PubkeySize]byte
 func init() {
 	var err error
 	adminPubkey, err = GetAdminSecretPubkey(adminSecret)
-	if err != nil{
+	if err != nil {
 		panic(err)
 	}
 }

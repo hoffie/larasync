@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hoffie/larasync/api"
@@ -27,20 +26,23 @@ type ServerConfig struct {
 
 // Sanitize populates all zero values with sane defaults and ensures that any
 // required options are set to sane values.
-func (c *ServerConfig) Sanitize() {
+func (c *ServerConfig) Sanitize() error {
 	if c.Server.Listen == "" {
 		c.Server.Listen = fmt.Sprintf("127.0.0.1:%d", api.DefaultPort)
 	}
 	err := c.decodeAdminPubkey()
 	if err != nil {
-		log.Fatal("no admin secret configured; refusing to run")
+		Log.Error("no admin pubkey configured; refusing to run")
+		return errors.New("missing admin pubkey")
 	}
 	if len(c.Repository.BasePath) == 0 {
-		log.Fatal("no repository base path configured; refusing to run")
+		Log.Error("no repository base path configured; refusing to run")
+		return errors.New("missing basepath")
 	}
 	if c.Signatures.MaxAge == 0 {
 		c.Signatures.MaxAge = 5 * time.Second
 	}
+	return nil
 }
 
 // decodeAdminPubkey reads AdminPubkey, hex-decodes it and performs validation steps.

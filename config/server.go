@@ -33,7 +33,7 @@ func (c *ServerConfig) Sanitize() {
 	}
 	err := c.decodeAdminPubkey()
 	if err != nil {
-		log.Fatal("no admin secret configured; refusing to run", err)
+		log.Fatal("no admin secret configured; refusing to run")
 	}
 	if len(c.Repository.BasePath) == 0 {
 		log.Fatal("no repository base path configured; refusing to run")

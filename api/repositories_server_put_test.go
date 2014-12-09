@@ -27,13 +27,17 @@ type RepoListCreateTests struct {
 
 var _ = Suite(&RepoListCreateTests{})
 
-func (t *RepoListCreateTests) requestWithBody(c *C, body []byte) *http.Request {
+func (t *RepoListCreateTests) requestWithBytes(c *C, body []byte) *http.Request {
 	var http_body io.Reader
 	if body == nil {
 		http_body = nil
 	} else {
 		http_body = bytes.NewReader(body)
 	}
+	return t.requestWithReader(c, http_body)
+}
+
+func (t *RepoListCreateTests) requestWithReader(c *C, http_body io.Reader) *http.Request {
 	req, err := http.NewRequest(
 		"PUT",
 		fmt.Sprintf(
@@ -48,6 +52,8 @@ func (t *RepoListCreateTests) requestWithBody(c *C, body []byte) *http.Request {
 	return req
 }
 
+
+
 func (t *RepoListCreateTests) SetUpTest(c *C) {
 	t.repos = c.MkDir()
 	t.repositoryName = "test"
@@ -56,7 +62,7 @@ func (t *RepoListCreateTests) SetUpTest(c *C) {
 	t.server = New(adminPubkey, time.Minute, rm)
 	c.Assert(rm.Exists(t.repositoryName), Equals, false)
 	t.rm = rm
-	t.req = t.requestWithBody(c, nil)
+	t.req = t.requestWithBytes(c, nil)
 }
 
 func (t *RepoListCreateTests) SetUpSuite(c *C) {
@@ -78,7 +84,7 @@ func (t *RepoListCreateTests) addPubKey(c *C) {
 		PubKey: t.pubKey,
 	})
 	c.Assert(err, IsNil)
-	t.req = t.requestWithBody(c, json_repository)
+	t.req = t.requestWithBytes(c, json_repository)
 }
 
 func (t *RepoListCreateTests) TestRepoCreateUnauthorized(c *C) {
@@ -149,11 +155,22 @@ func (t *RepoListCreateTests) TestRepoAlreadyExists(c *C) {
 
 func (t *RepoListCreateTests) TestMangledJson(c *C) {
 	json_bytes := bytes.NewBufferString("{'hello':'world'}").Bytes()
-	t.req = t.requestWithBody(c, json_bytes)
+	t.req = t.requestWithBytes(c, json_bytes)
 	SignWithPassphrase(t.req, adminSecret)
 	c.Assert(
 		t.getResponse(t.req).Code,
 		Equals,
 		http.StatusBadRequest,
+	)
+}
+
+func (t *RepoListCreateTests) TestRepositoryError(c *C) {
+	os.RemoveAll(t.repos)
+	t.addPubKey(c)
+	SignWithPassphrase(t.req, adminSecret)
+	c.Assert(
+		t.getResponse(t.req).Code,
+		Equals,
+		http.StatusInternalServerError,
 	)
 }

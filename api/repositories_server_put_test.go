@@ -52,8 +52,6 @@ func (t *RepoListCreateTests) requestWithReader(c *C, httpBody io.Reader) *http.
 	return req
 }
 
-
-
 func (t *RepoListCreateTests) SetUpTest(c *C) {
 	t.repos = c.MkDir()
 	t.repositoryName = "test"

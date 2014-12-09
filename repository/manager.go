@@ -63,3 +63,9 @@ func (m *Manager) Open(name string) (*Repository, error) {
 	}
 	return r, nil
 }
+
+// Returns if the repository with the given name exists
+func (m *Manager) Exists(name string) bool {
+	r, _ := m.Open(name)
+	return r != nil
+}

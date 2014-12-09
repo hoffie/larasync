@@ -28,25 +28,25 @@ type RepoListCreateTests struct {
 var _ = Suite(&RepoListCreateTests{})
 
 func (t *RepoListCreateTests) requestWithBytes(c *C, body []byte) *http.Request {
-	var http_body io.Reader
+	var httpBody io.Reader
 	if body == nil {
-		http_body = nil
+		httpBody = nil
 	} else {
-		http_body = bytes.NewReader(body)
+		httpBody = bytes.NewReader(body)
 	}
-	return t.requestWithReader(c, http_body)
+	return t.requestWithReader(c, httpBody)
 }
 
-func (t *RepoListCreateTests) requestWithReader(c *C, http_body io.Reader) *http.Request {
+func (t *RepoListCreateTests) requestWithReader(c *C, httpBody io.Reader) *http.Request {
 	req, err := http.NewRequest(
 		"PUT",
 		fmt.Sprintf(
 			"http://example.org/repositories/%s",
 			t.repositoryName,
 		),
-		http_body)
+		httpBody)
 	c.Assert(err, IsNil)
-	if http_body != nil {
+	if httpBody != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
 	return req
@@ -80,11 +80,11 @@ func (t *RepoListCreateTests) getResponse(req *http.Request) *httptest.ResponseR
 }
 
 func (t *RepoListCreateTests) addPubKey(c *C) {
-	jsonRepository, err := json.Marshal(JsonRepository{
+	repository, err := json.Marshal(JSONRepository{
 		PubKey: t.pubKey,
 	})
 	c.Assert(err, IsNil)
-	t.req = t.requestWithBytes(c, jsonRepository)
+	t.req = t.requestWithBytes(c, repository)
 }
 
 func (t *RepoListCreateTests) TestRepoCreateUnauthorized(c *C) {
@@ -104,10 +104,10 @@ func (t *RepoListCreateTests) TestRepoCreateContentType(c *C) {
 	SignWithPassphrase(t.req, adminSecret)
 	resp := t.getResponse(t.req)
 
-	content_type := resp.Header().Get("Content-Type")
+	contentType := resp.Header().Get("Content-Type")
 	c.Assert(
 		strings.HasPrefix(
-			content_type,
+			contentType,
 			"application/json"),
 		Equals,
 		true)
@@ -154,8 +154,8 @@ func (t *RepoListCreateTests) TestRepoAlreadyExists(c *C) {
 }
 
 func (t *RepoListCreateTests) TestMangledJson(c *C) {
-	json_bytes := bytes.NewBufferString("{'hello':'world'}").Bytes()
-	t.req = t.requestWithBytes(c, json_bytes)
+	jsonBytes := bytes.NewBufferString("{'hello':'world'}").Bytes()
+	t.req = t.requestWithBytes(c, jsonBytes)
 	SignWithPassphrase(t.req, adminSecret)
 	c.Assert(
 		t.getResponse(t.req).Code,

@@ -55,10 +55,10 @@ func (t *RepoListTests) TestRepoListContentType(c *C) {
 	SignWithPassphrase(t.req, adminSecret)
 	resp := t.getResponse(t.req)
 
-	content_type := resp.Header().Get("Content-Type")
+	contentType := resp.Header().Get("Content-Type")
 	c.Assert(
 		strings.HasPrefix(
-			content_type,
+			contentType,
 			"application/json"),
 		Equals,
 		true)

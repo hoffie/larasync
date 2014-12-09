@@ -1,5 +1,5 @@
 package api
 
-type JsonError struct {
+type JSONError struct {
 	Error string `json:"error"`
 }

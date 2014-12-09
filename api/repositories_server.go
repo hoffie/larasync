@@ -15,12 +15,12 @@ func (s *Server) repositoryList(rw http.ResponseWriter, req *http.Request) {
 	jsonHeader(rw)
 	names, err := s.rm.ListNames()
 	if err != nil {
-		errorJson(rw, "Internal Server Error", http.StatusInternalServerError)
+		errorJSON(rw, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	out, err := json.Marshal(names)
 	if err != nil {
-		errorJson(rw, "Internal Server Error", http.StatusInternalServerError)
+		errorJSON(rw, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	rw.Write(out)
@@ -29,37 +29,37 @@ func (s *Server) repositoryList(rw http.ResponseWriter, req *http.Request) {
 func (s *Server) repositoryCreate(rw http.ResponseWriter, req *http.Request) {
 	jsonHeader(rw)
 	vars := mux.Vars(req)
-	repository_name := vars["repository"]
-	if s.rm.Exists(repository_name) {
-		errorJson(rw, "Repository exists", http.StatusConflict)
+	repositoryName := vars["repository"]
+	if s.rm.Exists(repositoryName) {
+		errorJSON(rw, "Repository exists", http.StatusConflict)
 		return
 	}
-	var repository JsonRepository
+	var repository JSONRepository
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		errorJson(rw, "Internal Server Error", http.StatusInternalServerError)
+		errorJSON(rw, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	err = json.Unmarshal(body, &repository)
 	if err != nil {
-		errorJson(rw, "Bad Request", http.StatusBadRequest)
+		errorJSON(rw, "Bad Request", http.StatusBadRequest)
 		return
 	}
 
 	if len(repository.PubKey) != PubkeySize {
-		error_message := fmt.Sprintf(
+		errorMessage := fmt.Sprintf(
 			"Public key has to be of length %i got %i",
 			PubkeySize,
 			len(repository.PubKey))
-		errorJson(rw,
-			error_message,
+		errorJSON(rw,
+			errorMessage,
 			http.StatusBadRequest)
 	}
 
-	err = s.rm.Create(repository_name, repository.PubKey)
+	err = s.rm.Create(repositoryName, repository.PubKey)
 	if err != nil {
-		errorJson(rw, "Internal Server Error", http.StatusInternalServerError)
+		errorJSON(rw, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 

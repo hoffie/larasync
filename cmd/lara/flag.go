@@ -17,7 +17,11 @@ func (d *Dispatcher) makeFlagSet(args []string) {
 	}
 	d.flags = flag.NewFlagSet(name, flag.ExitOnError)
 	d.registerFlags()
-	d.flags.Parse(args[1:])
+	if len(args) >= 1 {
+		d.flags.Parse(args[1:])
+	} else {
+		d.flags.Parse([]string{})
+	}
 }
 
 // registerFlags is responsible for flag registration

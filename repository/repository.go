@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	authkeyFileName   = "auth.pub"
-	managementDirName = ".lara"
-	defaultFilePerms  = 0600
-	defaultDirPerms   = 0700
+	authPubkeyFileName = "auth.pub"
+	managementDirName  = ".lara"
+	defaultFilePerms   = 0600
+	defaultDirPerms    = 0700
 )
 
 // Repository represents an on-disk repository and provides methods to
@@ -48,7 +48,7 @@ func (r *Repository) Create() error {
 // getAuthPubkeyPath returns the path of the repository's auth pubkey
 // storage location.
 func (r *Repository) getAuthPubkeyPath() string {
-	return filepath.Join(r.Path, managementDirName, authkeyFileName)
+	return filepath.Join(r.Path, managementDirName, authPubkeyFileName)
 }
 
 // GetAuthPubkey returns the repository auth key's public key.

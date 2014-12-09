@@ -19,7 +19,8 @@ func main() {
 
 func dispatch(args []string) int {
 	if len(args) < 1 {
-		fmt.Fprint(os.Stderr, "no action specified\n")
+		fmt.Fprint(os.Stderr, "Error: no action given\n")
+		fmt.Fprint(os.Stderr, "Please specify an action, e.g.\n\tlara help\n")
 		return 1
 	}
 	action := args[0]
@@ -27,6 +28,8 @@ func dispatch(args []string) int {
 		flags.Parse(args[1:])
 	}
 	switch action {
+	case "help":
+		return helpAction()
 	case "server":
 		return serverAction()
 	default:
@@ -40,6 +43,14 @@ func setupLogging() {
 	log.SetHandler(handler)
 	repository.Log.SetHandler(handler)
 	api.Log.SetHandler(handler)
+}
+
+func helpAction() int {
+	fmt.Fprint(os.Stderr, "Syntax: lara ACTION\n\n")
+	fmt.Fprint(os.Stderr, "Possible actions:\n")
+	fmt.Fprint(os.Stderr, "\thelp\tthis information\n")
+	fmt.Fprint(os.Stderr, "\tserver\trun in server mode\n")
+	return 0
 }
 
 func serverAction() int {
@@ -58,6 +69,7 @@ func serverAction() int {
 }
 
 func defaultAction() int {
-	fmt.Fprint(os.Stderr, "unsupported action; possible actions: server\n")
+	fmt.Fprint(os.Stderr, "Error: unknown action\n")
+	fmt.Fprint(os.Stderr, "Please specify a valid action, see \n\tlara help\n")
 	return 1
 }

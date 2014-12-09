@@ -22,6 +22,7 @@ type RepoListCreateTests struct {
 	req            *http.Request
 	repos          string
 	repositoryName string
+	pubKey         []byte
 }
 
 var _ = Suite(&RepoListCreateTests{})
@@ -58,6 +59,10 @@ func (t *RepoListCreateTests) SetUpTest(c *C) {
 	t.req = t.requestWithBody(c, nil)
 }
 
+func (t *RepoListCreateTests) SetUpSuite(c *C) {
+	t.pubKey = make([]byte, PubkeySize)
+}
+
 func (t *RepoListCreateTests) TearDownTest(c *C) {
 	os.RemoveAll(t.repos)
 }
@@ -70,7 +75,7 @@ func (t *RepoListCreateTests) getResponse(req *http.Request) *httptest.ResponseR
 
 func (t *RepoListCreateTests) addPubKey(c *C) {
 	json_repository, err := json.Marshal(JsonRepository{
-		pubKey: make([]byte, PubkeySize),
+		PubKey: t.pubKey,
 	})
 	c.Assert(err, IsNil)
 	t.req = t.requestWithBody(c, json_repository)
@@ -109,6 +114,23 @@ func (t *RepoListCreateTests) TestRepoCreateMangled(c *C) {
 	c.Assert(resp.Code, Equals, http.StatusUnauthorized)
 }
 
-func (t *RepoListTests) TestRepositoryCreate(c *C) {
+func (t *RepoListCreateTests) TestRepositoryCreate(c *C) {
+	t.addPubKey(c)
 	SignWithPassphrase(t.req, adminSecret)
+	t.getResponse(t.req)
+	c.Assert(
+		t.rm.Exists(t.repositoryName),
+		Equals,
+		true,
+	)
+}
+
+func (t *RepoListCreateTests) TestWrongPubKeySize(c *C) {
+	t.pubKey = make([]byte, 5)
+	t.addPubKey(c)
+	SignWithPassphrase(t.req, adminSecret)
+	c.Assert(
+		t.getResponse(t.req).Code,
+		Equals,
+		http.StatusBadRequest)
 }

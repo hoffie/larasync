@@ -146,3 +146,14 @@ func (t *RepoListCreateTests) TestRepoAlreadyExists(c *C) {
 		http.StatusConflict,
 	)
 }
+
+func (t *RepoListCreateTests) TestMangledJson(c *C) {
+	json_bytes := bytes.NewBufferString("{'hello':'world'}").Bytes()
+	t.req = t.requestWithBody(c, json_bytes)
+	SignWithPassphrase(t.req, adminSecret)
+	c.Assert(
+		t.getResponse(t.req).Code,
+		Equals,
+		http.StatusBadRequest,
+	)
+}

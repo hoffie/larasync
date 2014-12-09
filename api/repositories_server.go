@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	"net/http"
@@ -30,25 +31,35 @@ func (s *Server) repositoryCreate(rw http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	repository_name := vars["repository"]
 	if s.rm.Exists(repository_name) {
-		http.Error(rw, "Repository exists", http.StatusConflict)
+		errorJson(rw, "Repository exists", http.StatusConflict)
 		return
 	}
 	var repository JsonRepository
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		http.Error(rw, "Internal Server Error", http.StatusInternalServerError)
+		errorJson(rw, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	err = json.Unmarshal(body, &repository)
 	if err != nil {
-		http.Error(rw, "Bad Request", http.StatusBadRequest)
+		errorJson(rw, "Bad Request", http.StatusBadRequest)
 		return
 	}
 
-	err = s.rm.Create(repository_name, repository.pubKey)
+	if len(repository.PubKey) != PubkeySize {
+		error_message := fmt.Sprintf(
+			"Public key has to be of length %i got %i",
+			PubkeySize,
+			len(repository.PubKey))
+		errorJson(rw,
+			error_message,
+			http.StatusBadRequest)
+	}
+
+	err = s.rm.Create(repository_name, repository.PubKey)
 	if err != nil {
-		http.Error(rw, "Internal Server Error", http.StatusInternalServerError)
+		errorJson(rw, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 

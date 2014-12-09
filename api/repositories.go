@@ -1,5 +1,5 @@
 package api
 
 type JsonRepository struct {
-	pubKey []byte
+	PubKey []byte `json:'pub_key'`
 }

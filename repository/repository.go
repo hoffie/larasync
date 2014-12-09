@@ -19,9 +19,14 @@ type Repository struct {
 	Path string
 }
 
-// createManagementDir ensures that this repository's management
+// New returns a new repository instance with the given base path
+func New(path string) *Repository {
+	return &Repository{Path: path}
+}
+
+// CreateManagementDir ensures that this repository's management
 // directory exists.
-func (r *Repository) createManagementDir() error {
+func (r *Repository) CreateManagementDir() error {
 	path := filepath.Join(r.Path, managementDirname)
 	err := os.Mkdir(path, defaultDirPerms)
 	if err != nil && err != os.ErrExist {
@@ -36,7 +41,7 @@ func (r *Repository) Create() error {
 	if err != nil {
 		return err
 	}
-	err = r.createManagementDir()
+	err = r.CreateManagementDir()
 	return err
 }
 

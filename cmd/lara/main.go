@@ -1,9 +1,10 @@
 package main
 
 import (
-	"os"
+	"flag"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/inconshreveable/log15"
 
@@ -15,13 +16,13 @@ var log = log15.New("module", "main")
 
 // main is our service dispatcher.
 func main() {
-	os.Exit(dispatch(os.Args[1:]))
+	os.Exit(dispatch(os.Stderr, os.Args[1:]))
 }
 
-func dispatch(args []string) int {
+func dispatch(out io.Writer, args []string) int {
 	if len(args) < 1 {
-		fmt.Fprint(os.Stderr, "Error: no action given\n")
-		fmt.Fprint(os.Stderr, "Please specify an action, e.g.\n\tlara help\n")
+		fmt.Fprint(out, "Error: no action given\n")
+		fmt.Fprint(out, "Please specify an action, e.g.\n\tlara help\n")
 		return 1
 	}
 	action := args[0]
@@ -37,7 +38,7 @@ func dispatch(args []string) int {
 	case "server":
 		cmd = serverAction
 	}
-	return cmd(os.Stderr)
+	return cmd(out, flags)
 }
 
 func setupLogging() {
@@ -47,7 +48,7 @@ func setupLogging() {
 	api.Log.SetHandler(handler)
 }
 
-func helpAction(out io.Writer) int {
+func helpAction(out io.Writer, flags *flag.FlagSet) int {
 	fmt.Fprint(out, "Syntax: lara ACTION\n\n")
 	fmt.Fprint(out, "Possible actions:\n")
 	fmt.Fprint(out, "\thelp\tthis information\n")
@@ -56,7 +57,7 @@ func helpAction(out io.Writer) int {
 	return 0
 }
 
-func serverAction(out io.Writer) int {
+func serverAction(out io.Writer, flags *flag.FlagSet) int {
 	setupLogging()
 	cfg := getServerConfig()
 	rm, err := repository.NewManager(cfg.Repository.BasePath)
@@ -71,7 +72,7 @@ func serverAction(out io.Writer) int {
 	return 1
 }
 
-func defaultAction(out io.Writer) int {
+func defaultAction(out io.Writer, flags *flag.FlagSet) int {
 	fmt.Fprint(out, "Error: unknown action\n")
 	fmt.Fprint(out, "Please specify a valid action, see \n\tlara help\n")
 	return 1

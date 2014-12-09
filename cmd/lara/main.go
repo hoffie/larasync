@@ -16,49 +16,60 @@ var log = log15.New("module", "main")
 
 // main is our service dispatcher.
 func main() {
-	os.Exit(dispatch(os.Stderr, os.Args[1:]))
+	d := &Dispatcher{stderr: os.Stderr}
+	os.Exit(d.run(os.Args[1:]))
 }
 
-func dispatch(out io.Writer, args []string) int {
+// Dispatcher is the environment for our command dispatcher and keeps
+// references to the relevant external interfaces.
+type Dispatcher struct {
+	stderr io.Writer
+	flags  *flag.FlagSet
+}
+
+// run starts dispatching with the given args.
+func (d *Dispatcher) run(args []string) int {
+	d.makeFlagSet(args)
 	if len(args) < 1 {
-		fmt.Fprint(out, "Error: no action given\n")
-		fmt.Fprint(out, "Please specify an action, e.g.\n\tlara help\n")
+		fmt.Fprint(d.stderr, "Error: no action given\n")
+		fmt.Fprint(d.stderr, "Please specify an action, e.g.\n\tlara help\n")
 		return 1
 	}
 	action := args[0]
-	if len(args) > 1 {
-		flags.Parse(args[1:])
-	}
-	cmd := defaultAction
+	cmd := d.defaultAction
 	switch action {
 	case "help":
-		cmd = helpAction
+		cmd = d.helpAction
 	case "init":
-		cmd = initAction
+		cmd = d.initAction
 	case "server":
-		cmd = serverAction
+		cmd = d.serverAction
 	}
-	return cmd(out, flags)
+	return cmd()
 }
 
-func setupLogging() {
+// setupLogging configures our loggers and sets up our subpackages to use
+// it as well.
+func (d *Dispatcher) setupLogging() {
 	handler := log15.StreamHandler(os.Stderr, log15.LogfmtFormat())
 	log.SetHandler(handler)
 	repository.Log.SetHandler(handler)
 	api.Log.SetHandler(handler)
 }
 
-func helpAction(out io.Writer, flags *flag.FlagSet) int {
-	fmt.Fprint(out, "Syntax: lara ACTION\n\n")
-	fmt.Fprint(out, "Possible actions:\n")
-	fmt.Fprint(out, "\thelp\tthis information\n")
-	fmt.Fprint(out, "\tinit\tinitialize a new repository\n")
-	fmt.Fprint(out, "\tserver\trun in server mode\n")
+// helpAction outputs usage information.
+func (d *Dispatcher) helpAction() int {
+	fmt.Fprint(d.stderr, "Syntax: lara ACTION\n\n")
+	fmt.Fprint(d.stderr, "Possible actions:\n")
+	fmt.Fprint(d.stderr, "\thelp\tthis information\n")
+	fmt.Fprint(d.stderr, "\tinit\tinitialize a new repository\n")
+	fmt.Fprint(d.stderr, "\tserver\trun in server mode\n")
 	return 0
 }
 
-func serverAction(out io.Writer, flags *flag.FlagSet) int {
-	setupLogging()
+// serverAction starts the server process.
+func (d *Dispatcher) serverAction() int {
+	d.setupLogging()
 	cfg := getServerConfig()
 	rm, err := repository.NewManager(cfg.Repository.BasePath)
 	if err != nil {
@@ -72,8 +83,9 @@ func serverAction(out io.Writer, flags *flag.FlagSet) int {
 	return 1
 }
 
-func defaultAction(out io.Writer, flags *flag.FlagSet) int {
-	fmt.Fprint(out, "Error: unknown action\n")
-	fmt.Fprint(out, "Please specify a valid action, see \n\tlara help\n")
+// defaultAction is invoked for all unknown actions.
+func (d *Dispatcher) defaultAction() int {
+	fmt.Fprint(d.stderr, "Error: unknown action\n")
+	fmt.Fprint(d.stderr, "Please specify a valid action, see \n\tlara help\n")
 	return 1
 }

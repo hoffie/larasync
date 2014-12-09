@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	. "gopkg.in/check.v1"
@@ -49,6 +50,19 @@ func (t *RepoListTests) TestRepoListAdmin(c *C) {
 	SignWithPassphrase(t.req, adminSecret)
 	resp := t.getResponse(t.req)
 	c.Assert(resp.Code, Equals, 200)
+}
+
+func (t *RepoListTests) TestRepoListContentType(c *C) {
+	SignWithPassphrase(t.req, adminSecret)
+	resp := t.getResponse(t.req)
+
+	content_type := resp.Header().Get("Content-Type")
+	c.Assert(
+		strings.HasPrefix(
+			content_type,
+			"application/json"),
+		Equals,
+		true)
 }
 
 func (t *RepoListTests) TestRepoListOutput(c *C) {

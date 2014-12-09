@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	. "gopkg.in/check.v1"
@@ -41,14 +42,26 @@ func (t *RepoListTests) getResponse(req *http.Request) *httptest.ResponseRecorde
 
 func (t *RepoListTests) TestRepoListUnauthorized(c *C) {
 	resp := t.getResponse(t.req)
-	c.Assert(resp.Code, Equals, 401)
-	c.Assert(resp.Body.String(), Equals, "Unauthorized\n")
+	c.Assert(resp.Code, Equals, http.StatusUnauthorized)
 }
 
 func (t *RepoListTests) TestRepoListAdmin(c *C) {
 	SignWithPassphrase(t.req, adminSecret)
 	resp := t.getResponse(t.req)
-	c.Assert(resp.Code, Equals, 200)
+	c.Assert(resp.Code, Equals, http.StatusOK)
+}
+
+func (t *RepoListTests) TestRepoListContentType(c *C) {
+	SignWithPassphrase(t.req, adminSecret)
+	resp := t.getResponse(t.req)
+
+	content_type := resp.Header().Get("Content-Type")
+	c.Assert(
+		strings.HasPrefix(
+			content_type,
+			"application/json"),
+		Equals,
+		true)
 }
 
 func (t *RepoListTests) TestRepoListOutput(c *C) {
@@ -75,5 +88,5 @@ func (t *RepoListTests) TestRepoListMangled(c *C) {
 	SignWithPassphrase(t.req, adminSecret)
 	t.req.Header.Set("Mangled", "Yes")
 	resp := t.getResponse(t.req)
-	c.Assert(resp.Code, Equals, 401)
+	c.Assert(resp.Code, Equals, http.StatusUnauthorized)
 }

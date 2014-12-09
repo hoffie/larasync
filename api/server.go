@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -43,10 +42,16 @@ func New(adminPubkey [PubkeySize]byte, maxRequestAge time.Duration, rm *reposito
 	return &s
 }
 
+func jsonHeader(rw http.ResponseWriter) {
+	rw.Header().Set("Content-Type", "application/json")
+}
+
 // setupRoutes is responsible for registering API endpoints.
 func (s *Server) setupRoutes() {
 	s.router.HandleFunc("/repositories",
 		s.requireAdminAuth(s.repositoryList)).Methods("GET")
+	s.router.HandleFunc("/repositories/{repository}",
+		s.requireAdminAuth(s.repositoryCreate)).Methods("PUT")
 	s.router.HandleFunc("/", func(rw http.ResponseWriter, req *http.Request) {
 		rw.Write([]byte("larasync\n"))
 	})
@@ -62,21 +67,6 @@ func (s *Server) requireAdminAuth(f http.HandlerFunc) http.HandlerFunc {
 		}
 		f(rw, req)
 	}
-}
-
-// repositoryList returns a list of all configured repositories.
-func (s *Server) repositoryList(rw http.ResponseWriter, req *http.Request) {
-	names, err := s.rm.ListNames()
-	if err != nil {
-		http.Error(rw, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-	out, err := json.Marshal(names)
-	if err != nil {
-		http.Error(rw, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-	rw.Write(out)
 }
 
 // ListenAndServe starts serving requests on the default port.

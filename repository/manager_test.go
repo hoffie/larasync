@@ -122,3 +122,15 @@ func (t *Tests) TestOpenNonDir(c *C) {
 	c.Assert(err, NotNil)
 	c.Assert(r, IsNil)
 }
+
+func (t *Tests) TestExists(c *C) {
+	const name = "test"
+	err := t.m.Create("test", []byte("pubkey"))
+	c.Assert(err, IsNil)
+	c.Assert(t.m.Exists(name), Equals, true)
+}
+
+func (t *Tests) TestDoesNotExist(c *C) {
+	const name = "test"
+	c.Assert(t.m.Exists(name), Equals, false)
+}

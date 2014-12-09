@@ -132,5 +132,17 @@ func (t *RepoListCreateTests) TestWrongPubKeySize(c *C) {
 	c.Assert(
 		t.getResponse(t.req).Code,
 		Equals,
-		http.StatusBadRequest)
+		http.StatusBadRequest,
+	)
+}
+
+func (t *RepoListCreateTests) TestRepoAlreadyExists(c *C) {
+	t.rm.Create(t.repositoryName, t.pubKey)
+	t.addPubKey(c)
+	SignWithPassphrase(t.req, adminSecret)
+	c.Assert(
+		t.getResponse(t.req).Code,
+		Equals,
+		http.StatusConflict,
+	)
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"fmt"
+	"io"
 
 	"github.com/inconshreveable/log15"
 
@@ -27,15 +28,16 @@ func dispatch(args []string) int {
 	if len(args) > 1 {
 		flags.Parse(args[1:])
 	}
+	cmd := defaultAction
 	switch action {
 	case "help":
-		return helpAction()
+		cmd = helpAction
+	case "init":
+		cmd = initAction
 	case "server":
-		return serverAction()
-	default:
-		return defaultAction()
+		cmd = serverAction
 	}
-	return 0
+	return cmd(os.Stderr)
 }
 
 func setupLogging() {
@@ -45,15 +47,16 @@ func setupLogging() {
 	api.Log.SetHandler(handler)
 }
 
-func helpAction() int {
-	fmt.Fprint(os.Stderr, "Syntax: lara ACTION\n\n")
-	fmt.Fprint(os.Stderr, "Possible actions:\n")
-	fmt.Fprint(os.Stderr, "\thelp\tthis information\n")
-	fmt.Fprint(os.Stderr, "\tserver\trun in server mode\n")
+func helpAction(out io.Writer) int {
+	fmt.Fprint(out, "Syntax: lara ACTION\n\n")
+	fmt.Fprint(out, "Possible actions:\n")
+	fmt.Fprint(out, "\thelp\tthis information\n")
+	fmt.Fprint(out, "\tinit\tinitialize a new repository\n")
+	fmt.Fprint(out, "\tserver\trun in server mode\n")
 	return 0
 }
 
-func serverAction() int {
+func serverAction(out io.Writer) int {
 	setupLogging()
 	cfg := getServerConfig()
 	rm, err := repository.NewManager(cfg.Repository.BasePath)
@@ -68,8 +71,8 @@ func serverAction() int {
 	return 1
 }
 
-func defaultAction() int {
-	fmt.Fprint(os.Stderr, "Error: unknown action\n")
-	fmt.Fprint(os.Stderr, "Please specify a valid action, see \n\tlara help\n")
+func defaultAction(out io.Writer) int {
+	fmt.Fprint(out, "Error: unknown action\n")
+	fmt.Fprint(out, "Please specify a valid action, see \n\tlara help\n")
 	return 1
 }

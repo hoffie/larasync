@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -41,6 +40,10 @@ func New(adminPubkey [PubkeySize]byte, maxRequestAge time.Duration, rm *reposito
 	s.setupRoutes()
 	serveMux.Handle("/", s.router)
 	return &s
+}
+
+func jsonHeader(rw http.ResponseWriter) {
+	rw.Header().Set("Content-Type", "application/json")
 }
 
 // setupRoutes is responsible for registering API endpoints.

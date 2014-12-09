@@ -38,6 +38,8 @@ func (d *Dispatcher) run(args []string) int {
 	action := args[0]
 	cmd := d.defaultAction
 	switch action {
+	case "add":
+		cmd = d.addAction
 	case "help":
 		cmd = d.helpAction
 	case "init":
@@ -61,6 +63,7 @@ func (d *Dispatcher) setupLogging() {
 func (d *Dispatcher) helpAction() int {
 	fmt.Fprint(d.stderr, "Syntax: lara ACTION\n\n")
 	fmt.Fprint(d.stderr, "Possible actions:\n")
+	fmt.Fprint(d.stderr, "\tadd\tadds the current state of the given file or directory\n")
 	fmt.Fprint(d.stderr, "\thelp\tthis information\n")
 	fmt.Fprint(d.stderr, "\tinit\tinitialize a new repository\n")
 	fmt.Fprint(d.stderr, "\tserver\trun in server mode\n")

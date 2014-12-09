@@ -33,3 +33,13 @@ func (t *AddTests) TestAddNotPartOfRepo(c *C) {
 	fh.Close()
 	c.Assert(t.d.run([]string{"add", path}), Equals, 1)
 }
+
+func (t *AddTests) TestAdd(c *C) {
+	repoDir := filepath.Join(t.dir, "repo")
+	c.Assert(t.d.run([]string{"init", repoDir}), Equals, 0)
+	file := filepath.Join(repoDir, "foo")
+	fh, err := os.Create(file)
+	c.Assert(err, IsNil)
+	fh.Close()
+	c.Assert(t.d.run([]string{"add", file}), Equals, 0)
+}

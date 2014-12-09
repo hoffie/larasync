@@ -62,3 +62,9 @@ func (r *Repository) SetAuthPubkey(key []byte) error {
 	return ioutil.WriteFile(r.getAuthPubkeyPath(), key,
 		defaultFilePerms)
 }
+
+// AddItem adds a new file or directory to the repository.
+func (r *Repository) AddItem(absPath string) error {
+	//FIXME not implemented
+	return nil
+}

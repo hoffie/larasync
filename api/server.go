@@ -50,6 +50,8 @@ func jsonHeader(rw http.ResponseWriter) {
 func (s *Server) setupRoutes() {
 	s.router.HandleFunc("/repositories",
 		s.requireAdminAuth(s.repositoryList)).Methods("GET")
+	s.router.HandleFunc("/repositories/{repository}",
+		s.requireAdminAuth(s.repositoryCreate)).Methods("PUT")
 	s.router.HandleFunc("/", func(rw http.ResponseWriter, req *http.Request) {
 		rw.Write([]byte("larasync\n"))
 	})

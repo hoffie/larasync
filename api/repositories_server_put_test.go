@@ -80,11 +80,11 @@ func (t *RepoListCreateTests) getResponse(req *http.Request) *httptest.ResponseR
 }
 
 func (t *RepoListCreateTests) addPubKey(c *C) {
-	json_repository, err := json.Marshal(JsonRepository{
+	jsonRepository, err := json.Marshal(JsonRepository{
 		PubKey: t.pubKey,
 	})
 	c.Assert(err, IsNil)
-	t.req = t.requestWithBytes(c, json_repository)
+	t.req = t.requestWithBytes(c, jsonRepository)
 }
 
 func (t *RepoListCreateTests) TestRepoCreateUnauthorized(c *C) {

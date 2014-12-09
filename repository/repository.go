@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	authkeyFilename   = "auth.pub"
-	managementDirname = ".lara"
-	defaultFilePerms  = 0600
-	defaultDirPerms   = 0700
+	authPubkeyFileName = "auth.pub"
+	managementDirName  = ".lara"
+	defaultFilePerms   = 0600
+	defaultDirPerms    = 0700
 )
 
 // Repository represents an on-disk repository and provides methods to
@@ -27,7 +27,7 @@ func New(path string) *Repository {
 // CreateManagementDir ensures that this repository's management
 // directory exists.
 func (r *Repository) CreateManagementDir() error {
-	path := filepath.Join(r.Path, managementDirname)
+	path := filepath.Join(r.Path, managementDirName)
 	err := os.Mkdir(path, defaultDirPerms)
 	if err != nil && err != os.ErrExist {
 		return err
@@ -48,7 +48,7 @@ func (r *Repository) Create() error {
 // getAuthPubkeyPath returns the path of the repository's auth pubkey
 // storage location.
 func (r *Repository) getAuthPubkeyPath() string {
-	return filepath.Join(r.Path, managementDirname, authkeyFilename)
+	return filepath.Join(r.Path, managementDirName, authPubkeyFileName)
 }
 
 // GetAuthPubkey returns the repository auth key's public key.

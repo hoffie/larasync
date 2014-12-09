@@ -3,25 +3,24 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 )
 
 var (
-	flags      *flag.FlagSet
 	configPath string
 )
 
-func makeFlagSet(args []string) *flag.FlagSet {
-	name := ""
-	if len(args) >= 2 {
-		name = fmt.Sprintf("%s %s", args[0], args[1])
-	} else if len(args) >= 1 {
-		name = args[0]
+// makeFlagSet creates the dispatcher's flagset
+func (d *Dispatcher) makeFlagSet(args []string) {
+	name := "lara"
+	if len(args) >= 1 {
+		name = fmt.Sprintf("lara %s", args[0])
 	}
-	return flag.NewFlagSet(name, flag.ExitOnError)
+	d.flags = flag.NewFlagSet(name, flag.ExitOnError)
+	d.registerFlags()
+	d.flags.Parse(args[1:])
 }
 
-func init() {
-	flags = makeFlagSet(os.Args)
-	flags.StringVar(&configPath, "config", "", "config file location")
+// registerFlags is responsible for flag registration
+func (d *Dispatcher) registerFlags() {
+	d.flags.StringVar(&configPath, "config", "", "config file location")
 }

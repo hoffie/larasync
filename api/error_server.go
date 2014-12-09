@@ -9,9 +9,9 @@ import (
 func errorJSON(w http.ResponseWriter, error string, code int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	error_obj := JSONError{
+	errorObj := JSONError{
 		Error: error,
 	}
-	data, _ := json.Marshal(error_obj)
+	data, _ := json.Marshal(errorObj)
 	w.Write(data)
 }

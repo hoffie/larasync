@@ -32,8 +32,8 @@ func (c *ServerConfig) Sanitize() error {
 	}
 	err := c.decodeAdminPubkey()
 	if err != nil {
-		Log.Error("no admin pubkey configured; refusing to run")
-		return errors.New("missing admin pubkey")
+		Log.Error("no valid admin pubkey configured; refusing to run")
+		return err
 	}
 	if len(c.Repository.BasePath) == 0 {
 		Log.Error("no repository base path configured; refusing to run")

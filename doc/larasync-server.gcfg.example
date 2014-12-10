@@ -1,0 +1,8 @@
+[server]
+listen = 127.0.0.1:14124
+
+[signatures]
+adminpubkey = 1212121212121212121212121212121212121212121212121212121212121212
+
+[repository]
+basepath = /home/larasync/repositories

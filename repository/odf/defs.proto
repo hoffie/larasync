@@ -1,0 +1,26 @@
+package odf;
+
+message NIB {
+		required string UUID = 1;
+		/*
+		optional int64 historyOffset = 2;
+		repeated Revision revisionList = 3;*/
+}
+
+/*
+message Revision {
+		required string metadataID = 1;
+		required string contentIDList = 2;
+		optional int64 utcTimestamp = 3;
+		optional string deviceID = 4;
+}
+
+enum NodeType {
+		Directory = 0;
+		File = 1;
+}
+
+message Metadata {
+		required NodeType nodeType = 1;
+		required string repoRelativePath = 2;
+}*/

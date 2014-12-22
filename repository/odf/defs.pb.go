@@ -46,8 +46,9 @@ func (m *NIB) GetRevisions() []*Revision {
 }
 
 type Revision struct {
-	MetadataID       *string `protobuf:"bytes,1,req" json:"MetadataID,omitempty"`
-	XXX_unrecognized []byte  `json:"-"`
+	MetadataID       *string  `protobuf:"bytes,1,req" json:"MetadataID,omitempty"`
+	ContentIDs       []string `protobuf:"bytes,2,rep" json:"ContentIDs,omitempty"`
+	XXX_unrecognized []byte   `json:"-"`
 }
 
 func (m *Revision) Reset()         { *m = Revision{} }
@@ -59,6 +60,13 @@ func (m *Revision) GetMetadataID() string {
 		return *m.MetadataID
 	}
 	return ""
+}
+
+func (m *Revision) GetContentIDs() []string {
+	if m != nil {
+		return m.ContentIDs
+	}
+	return nil
 }
 
 func init() {

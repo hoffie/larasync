@@ -8,6 +8,7 @@ import (
 // Metadata information, contents and administration data.
 type Revision struct {
 	MetadataID string
+	ContentIDs []string
 }
 
 // newRevisionFromPb returns a new Revision, pre-filled with the
@@ -15,6 +16,7 @@ type Revision struct {
 func newRevisionFromPb(pbRev *odf.Revision) *Revision {
 	return &Revision{
 		MetadataID: pbRev.GetMetadataID(),
+		ContentIDs: pbRev.GetContentIDs(),
 	}
 }
 
@@ -23,6 +25,14 @@ func newRevisionFromPb(pbRev *odf.Revision) *Revision {
 func (r *Revision) toPb() *odf.Revision {
 	pb := &odf.Revision{
 		MetadataID: &r.MetadataID,
+		ContentIDs: r.ContentIDs,
 	}
 	return pb
+}
+
+// AddContentID adds the given object id to the list of
+// required content ids.
+func (r *Revision) AddContentID(id string) error {
+	r.ContentIDs = append(r.ContentIDs, id)
+	return nil
 }

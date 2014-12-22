@@ -32,7 +32,7 @@ func (n *NIB) ReadFrom(r io.Reader) (int64, error) {
 	if err != nil {
 		return read, err
 	}
-	n.UUID = *pb.UUID
+	n.UUID = pb.GetUUID()
 	if pb.Revisions != nil {
 		for _, pbRev := range pb.Revisions {
 			n.AppendRevision(newRevisionFromPb(pbRev))

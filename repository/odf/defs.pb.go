@@ -10,6 +10,7 @@ It is generated from these files:
 
 It has these top-level messages:
 	NIB
+	Revision
 */
 package odf
 
@@ -21,8 +22,9 @@ var _ = proto.Marshal
 var _ = math.Inf
 
 type NIB struct {
-	UUID             *string `protobuf:"bytes,1,req" json:"UUID,omitempty"`
-	XXX_unrecognized []byte  `json:"-"`
+	UUID             *string     `protobuf:"bytes,1,req" json:"UUID,omitempty"`
+	Revisions        []*Revision `protobuf:"bytes,2,rep" json:"Revisions,omitempty"`
+	XXX_unrecognized []byte      `json:"-"`
 }
 
 func (m *NIB) Reset()         { *m = NIB{} }
@@ -32,6 +34,29 @@ func (*NIB) ProtoMessage()    {}
 func (m *NIB) GetUUID() string {
 	if m != nil && m.UUID != nil {
 		return *m.UUID
+	}
+	return ""
+}
+
+func (m *NIB) GetRevisions() []*Revision {
+	if m != nil {
+		return m.Revisions
+	}
+	return nil
+}
+
+type Revision struct {
+	MetadataID       *string `protobuf:"bytes,1,req" json:"MetadataID,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (m *Revision) Reset()         { *m = Revision{} }
+func (m *Revision) String() string { return proto.CompactTextString(m) }
+func (*Revision) ProtoMessage()    {}
+
+func (m *Revision) GetMetadataID() string {
+	if m != nil && m.MetadataID != nil {
+		return *m.MetadataID
 	}
 	return ""
 }

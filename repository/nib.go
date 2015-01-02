@@ -15,8 +15,9 @@ import (
 // Besides containing administration information on its own,
 // it contains references to revisions.
 type NIB struct {
-	UUID      string
-	Revisions []*Revision
+	UUID          string
+	Revisions     []*Revision
+	HistoryOffset int64
 }
 
 // ReadFrom fills this NIB's data with the contents supplied by
@@ -33,6 +34,7 @@ func (n *NIB) ReadFrom(r io.Reader) (int64, error) {
 		return read, err
 	}
 	n.UUID = pb.GetUUID()
+	n.HistoryOffset = pb.GetHistoryOffset()
 	if pb.Revisions != nil {
 		for _, pbRev := range pb.Revisions {
 			n.AppendRevision(newRevisionFromPb(pbRev))
@@ -45,8 +47,9 @@ func (n *NIB) ReadFrom(r io.Reader) (int64, error) {
 // Returns the number of bytes written and an error if applicable.
 func (n *NIB) WriteTo(w io.Writer) (int64, error) {
 	pb := &odf.NIB{
-		UUID:      &n.UUID,
-		Revisions: make([]*odf.Revision, 0),
+		UUID:          &n.UUID,
+		HistoryOffset: &n.HistoryOffset,
+		Revisions:     make([]*odf.Revision, 0),
 	}
 	for _, r := range n.Revisions {
 		pb.Revisions = append(pb.Revisions, r.toPb())
@@ -72,4 +75,11 @@ func (n *NIB) LatestRevision() (*Revision, error) {
 		return nil, errors.New("no revision")
 	}
 	return n.Revisions[l-1], nil
+}
+
+// RevisionsTotal returns the total length of all revisions.
+// This is the sum of old revisions as marked by HistoryOffset plus any
+// current Revisions.
+func (n *NIB) RevisionsTotal() int64 {
+	return int64(len(n.Revisions)) + n.HistoryOffset
 }

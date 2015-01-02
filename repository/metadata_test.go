@@ -12,7 +12,7 @@ var _ = Suite(&MetadataTests{})
 
 func (t *MetadataTests) TestSerialize(c *C) {
 	m1 := Metadata{
-		Type: MetadataTypeFile,
+		Type:             MetadataTypeFile,
 		RepoRelativePath: "foo.txt",
 	}
 	buf := &bytes.Buffer{}
@@ -30,7 +30,7 @@ func (t *MetadataTests) TestSerialize(c *C) {
 
 func (t *MetadataTests) TestSerializeDir(c *C) {
 	m1 := Metadata{
-		Type: MetadataTypeDir,
+		Type:             MetadataTypeDir,
 		RepoRelativePath: "foo.txt",
 	}
 	buf := &bytes.Buffer{}

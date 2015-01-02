@@ -11,9 +11,10 @@ type NIBTests struct{}
 
 var _ = Suite(&NIBTests{})
 
-func (t *NIBTests) TestUUID(c *C) {
+func (t *NIBTests) TestEncode(c *C) {
 	n := NIB{}
 	n.UUID = "1234"
+	n.HistoryOffset = 30
 	buf := &bytes.Buffer{}
 	written, err := n.WriteTo(buf)
 	c.Assert(err, IsNil)
@@ -21,7 +22,7 @@ func (t *NIBTests) TestUUID(c *C) {
 	read, err := n2.ReadFrom(buf)
 	c.Assert(err, IsNil)
 	c.Assert(written, Equals, read)
-	c.Assert(n2.UUID, Equals, n.UUID)
+	c.Assert(n, DeepEquals, n2)
 }
 
 func (t *NIBTests) TestRevisionEnDecode(c *C) {
@@ -48,4 +49,20 @@ func (t *NIBTests) TestLatestRevisionFailure(c *C) {
 	r, err := n.LatestRevision()
 	c.Assert(r, IsNil)
 	c.Assert(err, NotNil)
+}
+
+func (t *NIBTests) TestRevisionsTotalSimple(c *C) {
+	n := NIB{}
+	n.AppendRevision(&Revision{})
+	n.AppendRevision(&Revision{})
+	c.Assert(n.RevisionsTotal(), Equals, int64(2))
+}
+
+func (t *NIBTests) TestRevisionsTotalhWithOffset(c *C) {
+	n := NIB{
+		HistoryOffset: 1097,
+	}
+	n.AppendRevision(&Revision{})
+	n.AppendRevision(&Revision{})
+	c.Assert(n.RevisionsTotal(), Equals, int64(1097+2))
 }

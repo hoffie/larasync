@@ -58,6 +58,7 @@ func (x *NodeType) UnmarshalJSON(data []byte) error {
 type NIB struct {
 	UUID             *string     `protobuf:"bytes,1,req" json:"UUID,omitempty"`
 	Revisions        []*Revision `protobuf:"bytes,2,rep" json:"Revisions,omitempty"`
+	HistoryOffset    *int64      `protobuf:"varint,3,opt,name=historyOffset" json:"historyOffset,omitempty"`
 	XXX_unrecognized []byte      `json:"-"`
 }
 
@@ -77,6 +78,13 @@ func (m *NIB) GetRevisions() []*Revision {
 		return m.Revisions
 	}
 	return nil
+}
+
+func (m *NIB) GetHistoryOffset() int64 {
+	if m != nil && m.HistoryOffset != nil {
+		return *m.HistoryOffset
+	}
+	return 0
 }
 
 type Revision struct {

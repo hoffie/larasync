@@ -2,9 +2,9 @@ package repository
 
 import (
 	"crypto/sha512"
+	"errors"
 	"hash"
 	"io"
-	"errors"
 	"os"
 
 	"github.com/agl/ed25519"
@@ -22,16 +22,16 @@ const (
 // SigningWriter is Writer which secures written
 // data with a signature.
 type SigningWriter struct {
-	hash hash.Hash
-	writer io.Writer
+	hash    hash.Hash
+	writer  io.Writer
 	privKey [PrivateKeySize]byte
 }
 
 // NewSigningWriter returns a new SigningWriter instance.
 func NewSigningWriter(key [PrivateKeySize]byte, writer io.Writer) *SigningWriter {
 	s := &SigningWriter{
-		hash: sha512.New(),
-		writer: writer,
+		hash:    sha512.New(),
+		writer:  writer,
 		privKey: key,
 	}
 	return s
@@ -63,18 +63,18 @@ func (w *SigningWriter) Finalize() error {
 // against the given public key. .Verify() has to be called, no
 // implicit verification is built in!
 type VerifyingReader struct {
-	hash hash.Hash
-	reader io.Reader
+	hash          hash.Hash
+	reader        io.Reader
 	limitedReader io.Reader
-	pubKey [PubkeySize]byte
-	sig [SignatureSize]byte
-	dataLength int64
+	pubKey        [PubkeySize]byte
+	sig           [SignatureSize]byte
+	dataLength    int64
 }
 
 // NewVerifyingReader returns a new VerifyingReader.
 func NewVerifyingReader(pubKey [PubkeySize]byte, reader io.ReadSeeker) (*VerifyingReader, error) {
 	r := &VerifyingReader{
-		hash: sha512.New(),
+		hash:   sha512.New(),
 		reader: reader,
 		pubKey: pubKey,
 	}

@@ -8,7 +8,7 @@ import (
 	. "gopkg.in/check.v1"
 )
 
-type SignerTests struct {}
+type SignerTests struct{}
 
 var _ = Suite(&SignerTests{})
 

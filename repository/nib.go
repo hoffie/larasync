@@ -1,9 +1,9 @@
 package repository
 
 import (
+	"bytes"
 	"errors"
 	"io"
-	"bytes"
 
 	"github.com/golang/protobuf/proto"
 
@@ -15,7 +15,7 @@ import (
 // Besides containing administration information on its own,
 // it contains references to revisions.
 type NIB struct {
-	UUID string
+	UUID      string
 	Revisions []*Revision
 }
 
@@ -45,7 +45,7 @@ func (n *NIB) ReadFrom(r io.Reader) (int64, error) {
 // Returns the number of bytes written and an error if applicable.
 func (n *NIB) WriteTo(w io.Writer) (int64, error) {
 	pb := &odf.NIB{
-		UUID: &n.UUID,
+		UUID:      &n.UUID,
 		Revisions: make([]*odf.Revision, 0),
 	}
 	for _, r := range n.Revisions {

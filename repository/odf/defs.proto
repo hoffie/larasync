@@ -15,13 +15,12 @@ message Revision {
 		optional string DeviceID = 4;
 }
 
-/*
 enum NodeType {
-		Directory = 0;
+		Dir = 0;
 		File = 1;
 }
 
 message Metadata {
-		required NodeType nodeType = 1;
-		required string repoRelativePath = 2;
-}*/
+		required NodeType Type = 1;
+		required string RepoRelativePath = 2;
+}

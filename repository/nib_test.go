@@ -28,6 +28,7 @@ func (t *NIBTests) TestRevisionEnDecode(c *C) {
 	r := &Revision{MetadataID: "1234"}
 	r.AddContentID("5678")
 	r.UTCTimestamp = time.Now().UnixNano()
+	r.DeviceID = "localhost"
 	n := NIB{}
 	n.AppendRevision(r)
 	buf := &bytes.Buffer{}

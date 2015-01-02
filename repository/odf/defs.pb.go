@@ -49,6 +49,7 @@ type Revision struct {
 	MetadataID       *string  `protobuf:"bytes,1,req" json:"MetadataID,omitempty"`
 	ContentIDs       []string `protobuf:"bytes,2,rep" json:"ContentIDs,omitempty"`
 	UTCTimestamp     *int64   `protobuf:"varint,3,opt" json:"UTCTimestamp,omitempty"`
+	DeviceID         *string  `protobuf:"bytes,4,opt" json:"DeviceID,omitempty"`
 	XXX_unrecognized []byte   `json:"-"`
 }
 
@@ -75,6 +76,13 @@ func (m *Revision) GetUTCTimestamp() int64 {
 		return *m.UTCTimestamp
 	}
 	return 0
+}
+
+func (m *Revision) GetDeviceID() string {
+	if m != nil && m.DeviceID != nil {
+		return *m.DeviceID
+	}
+	return ""
 }
 
 func init() {

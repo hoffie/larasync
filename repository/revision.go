@@ -10,6 +10,7 @@ type Revision struct {
 	MetadataID   string
 	ContentIDs   []string
 	UTCTimestamp int64
+	DeviceID     string
 }
 
 // newRevisionFromPb returns a new Revision, pre-filled with the
@@ -19,6 +20,7 @@ func newRevisionFromPb(pbRev *odf.Revision) *Revision {
 		MetadataID:   pbRev.GetMetadataID(),
 		ContentIDs:   pbRev.GetContentIDs(),
 		UTCTimestamp: pbRev.GetUTCTimestamp(),
+		DeviceID:     pbRev.GetDeviceID(),
 	}
 }
 
@@ -29,6 +31,7 @@ func (r *Revision) toPb() *odf.Revision {
 		MetadataID:   &r.MetadataID,
 		ContentIDs:   r.ContentIDs,
 		UTCTimestamp: &r.UTCTimestamp,
+		DeviceID:     &r.DeviceID,
 	}
 	return pb
 }

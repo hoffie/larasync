@@ -10,7 +10,9 @@ import (
 )
 
 const (
+	// MetadataTypeFile marks a Metadata.Type attribute as a file
 	MetadataTypeFile = iota
+	// MetadataTypeDir marks a Metadata.Type attribute as a dir
 	MetadataTypeDir
 )
 

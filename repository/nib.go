@@ -68,7 +68,7 @@ func (n *NIB) AppendRevision(r *Revision) {
 	n.Revisions = append(n.Revisions, r)
 }
 
-// LastRevision returns the most-recently added revision.
+// LatestRevision returns the most-recently added revision.
 func (n *NIB) LatestRevision() (*Revision, error) {
 	l := len(n.Revisions)
 	if l < 1 {

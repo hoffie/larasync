@@ -2,11 +2,12 @@ package repository
 
 import (
 	"bytes"
+	"time"
 
 	. "gopkg.in/check.v1"
 )
 
-type NIBTests struct {}
+type NIBTests struct{}
 
 var _ = Suite(&NIBTests{})
 
@@ -26,6 +27,7 @@ func (t *NIBTests) TestUUID(c *C) {
 func (t *NIBTests) TestRevisionEnDecode(c *C) {
 	r := &Revision{MetadataID: "1234"}
 	r.AddContentID("5678")
+	r.UTCTimestamp = time.Now().UnixNano()
 	n := NIB{}
 	n.AppendRevision(r)
 	buf := &bytes.Buffer{}

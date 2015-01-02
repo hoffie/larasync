@@ -48,6 +48,7 @@ func (m *NIB) GetRevisions() []*Revision {
 type Revision struct {
 	MetadataID       *string  `protobuf:"bytes,1,req" json:"MetadataID,omitempty"`
 	ContentIDs       []string `protobuf:"bytes,2,rep" json:"ContentIDs,omitempty"`
+	UTCTimestamp     *int64   `protobuf:"varint,3,opt" json:"UTCTimestamp,omitempty"`
 	XXX_unrecognized []byte   `json:"-"`
 }
 
@@ -67,6 +68,13 @@ func (m *Revision) GetContentIDs() []string {
 		return m.ContentIDs
 	}
 	return nil
+}
+
+func (m *Revision) GetUTCTimestamp() int64 {
+	if m != nil && m.UTCTimestamp != nil {
+		return *m.UTCTimestamp
+	}
+	return 0
 }
 
 func init() {

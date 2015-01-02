@@ -10,8 +10,8 @@ message NIB {
 
 message Revision {
 		required string MetadataID = 1;
-		repeated string ContentIDs = 2;/*
-		optional int64 utcTimestamp = 3;
+		repeated string ContentIDs = 2;
+		optional int64 UTCTimestamp = 3;/*
 		optional string deviceID = 4;*/
 }
 

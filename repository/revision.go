@@ -7,16 +7,18 @@ import (
 // Revision is part of an NIB and contains references to
 // Metadata information, contents and administration data.
 type Revision struct {
-	MetadataID string
-	ContentIDs []string
+	MetadataID   string
+	ContentIDs   []string
+	UTCTimestamp int64
 }
 
 // newRevisionFromPb returns a new Revision, pre-filled with the
 // data from the given protobuf revision.
 func newRevisionFromPb(pbRev *odf.Revision) *Revision {
 	return &Revision{
-		MetadataID: pbRev.GetMetadataID(),
-		ContentIDs: pbRev.GetContentIDs(),
+		MetadataID:   pbRev.GetMetadataID(),
+		ContentIDs:   pbRev.GetContentIDs(),
+		UTCTimestamp: pbRev.GetUTCTimestamp(),
 	}
 }
 
@@ -24,8 +26,9 @@ func newRevisionFromPb(pbRev *odf.Revision) *Revision {
 // This is used by the encoder.
 func (r *Revision) toPb() *odf.Revision {
 	pb := &odf.Revision{
-		MetadataID: &r.MetadataID,
-		ContentIDs: r.ContentIDs,
+		MetadataID:   &r.MetadataID,
+		ContentIDs:   r.ContentIDs,
+		UTCTimestamp: &r.UTCTimestamp,
 	}
 	return pb
 }

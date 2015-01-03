@@ -7,10 +7,11 @@ import (
 )
 
 const (
-	authPubkeyFileName = "auth.pub"
-	managementDirName  = ".lara"
-	defaultFilePerms   = 0600
-	defaultDirPerms    = 0700
+	authPubkeyFileName    = "auth.pub"
+	encryptionKeyFileName = "encryption.key"
+	managementDirName     = ".lara"
+	defaultFilePerms      = 0600
+	defaultDirPerms       = 0700
 )
 
 // Repository represents an on-disk repository and provides methods to
@@ -51,6 +52,12 @@ func (r *Repository) getAuthPubkeyPath() string {
 	return filepath.Join(r.Path, managementDirName, authPubkeyFileName)
 }
 
+// getEncryptionKeyPath returns the path of the repository's encryption key
+// storage location.
+func (r *Repository) getEncryptionKeyPath() string {
+	return filepath.Join(r.Path, managementDirName, encryptionKeyFileName)
+}
+
 // GetAuthPubkey returns the repository auth key's public key.
 func (r *Repository) GetAuthPubkey() ([]byte, error) {
 	pubkey, err := ioutil.ReadFile(r.getAuthPubkeyPath())
@@ -59,8 +66,18 @@ func (r *Repository) GetAuthPubkey() ([]byte, error) {
 
 // SetAuthPubkey sets the repository auth key's public key.
 func (r *Repository) SetAuthPubkey(key []byte) error {
-	return ioutil.WriteFile(r.getAuthPubkeyPath(), key,
-		defaultFilePerms)
+	return ioutil.WriteFile(r.getAuthPubkeyPath(), key, defaultFilePerms)
+}
+
+// SetEncryptionKey sets the repository encryption key
+func (r *Repository) SetEncryptionKey(key []byte) error {
+	return ioutil.WriteFile(r.getEncryptionKeyPath(), key, defaultFilePerms)
+}
+
+// GetEncryptionKey returns the repository encryption key.
+func (r *Repository) GetEncryptionKey() ([]byte, error) {
+	key, err := ioutil.ReadFile(r.getEncryptionKeyPath())
+	return key, err
 }
 
 // AddItem adds a new file or directory to the repository.

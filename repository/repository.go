@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -11,6 +12,7 @@ const (
 	authPubkeyFileName    = "auth.pub"
 	encryptionKeyFileName = "encryption.key"
 	managementDirName     = ".lara"
+	blobDirName           = "blobs"
 	defaultFilePerms      = 0600
 	defaultDirPerms       = 0700
 )
@@ -18,7 +20,8 @@ const (
 // Repository represents an on-disk repository and provides methods to
 // access its sub-items.
 type Repository struct {
-	Path string
+	Path    string
+	storage BlobStorage
 }
 
 // New returns a new repository instance with the given base path
@@ -26,15 +29,36 @@ func New(path string) *Repository {
 	return &Repository{Path: path}
 }
 
+// getStorage returns the currently configured blob storage backend
+// for the repository.
+func (r *Repository) getStorage() (*BlobStorage, error) {
+	if r.storage == nil {
+		storage := FileBlobStorage{
+			StoragePath: filepath.Join(
+				r.GetManagementDir(),
+				blobDirName)}
+		err := storage.CreateDir()
+		if err != nil {
+			return nil, err
+		}
+		r.storage = storage
+	}
+	return &r.storage, nil
+}
+
 // CreateManagementDir ensures that this repository's management
 // directory exists.
 func (r *Repository) CreateManagementDir() error {
-	path := filepath.Join(r.Path, managementDirName)
-	err := os.Mkdir(path, defaultDirPerms)
+	err := os.Mkdir(r.GetManagementDir(), defaultDirPerms)
 	if err != nil && err != os.ErrExist {
 		return err
 	}
 	return nil
+}
+
+// GetManagementDir returns the path to the management directory.
+func (r *Repository) GetManagementDir() string {
+	return filepath.Join(r.Path, managementDirName)
 }
 
 // Create initially creates the repository directory structure.
@@ -81,10 +105,10 @@ func (r *Repository) GetEncryptionKey() ([]byte, error) {
 	return key, err
 }
 
-// AddItem adds a new file or directory to the repository.
-func (r *Repository) AddItem(absPath string) error {
-	//FIXME not implemented
-	return nil
+// AddBlob adds a blob into the storage with the given
+// id and adds the data in the reader to it.
+func (r *Repository) AddBlob(blobID string, data io.Reader) error {
+	return r.storage.Set(blobID, data)
 }
 
 // getRepoRelativePath turns the given path into a path relative to the

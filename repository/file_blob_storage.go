@@ -13,6 +13,15 @@ type FileBlobStorage struct {
 	StoragePath string
 }
 
+// CreateDir ensures that the file blob storage directory exists.
+func (f *FileBlobStorage) CreateDir() error {
+	err := os.Mkdir(f.StoragePath, defaultDirPerms)
+	if err != nil && err != os.ErrExist {
+		return err
+	}
+	return nil
+}
+
 // storagePathFor returns the storage path for the data entry.
 func (f *FileBlobStorage) storagePathFor(blobID string) string {
 	return path.Join(f.StoragePath, blobID)

@@ -32,5 +32,15 @@ func (d *Dispatcher) initAction() int {
 		fmt.Fprint(d.stderr, "Unable to create management directory\n")
 		return 1
 	}
+	err = repo.CreateEncryptionKey()
+	if err != nil {
+		fmt.Fprintf(d.stderr, "Unable to generate encryption key\n")
+		return 1
+	}
+	err = repo.CreateSigningKey()
+	if err != nil {
+		fmt.Fprintf(d.stderr, "Unable to generate signing key\n")
+		return 1
+	}
 	return 0
 }

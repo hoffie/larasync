@@ -46,3 +46,8 @@ func (t *UtilTests) TestRepoRootNoLeadingSlash(c *C) {
 	_, err := GetRoot(filepath.Join("non/existing/dir"))
 	c.Assert(err, NotNil)
 }
+
+func (t *UtilTests) TestFormatUUID(c *C) {
+	x := make([]byte, 32)
+	c.Assert(formatUUID(x), Equals, "0000000000000000000000000000000000000000000000000000000000000000")
+}

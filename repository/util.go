@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"encoding/hex"
 	"errors"
 	"os"
 	"path/filepath"
@@ -30,4 +31,9 @@ func isRoot(path string) bool {
 		return false
 	}
 	return s.IsDir()
+}
+
+// formatUUID converts a binary UUID to the readable string representation
+func formatUUID(uuid []byte) string {
+	return hex.EncodeToString(uuid)
 }

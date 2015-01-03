@@ -19,14 +19,14 @@ func (f *FileBlobStorage) storagePathFor(blobID string) string {
 }
 
 // Get returns the file handle for the given blobId
-func (f *FileBlobStorage) Get(blobID string) (io.Reader, error) {
+func (f FileBlobStorage) Get(blobID string) (io.Reader, error) {
 	if f.Exists(blobID) {
 		return os.Open(f.storagePathFor(blobID))
 	}
 	return nil, errors.New("File does not exist.")
 }
 
-func (f *FileBlobStorage) Set(blobID string, reader io.Reader) error {
+func (f FileBlobStorage) Set(blobID string, reader io.Reader) error {
 	blobStoragePath := f.storagePathFor(blobID)
 
 	file, err := os.Create(blobStoragePath)
@@ -52,7 +52,7 @@ func (f *FileBlobStorage) Set(blobID string, reader io.Reader) error {
 	return nil
 }
 
-func (f *FileBlobStorage) Exists(blobID string) bool {
+func (f FileBlobStorage) Exists(blobID string) bool {
 	_, err := os.Stat(f.storagePathFor(blobID))
 	if err != nil {
 		return !os.IsNotExist(err)

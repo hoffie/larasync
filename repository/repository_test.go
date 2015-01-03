@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"os"
 	"path/filepath"
 
 	. "gopkg.in/check.v1"
@@ -18,7 +19,7 @@ func (t *RepositoryTests) SetUpTest(c *C) {
 
 func (t *RepositoryTests) TestGetEncryptionKey(c *C) {
 	r := New(filepath.Join(t.dir, "foo"))
-	k := make([]byte, 32)
+	var k [EncryptionKeySize]byte
 	k[0] = 'z'
 	_, err := r.GetEncryptionKey()
 	c.Assert(err, NotNil)
@@ -33,6 +34,27 @@ func (t *RepositoryTests) TestGetEncryptionKey(c *C) {
 	c.Assert(err, IsNil)
 
 	k2, err := r.GetEncryptionKey()
+	c.Assert(err, IsNil)
+	c.Assert(k2, DeepEquals, k)
+}
+
+func (t *RepositoryTests) TestGetSigningPrivkey(c *C) {
+	r := New(filepath.Join(t.dir, "foo"))
+	var k [PrivateKeySize]byte
+	k[0] = 'z'
+	_, err := r.GetSigningPrivkey()
+	c.Assert(err, NotNil)
+
+	err = r.SetSigningPrivkey(k)
+	c.Assert(err, NotNil)
+
+	err = r.Create()
+	c.Assert(err, IsNil)
+
+	err = r.SetSigningPrivkey(k)
+	c.Assert(err, IsNil)
+
+	k2, err := r.GetSigningPrivkey()
 	c.Assert(err, IsNil)
 	c.Assert(k2, DeepEquals, k)
 }
@@ -55,4 +77,49 @@ func (t *RepositoryTests) TestGetRepoRelativePathFail(c *C) {
 	out, err := r.getRepoRelativePath(in)
 	c.Assert(err, NotNil)
 	c.Assert(out, Equals, "")
+}
+
+func (t *RepositoryTests) TestCreateManagementDir(c *C) {
+	r := New(t.dir)
+	err := r.CreateManagementDir()
+	c.Assert(err, IsNil)
+
+	s, err := os.Stat(filepath.Join(t.dir, ".lara"))
+	c.Assert(err, IsNil)
+	c.Assert(s.IsDir(), Equals, true)
+
+	s, err = os.Stat(filepath.Join(t.dir, ".lara", "objects"))
+	c.Assert(err, IsNil)
+	c.Assert(s.IsDir(), Equals, true)
+
+	s, err = os.Stat(filepath.Join(t.dir, ".lara", "nibs"))
+	c.Assert(err, IsNil)
+	c.Assert(s.IsDir(), Equals, true)
+
+}
+
+func (t *RepositoryTests) TestCreateEncryptionKey(c *C) {
+	r := New(t.dir)
+	err := r.CreateManagementDir()
+	c.Assert(err, IsNil)
+
+	err = r.CreateEncryptionKey()
+	c.Assert(err, IsNil)
+
+	key, err := r.GetEncryptionKey()
+	c.Assert(err, IsNil)
+	c.Assert(len(key), Equals, EncryptionKeySize)
+}
+
+func (t *RepositoryTests) TestCreateSigningKey(c *C) {
+	r := New(t.dir)
+	err := r.CreateManagementDir()
+	c.Assert(err, IsNil)
+
+	err = r.CreateSigningKey()
+	c.Assert(err, IsNil)
+
+	key, err := r.GetSigningPrivkey()
+	c.Assert(err, IsNil)
+	c.Assert(len(key), Equals, PrivateKeySize)
 }

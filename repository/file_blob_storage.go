@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 	"io"
+	"io/ioutil"
 	"os"
 	"path"
 )
@@ -37,24 +38,13 @@ func (f FileBlobStorage) Get(blobID string) (io.Reader, error) {
 
 func (f FileBlobStorage) Set(blobID string, reader io.Reader) error {
 	blobStoragePath := f.storagePathFor(blobID)
-
-	file, err := os.Create(blobStoragePath)
-
+	data, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return err
 	}
 
-	cleanUp := func() {
-		file.Close()
-		_, err := os.Stat(blobStoragePath)
-		if err != nil {
-			return
-		}
-		os.Remove(blobStoragePath)
-	}
-	_, err = io.Copy(file, reader)
+	err = ioutil.WriteFile(blobStoragePath, data, defaultFilePerms)
 	if err != nil {
-		cleanUp()
 		return err
 	}
 

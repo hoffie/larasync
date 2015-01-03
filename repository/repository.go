@@ -6,8 +6,8 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"errors"
-	"io"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -46,7 +46,7 @@ func (r *Repository) getStorage() (*BlobStorage, error) {
 		storage := FileBlobStorage{
 			StoragePath: filepath.Join(
 				r.GetManagementDir(),
-				blobDirName)}
+				objectsDirName)}
 		err := storage.CreateDir()
 		if err != nil {
 			return nil, err
@@ -63,16 +63,16 @@ func (r *Repository) CreateManagementDir() error {
 	if err != nil && err != os.ErrExist {
 		return err
 	}
-	path = r.getObjectsPath()
+	path := r.getNIBsPath()
 	err = os.Mkdir(path, defaultDirPerms)
 	if err != nil && err != os.ErrExist {
 		return err
 	}
-	path = r.getNIBsPath()
-	err = os.Mkdir(path, defaultDirPerms)
-	if err != nil && err != os.ErrExist {
+	_, err = r.getStorage()
+	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -214,10 +214,12 @@ func (r *Repository) AddItem(absPath string) error {
 	}
 	err = r.writeNIB(formatUUID(uuid), buf.Bytes())
 	return err
-// AddBlob adds a blob into the storage with the given
+}
+
+// AddObject adds an object into the storage with the given
 // id and adds the data in the reader to it.
-func (r *Repository) AddBlob(blobID string, data io.Reader) error {
-	return r.storage.Set(blobID, data)
+func (r *Repository) AddObject(objectID string, data io.Reader) error {
+	return r.storage.Set(objectID, data)
 }
 
 // findFreeUUID generates a new UUID for naming a NIB; it tries to avoid
@@ -308,8 +310,7 @@ func (r *Repository) writeContentAddressedCryptoContainer(data []byte) (string, 
 
 	hexHash := hex.EncodeToString(hash[:])
 
-	outPath := filepath.Join(r.getObjectsPath(), hexHash)
-	err = ioutil.WriteFile(outPath, enc, defaultFilePerms)
+	err = r.AddObject(hexHash, bytes.NewReader(enc))
 	if err != nil {
 		return "", err
 	}

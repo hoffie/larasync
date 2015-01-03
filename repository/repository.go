@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -84,4 +85,14 @@ func (r *Repository) GetEncryptionKey() ([]byte, error) {
 func (r *Repository) AddItem(absPath string) error {
 	//FIXME not implemented
 	return nil
+}
+
+// getRepoRelativePath turns the given path into a path relative to the
+// repository root and returns it.
+func (r *Repository) getRepoRelativePath(absPath string) (string, error) {
+	if len(absPath) < len(r.Path)+1 {
+		return "", errors.New("unable to resolve path: path too short")
+	}
+	rel := absPath[len(r.Path)+1:]
+	return rel, nil
 }

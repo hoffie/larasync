@@ -36,3 +36,23 @@ func (t *RepositoryTests) TestGetEncryptionKey(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(k2, DeepEquals, k)
 }
+
+func (t *RepositoryTests) TestGetRepoRelativePath(c *C) {
+	r := New(filepath.Join(t.dir, "foo"))
+	err := r.Create()
+	c.Assert(err, IsNil)
+	in := filepath.Join(t.dir, "foo", "test", "bar")
+	out, err := r.getRepoRelativePath(in)
+	c.Assert(err, IsNil)
+	c.Assert(out, Equals, filepath.Join("test", "bar"))
+}
+
+func (t *RepositoryTests) TestGetRepoRelativePathFail(c *C) {
+	r := New(filepath.Join(t.dir, "foo"))
+	err := r.Create()
+	c.Assert(err, IsNil)
+	in := t.dir
+	out, err := r.getRepoRelativePath(in)
+	c.Assert(err, NotNil)
+	c.Assert(out, Equals, "")
+}

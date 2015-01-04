@@ -222,6 +222,10 @@ func (r *Repository) AddObject(objectID string, data io.Reader) error {
 	return r.storage.Set(objectID, data)
 }
 
+func (r *Repository) GetObjectData(objectID string) (io.Reader, error) {
+	return r.storage.Get(objectID)
+}
+
 // findFreeUUID generates a new UUID for naming a NIB; it tries to avoid
 // local collisions.
 func (r *Repository) findFreeUUID() ([]byte, error) {

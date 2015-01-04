@@ -62,12 +62,12 @@ func (r *Repository) getStorage() (BlobStorage, error) {
 // directory exists.
 func (r *Repository) CreateManagementDir() error {
 	err := os.Mkdir(r.GetManagementDir(), defaultDirPerms)
-	if err != nil && err != os.ErrExist {
+	if err != nil && !os.IsExist(err) {
 		return err
 	}
 	path := r.getNIBsPath()
 	err = os.Mkdir(path, defaultDirPerms)
-	if err != nil && err != os.ErrExist {
+	if err != nil && !os.IsExist(err) {
 		return err
 	}
 	_, err = r.getStorage()

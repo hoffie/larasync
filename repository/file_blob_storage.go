@@ -17,7 +17,8 @@ type FileBlobStorage struct {
 // CreateDir ensures that the file blob storage directory exists.
 func (f *FileBlobStorage) CreateDir() error {
 	err := os.Mkdir(f.StoragePath, defaultDirPerms)
-	if err != nil && err != os.ErrExist {
+
+	if err != nil && !os.IsExist(err) {
 		return err
 	}
 	return nil

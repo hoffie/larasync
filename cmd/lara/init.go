@@ -21,7 +21,7 @@ func (d *Dispatcher) initAction() int {
 	} else {
 		target = d.flags.Arg(0)
 		err := os.Mkdir(target, 0700)
-		if err != nil && err != os.ErrExist {
+		if err != nil && os.IsExist(err) {
 			fmt.Fprint(d.stderr, "Unable to create directory\n")
 			return 1
 		}

@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"bytes"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -122,4 +124,33 @@ func (t *RepositoryTests) TestCreateSigningKey(c *C) {
 	key, err := r.GetSigningPrivkey()
 	c.Assert(err, IsNil)
 	c.Assert(len(key), Equals, PrivateKeySize)
+}
+
+func (t *RepositoryTests) TestAddObject(c *C) {
+	r := New(t.dir)
+	err := r.CreateManagementDir()
+	c.Assert(err, IsNil)
+	objectId := "1234567890"
+	objectReader := bytes.NewReader([]byte("Test data"))
+
+	err = r.AddObject(objectId, objectReader)
+	c.Assert(err, IsNil)
+}
+
+func (t *RepositoryTests) TestGetObject(c *C) {
+	r := New(t.dir)
+	err := r.CreateManagementDir()
+	c.Assert(err, IsNil)
+	objectId := "1234567890"
+	objectData := []byte("Test data")
+	objectReader := bytes.NewReader(objectData)
+
+	r.AddObject(objectId, objectReader)
+
+	reader, err := r.GetObjectData(objectId)
+	c.Assert(err, IsNil)
+
+	data, err := ioutil.ReadAll(reader)
+
+	c.Assert(objectData, DeepEquals, data)
 }

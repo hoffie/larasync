@@ -70,7 +70,7 @@ func (t *Tests) TestListExcludeFile(c *C) {
 
 func (t *Tests) TestListBadBasePath(c *C) {
 	// fake error condition for testing
-	t.m.basePath = "/dev/null"
+	t.m.basePath = "/dev/null/asdf"
 	e, err := t.m.ListNames()
 	c.Assert(err, NotNil)
 	c.Assert(e, IsNil)

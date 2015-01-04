@@ -147,7 +147,7 @@ func (t *RepositoryTests) TestGetObject(c *C) {
 
 	r.AddObject(objectID, objectReader)
 
-	reader, err := r.GetObjectData(objectId)
+	reader, err := r.GetObjectData(objectID)
 	c.Assert(err, IsNil)
 
 	data, err := ioutil.ReadAll(reader)

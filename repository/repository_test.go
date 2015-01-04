@@ -130,10 +130,10 @@ func (t *RepositoryTests) TestAddObject(c *C) {
 	r := New(t.dir)
 	err := r.CreateManagementDir()
 	c.Assert(err, IsNil)
-	objectId := "1234567890"
+	objectID := "1234567890"
 	objectReader := bytes.NewReader([]byte("Test data"))
 
-	err = r.AddObject(objectId, objectReader)
+	err = r.AddObject(objectID, objectReader)
 	c.Assert(err, IsNil)
 }
 
@@ -141,11 +141,11 @@ func (t *RepositoryTests) TestGetObject(c *C) {
 	r := New(t.dir)
 	err := r.CreateManagementDir()
 	c.Assert(err, IsNil)
-	objectId := "1234567890"
+	objectID := "1234567890"
 	objectData := []byte("Test data")
 	objectReader := bytes.NewReader(objectData)
 
-	r.AddObject(objectId, objectReader)
+	r.AddObject(objectID, objectReader)
 
 	reader, err := r.GetObjectData(objectId)
 	c.Assert(err, IsNil)

@@ -24,7 +24,9 @@ const (
 	nibsDirName            = "nibs"
 	defaultFilePerms       = 0600
 	defaultDirPerms        = 0700
-	EncryptionKeySize      = 32
+	// EncryptionKeySize represents the size of the key used for
+	// encrypting.
+	EncryptionKeySize = 32
 )
 
 // Repository represents an on-disk repository and provides methods to
@@ -165,8 +167,8 @@ func (r *Repository) SetEncryptionKey(key [EncryptionKeySize]byte) error {
 func (r *Repository) GetEncryptionKey() ([EncryptionKeySize]byte, error) {
 	key, err := ioutil.ReadFile(r.getEncryptionKeyPath())
 	if len(key) != EncryptionKeySize {
-		return [EncryptionKeySize]byte{}, errors.New(
-			fmt.Sprintf("invalid key length (%d)", len(key)))
+		return [EncryptionKeySize]byte{}, fmt.Errorf(
+			"invalid key length (%d)", len(key))
 	}
 	var arrKey [EncryptionKeySize]byte
 	copy(arrKey[:], key)
@@ -182,8 +184,8 @@ func (r *Repository) SetSigningPrivkey(key [PrivateKeySize]byte) error {
 func (r *Repository) GetSigningPrivkey() ([PrivateKeySize]byte, error) {
 	key, err := ioutil.ReadFile(r.getSigningPrivkeyPath())
 	if len(key) != PrivateKeySize {
-		return [PrivateKeySize]byte{}, errors.New(
-			fmt.Sprintf("invalid key length (%d)", len(key)))
+		return [PrivateKeySize]byte{}, fmt.Errorf(
+			"invalid key length (%d)", len(key))
 	}
 	var arrKey [PrivateKeySize]byte
 	copy(arrKey[:], key)
@@ -222,6 +224,8 @@ func (r *Repository) AddObject(objectID string, data io.Reader) error {
 	return r.storage.Set(objectID, data)
 }
 
+// GetObjectData returns the data stored for the given objectID in this
+// repository.
 func (r *Repository) GetObjectData(objectID string) (io.Reader, error) {
 	return r.storage.Get(objectID)
 }

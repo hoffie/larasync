@@ -43,7 +43,7 @@ func New(path string) *Repository {
 
 // getStorage returns the currently configured blob storage backend
 // for the repository.
-func (r *Repository) getStorage() (*BlobStorage, error) {
+func (r *Repository) getStorage() (BlobStorage, error) {
 	if r.storage == nil {
 		storage := FileBlobStorage{
 			StoragePath: filepath.Join(
@@ -55,7 +55,7 @@ func (r *Repository) getStorage() (*BlobStorage, error) {
 		}
 		r.storage = storage
 	}
-	return &r.storage, nil
+	return r.storage, nil
 }
 
 // CreateManagementDir ensures that this repository's management
@@ -221,13 +221,21 @@ func (r *Repository) AddItem(absPath string) error {
 // AddObject adds an object into the storage with the given
 // id and adds the data in the reader to it.
 func (r *Repository) AddObject(objectID string, data io.Reader) error {
-	return r.storage.Set(objectID, data)
+	storage, err := r.getStorage()
+	if err != nil {
+		return err
+	}
+	return storage.Set(objectID, data)
 }
 
 // GetObjectData returns the data stored for the given objectID in this
 // repository.
 func (r *Repository) GetObjectData(objectID string) (io.Reader, error) {
-	return r.storage.Get(objectID)
+	storage, err := r.getStorage()
+	if err != nil {
+		return nil, err
+	}
+	return storage.Get(objectID)
 }
 
 // findFreeUUID generates a new UUID for naming a NIB; it tries to avoid

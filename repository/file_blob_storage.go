@@ -36,6 +36,7 @@ func (f FileBlobStorage) Get(blobID string) (io.Reader, error) {
 	return nil, errors.New("File does not exist.")
 }
 
+// Set adds data from a reader and assigns it to the passed blobID
 func (f FileBlobStorage) Set(blobID string, reader io.Reader) error {
 	blobStoragePath := f.storagePathFor(blobID)
 	data, err := ioutil.ReadAll(reader)
@@ -51,6 +52,7 @@ func (f FileBlobStorage) Set(blobID string, reader io.Reader) error {
 	return nil
 }
 
+// Exists checks if a blob is stored for the given blobID.
 func (f FileBlobStorage) Exists(blobID string) bool {
 	_, err := os.Stat(f.storagePathFor(blobID))
 	if err != nil {

@@ -26,13 +26,13 @@ func (t *FileBlobStorageTests) SetUpTest(c *C) {
 	t.data = []byte("This is a test blob storage file input.")
 }
 
-func (t *FileBlobStorageTests) blobId() string {
-	blobIdBytes := sha256.New().Sum(t.data)
-	return hex.EncodeToString(blobIdBytes[:])
+func (t *FileBlobStorageTests) blobID() string {
+	blobIDBytes := sha256.New().Sum(t.data)
+	return hex.EncodeToString(blobIDBytes[:])
 }
 
 func (t *FileBlobStorageTests) blobPath() string {
-	return path.Join(t.dir, t.blobId())
+	return path.Join(t.dir, t.blobID())
 }
 
 func (t *FileBlobStorageTests) testReader() io.Reader {
@@ -40,7 +40,7 @@ func (t *FileBlobStorageTests) testReader() io.Reader {
 }
 
 func (t *FileBlobStorageTests) setData() error {
-	return t.storage.Set(t.blobId(), t.testReader())
+	return t.storage.Set(t.blobID(), t.testReader())
 }
 
 func (t *FileBlobStorageTests) TestSet(c *C) {
@@ -58,36 +58,36 @@ func (t *FileBlobStorageTests) TestSetInputData(c *C) {
 }
 
 func (t *FileBlobStorageTests) TestExistsNegative(c *C) {
-	c.Assert(t.storage.Exists(t.blobId()), Equals, false)
+	c.Assert(t.storage.Exists(t.blobID()), Equals, false)
 }
 
 func (t *FileBlobStorageTests) TestExistsPositive(c *C) {
 	t.setData()
-	c.Assert(t.storage.Exists(t.blobId()), Equals, true)
+	c.Assert(t.storage.Exists(t.blobID()), Equals, true)
 }
 
 func (t *FileBlobStorageTests) TestGet(c *C) {
-	t.storage.Set(t.blobId(), t.testReader())
-	_, err := t.storage.Get(t.blobId())
+	t.storage.Set(t.blobID(), t.testReader())
+	_, err := t.storage.Get(t.blobID())
 	c.Assert(err, IsNil)
 }
 
 func (t *FileBlobStorageTests) TestGetData(c *C) {
 	t.setData()
-	file, _ := t.storage.Get(t.blobId())
+	file, _ := t.storage.Get(t.blobID())
 	fileData, _ := ioutil.ReadAll(file)
 	c.Assert(fileData[:], DeepEquals, t.data)
 }
 
 func (t *FileBlobStorageTests) TestGetError(c *C) {
-	_, err := t.storage.Get(t.blobId())
+	_, err := t.storage.Get(t.blobID())
 	c.Assert(err, NotNil)
 }
 
 func (t *FileBlobStorageTests) TestSetError(c *C) {
 	os.RemoveAll(t.dir)
 
-	err := t.storage.Set(t.blobId(),
+	err := t.storage.Set(t.blobID(),
 		t.testReader())
 	c.Assert(err, NotNil)
 }

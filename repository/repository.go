@@ -40,6 +40,7 @@ const (
 type Repository struct {
 	Path               string
 	storage            ContentStorage
+	nibStore           NIBStore
 	authPubkeyPath     string
 	encryptionKeyPath  string
 	signingPrivkeyPath string
@@ -82,6 +83,27 @@ func (r *Repository) getStorage() (ContentStorage, error) {
 		r.storage = storage
 	}
 	return r.storage, nil
+}
+
+// getNIBStore returns the currently configured nib store backend
+// for the repository.
+func (r *Repository) getNIBStore() (NIBStore, error) {
+	if r.nibStore == nil {
+		nibStorage := FileContentStorage{
+			StoragePath: filepath.Join(
+				r.GetManagementDir(),
+				nibsDirName)}
+		err := nibStorage.CreateDir()
+		if err != nil {
+			return nil, err
+		}
+
+		nibStore := ClientNIBStore{
+			contentStorage: nibStorage,
+			repository:     *r}
+		r.nibStore = nibStore
+	}
+	return r.nibStore, nil
 }
 
 // CreateManagementDir ensures that this repository's management
@@ -241,16 +263,15 @@ func (r *Repository) AddItem(absPath string) error {
 	if err != nil {
 		return err
 	}
-	nib.UUID = string(uuid)
+	nib.UUID = formatUUID(uuid)
 	nib.AppendRevision(rev)
 	//FIXME: timestamp, deviceID etc.
-	buf := &bytes.Buffer{}
-	_, err = nib.WriteTo(buf)
+	nibStore, err := r.getNIBStore()
 	if err != nil {
 		return err
 	}
-	err = r.writeNIB(formatUUID(uuid), buf.Bytes())
-	return err
+
+	return nibStore.Add(&nib)
 }
 
 // AddObject adds an object into the storage with the given
@@ -311,19 +332,12 @@ func (r *Repository) findFreeUUID() ([]byte, error) {
 // hasUUID checks if the given UUID is already in use in this repository;
 // this is a local-only check.
 func (r *Repository) hasUUID(hash []byte) (bool, error) {
-	hexHash := hex.EncodeToString(hash)
-	path := filepath.Join(r.nibsPath, hexHash)
-	s, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		return false, nil
-	}
+	UUID := formatUUID(hash)
+	nibStore, err := r.getNIBStore()
 	if err != nil {
 		return false, err
 	}
-	if s.IsDir() {
-		return false, errors.New("is directory")
-	}
-	return true, nil
+	return nibStore.Exists(UUID), nil
 }
 
 // getRepoRelativePath turns the given path into a path relative to the
@@ -416,30 +430,6 @@ func (r *Repository) encryptWithRandomKey(data []byte) ([]byte, error) {
 	}
 	out = secretbox.Seal(out, data, &nonce2, &fileKey)
 	return out, nil
-}
-
-// writeNIB writes a node information block to disk.
-// It signs the data in the process.
-func (r *Repository) writeNIB(name string, data []byte) error {
-	path := filepath.Join(r.nibsPath, name)
-	key, err := r.GetSigningPrivkey()
-	if err != nil {
-		return err
-	}
-	w, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
-		defaultFilePerms)
-	if err != nil {
-		return err
-	}
-	defer w.Close()
-
-	sw := NewSigningWriter(key, w)
-	_, err = sw.Write(data)
-	if err != nil {
-		return err
-	}
-	err = sw.Finalize()
-	return err
 }
 
 // hashChunk takes a chunk of data and constructs its content-addressing

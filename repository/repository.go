@@ -26,6 +26,7 @@ const (
 	nibsDirName            = "nibs"
 	defaultFilePerms       = 0600
 	defaultDirPerms        = 0700
+	defaultChunkSize       = 1*1024*1024
 	// EncryptionKeySize represents the size of the key used for
 	// encrypting.
 	EncryptionKeySize = 32
@@ -449,7 +450,8 @@ func (r *Repository) hashChunk(chunk []byte) (string, error) {
 		return "", err
 	}
 	hasher := hmac.New(sha512.New, key[:])
-	hash := hasher.Sum(chunk)
+	hasher.Write(chunk)
+	hash := hasher.Sum(nil)
 	hexHash := hex.EncodeToString(hash)
 	return hexHash, nil
 }
@@ -457,14 +459,21 @@ func (r *Repository) hashChunk(chunk []byte) (string, error) {
 // writeFileToChunks takes a file path and saves its contents to the
 // storage in encrypted form with a content-addressing id.
 func (r *Repository) writeFileToChunks(path string) ([]string, error) {
-	//FIXME split in chunks
-	chunk, err := ioutil.ReadFile(path)
+	chunker, err := NewChunker(path, defaultChunkSize)
 	if err != nil {
 		return nil, err
 	}
-	id, err := r.writeContentAddressedCryptoContainer(chunk)
-	if err != nil {
-		return nil, err
+	var ids []string
+	for chunker.HasNext() {
+		chunk, err := chunker.Next()
+		if err != nil {
+			return nil, err
+		}
+		id, err := r.writeContentAddressedCryptoContainer(chunk)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
 	}
-	return []string{id}, nil
+	return ids, nil
 }

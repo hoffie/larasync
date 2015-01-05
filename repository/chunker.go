@@ -26,7 +26,7 @@ func NewChunker(path string, chunkSize uint64) (*Chunker, error) {
 	}
 
 	if chunkSize < 16 {
-		return nil, BadChunkSize
+		return nil, ErrBadChunkSize
 	}
 
 	c := &Chunker{

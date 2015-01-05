@@ -7,7 +7,7 @@ import (
 	"path"
 )
 
-// FileBlobStorage is the basic implementation of the BlobStorage
+// FileContentStorage is the basic implementation of the ContentStorage
 // implementation which stores the data into the file system.
 type FileContentStorage struct {
 	StoragePath string

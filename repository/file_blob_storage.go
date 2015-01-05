@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -44,6 +45,7 @@ func (f FileBlobStorage) Set(blobID string, reader io.Reader) error {
 		return err
 	}
 
+	fmt.Println(fmt.Sprintf("Setting blob with id %s to %s", blobID, data))
 	err = ioutil.WriteFile(blobStoragePath, data, defaultFilePerms)
 	if err != nil {
 		return err

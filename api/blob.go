@@ -37,3 +37,27 @@ func (s *Server) blobGet(rw http.ResponseWriter, req *http.Request) {
 	rw.WriteHeader(http.StatusOK)
 	io.Copy(rw, reader)
 }
+
+// blobPut is the handler to set the content of a blob for a specific
+// repository
+func (s *Server) blobPut(rw http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	repositoryName := vars["repository"]
+
+	repository, err := s.rm.Open(repositoryName)
+	if err != nil {
+		errorJSON(rw, "Internal Error", http.StatusInternalServerError)
+		return
+	}
+
+	blobID := vars["blobID"]
+
+	err = repository.AddObject(blobID, req.Body)
+
+	if err != nil {
+		errorJSON(rw, "Internal Error", http.StatusInternalServerError)
+	}
+
+	rw.Header().Set("Location", req.URL.String())
+	rw.WriteHeader(http.StatusOK)
+}

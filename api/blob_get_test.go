@@ -3,7 +3,6 @@ package api
 import (
 	"io/ioutil"
 	"net/http"
-	"net/http/httptest"
 
 	. "gopkg.in/check.v1"
 )
@@ -13,12 +12,6 @@ type BlobGetTests struct {
 }
 
 var _ = Suite(&BlobGetTests{BlobTests{}})
-
-func (t *BlobGetTests) getResponse(req *http.Request) *httptest.ResponseRecorder {
-	rw := httptest.NewRecorder()
-	t.server.router.ServeHTTP(rw, req)
-	return rw
-}
 
 func (t *BlobGetTests) TestRepoAccessUnauthorized(c *C) {
 	t.createRepository(c)

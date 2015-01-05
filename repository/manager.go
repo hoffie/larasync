@@ -42,7 +42,7 @@ func (m *Manager) ListNames() ([]string, error) {
 
 // Create registers a new repository.
 func (m *Manager) Create(name string, pubKey []byte) error {
-	r := &Repository{Path: filepath.Join(m.basePath, name)}
+	r := New(filepath.Join(m.basePath, name))
 	err := r.Create()
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func (m *Manager) Create(name string, pubKey []byte) error {
 // Open returns a handle for the given existing repository.
 func (m *Manager) Open(name string) (*Repository, error) {
 	absPath := filepath.Join(m.basePath, name)
-	r := &Repository{Path: absPath}
+	r := New(absPath)
 	s, err := os.Stat(absPath)
 	if err != nil {
 		return nil, err

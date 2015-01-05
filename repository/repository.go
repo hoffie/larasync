@@ -37,13 +37,33 @@ const (
 // Repository represents an on-disk repository and provides methods to
 // access its sub-items.
 type Repository struct {
-	Path    string
-	storage BlobStorage
+	Path               string
+	storage            BlobStorage
+	authPubkeyPath     string
+	encryptionKeyPath  string
+	signingPrivkeyPath string
+	hashingKeyPath     string
+	objectsPath        string
+	nibsPath           string
 }
 
 // New returns a new repository instance with the given base path
 func New(path string) *Repository {
-	return &Repository{Path: path}
+	r := &Repository{Path: path}
+	r.setupPaths()
+	return r
+}
+
+// setupPaths initializes several attributes referring to internal repository paths
+// such as encryption key paths.
+func (r *Repository) setupPaths() {
+	base := filepath.Join(r.Path, managementDirName)
+	r.authPubkeyPath = filepath.Join(base, authPubkeyFileName)
+	r.encryptionKeyPath = filepath.Join(base, encryptionKeyFileName)
+	r.signingPrivkeyPath = filepath.Join(base, signingPrivkeyFileName)
+	r.hashingKeyPath = filepath.Join(base, hashingKeyFileName)
+	r.objectsPath = filepath.Join(base, objectsDirName)
+	r.nibsPath = filepath.Join(base, nibsDirName)
 }
 
 // getStorage returns the currently configured blob storage backend
@@ -70,7 +90,7 @@ func (r *Repository) CreateManagementDir() error {
 	if err != nil && !os.IsExist(err) {
 		return err
 	}
-	path := r.getNIBsPath()
+	path := r.nibsPath
 	err = os.Mkdir(path, defaultDirPerms)
 	if err != nil && !os.IsExist(err) {
 		return err
@@ -137,59 +157,25 @@ func (r *Repository) CreateHashingKey() error {
 	return err
 }
 
-// getAuthPubkeyPath returns the path of the repository's auth pubkey
-// storage location.
-func (r *Repository) getAuthPubkeyPath() string {
-	return filepath.Join(r.Path, managementDirName, authPubkeyFileName)
-}
-
-// getEncryptionKeyPath returns the path of the repository's encryption key
-// storage location.
-func (r *Repository) getEncryptionKeyPath() string {
-	return filepath.Join(r.Path, managementDirName, encryptionKeyFileName)
-}
-
-// getSigningPrivkeyPath returns the path of the repository's signing
-// private key location.
-func (r *Repository) getSigningPrivkeyPath() string {
-	return filepath.Join(r.Path, managementDirName, signingPrivkeyFileName)
-}
-
-// getHashingKeyPath returns the path of the repository's hashing
-// key location.
-func (r *Repository) getHashingKeyPath() string {
-	return filepath.Join(r.Path, managementDirName, hashingKeyFileName)
-}
-
-// getObjectsPath returns the path of the repository's objects location
-func (r *Repository) getObjectsPath() string {
-	return filepath.Join(r.Path, managementDirName, objectsDirName)
-}
-
-// getNibsDirName returns the path of the repository's nibs location
-func (r *Repository) getNIBsPath() string {
-	return filepath.Join(r.Path, managementDirName, nibsDirName)
-}
-
 // GetAuthPubkey returns the repository auth key's public key.
 func (r *Repository) GetAuthPubkey() ([]byte, error) {
-	pubkey, err := ioutil.ReadFile(r.getAuthPubkeyPath())
+	pubkey, err := ioutil.ReadFile(r.authPubkeyPath)
 	return pubkey, err
 }
 
 // SetAuthPubkey sets the repository auth key's public key.
 func (r *Repository) SetAuthPubkey(key []byte) error {
-	return ioutil.WriteFile(r.getAuthPubkeyPath(), key, defaultFilePerms)
+	return ioutil.WriteFile(r.authPubkeyPath, key, defaultFilePerms)
 }
 
 // SetEncryptionKey sets the repository encryption key
 func (r *Repository) SetEncryptionKey(key [EncryptionKeySize]byte) error {
-	return ioutil.WriteFile(r.getEncryptionKeyPath(), key[:], defaultFilePerms)
+	return ioutil.WriteFile(r.encryptionKeyPath, key[:], defaultFilePerms)
 }
 
 // GetEncryptionKey returns the repository encryption key.
 func (r *Repository) GetEncryptionKey() ([EncryptionKeySize]byte, error) {
-	key, err := ioutil.ReadFile(r.getEncryptionKeyPath())
+	key, err := ioutil.ReadFile(r.encryptionKeyPath)
 	if len(key) != EncryptionKeySize {
 		return [EncryptionKeySize]byte{}, fmt.Errorf(
 			"invalid key length (%d)", len(key))
@@ -201,12 +187,12 @@ func (r *Repository) GetEncryptionKey() ([EncryptionKeySize]byte, error) {
 
 // SetSigningPrivkey sets the repository signing private key
 func (r *Repository) SetSigningPrivkey(key [PrivateKeySize]byte) error {
-	return ioutil.WriteFile(r.getSigningPrivkeyPath(), key[:], defaultFilePerms)
+	return ioutil.WriteFile(r.signingPrivkeyPath, key[:], defaultFilePerms)
 }
 
 // GetSigningPrivkey returns the repository signing private key.
 func (r *Repository) GetSigningPrivkey() ([PrivateKeySize]byte, error) {
-	key, err := ioutil.ReadFile(r.getSigningPrivkeyPath())
+	key, err := ioutil.ReadFile(r.signingPrivkeyPath)
 	if len(key) != PrivateKeySize {
 		return [PrivateKeySize]byte{}, fmt.Errorf(
 			"invalid key length (%d)", len(key))
@@ -218,12 +204,12 @@ func (r *Repository) GetSigningPrivkey() ([PrivateKeySize]byte, error) {
 
 // SetHashingKey sets the repository hashing key (content addressing)
 func (r *Repository) SetHashingKey(key [HashingKeySize]byte) error {
-	return ioutil.WriteFile(r.getHashingKeyPath(), key[:], defaultFilePerms)
+	return ioutil.WriteFile(r.hashingKeyPath, key[:], defaultFilePerms)
 }
 
 // GetHashingKey returns the repository signing private key.
 func (r *Repository) GetHashingKey() ([HashingKeySize]byte, error) {
-	key, err := ioutil.ReadFile(r.getHashingKeyPath())
+	key, err := ioutil.ReadFile(r.hashingKeyPath)
 	if len(key) != HashingKeySize {
 		return [HashingKeySize]byte{}, fmt.Errorf(
 			"invalid key length (%d)", len(key))
@@ -325,7 +311,7 @@ func (r *Repository) findFreeUUID() ([]byte, error) {
 // this is a local-only check.
 func (r *Repository) hasUUID(hash []byte) (bool, error) {
 	hexHash := hex.EncodeToString(hash)
-	path := filepath.Join(r.getNIBsPath(), hexHash)
+	path := filepath.Join(r.nibsPath, hexHash)
 	s, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		return false, nil
@@ -434,7 +420,7 @@ func (r *Repository) encryptWithRandomKey(data []byte) ([]byte, error) {
 // writeNIB writes a node information block to disk.
 // It signs the data in the process.
 func (r *Repository) writeNIB(name string, data []byte) error {
-	path := filepath.Join(r.getNIBsPath(), name)
+	path := filepath.Join(r.nibsPath, name)
 	key, err := r.GetSigningPrivkey()
 	if err != nil {
 		return err

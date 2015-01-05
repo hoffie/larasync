@@ -14,7 +14,7 @@ import (
 
 type FileContentStorageTests struct {
 	dir     string
-	storage *FileBlobStorage
+	storage *FileContentStorage
 	data    []byte
 }
 
@@ -22,7 +22,7 @@ var _ = Suite(&FileContentStorageTests{})
 
 func (t *FileContentStorageTests) SetUpTest(c *C) {
 	t.dir = c.MkDir()
-	t.storage = &FileBlobStorage{StoragePath: t.dir}
+	t.storage = &FileContentStorage{StoragePath: t.dir}
 	t.data = []byte("This is a test blob storage file input.")
 }
 

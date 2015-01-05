@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"errors"
 	"io"
 	"io/ioutil"
 	"os"
@@ -34,7 +33,7 @@ func (f FileBlobStorage) Get(blobID string) (io.Reader, error) {
 	if f.Exists(blobID) {
 		return os.Open(f.storagePathFor(blobID))
 	}
-	return nil, errors.New("File does not exist.")
+	return nil, os.ErrNotExist
 }
 
 // Set adds data from a reader and assigns it to the passed blobID

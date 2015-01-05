@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -65,6 +66,40 @@ func (s *Server) requireAdminAuth(f http.HandlerFunc) http.HandlerFunc {
 			http.Error(rw, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
+		f(rw, req)
+	}
+}
+
+// requireAuth wraps a handlerFunc and only calls it if the request is
+// authenticated
+func (s *Server) requireRepositoryAuth(f http.HandlerFunc) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		repositoryName := vars["repository"]
+		repository, err := s.rm.Open(repositoryName)
+		if err != nil {
+			if os.IsNotExist(err) {
+				http.Error(rw, "Repository not found", http.StatusNotFound)
+			} else {
+				http.Error(rw, "Internal Error", http.StatusInternalServerError)
+			}
+			return
+		}
+
+		var pubKeyArray [PubkeySize]byte
+		pubKey, err := repository.GetAuthPubkey()
+		if err != nil {
+			http.Error(rw, "Internal Error", http.StatusInternalServerError)
+		}
+
+		copy(pubKeyArray[0:PubkeySize], pubKey[:PubkeySize])
+		// TODO: Find if there is a better way for this.
+
+		if !ValidateRequest(req, pubKeyArray, s.maxRequestAge) {
+			http.Error(rw, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
 		f(rw, req)
 	}
 }

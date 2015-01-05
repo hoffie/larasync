@@ -53,6 +53,10 @@ func (s *Server) setupRoutes() {
 		s.requireAdminAuth(s.repositoryList)).Methods("GET")
 	s.router.HandleFunc("/repositories/{repository}",
 		s.requireAdminAuth(s.repositoryCreate)).Methods("PUT")
+
+	s.router.HandleFunc("/repositories/{repository}/blobs/{blobID}",
+		s.requireRepositoryAuth(s.blobGet)).Methods("GET")
+
 	s.router.HandleFunc("/", func(rw http.ResponseWriter, req *http.Request) {
 		rw.Write([]byte("larasync\n"))
 	})

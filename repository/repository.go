@@ -26,7 +26,7 @@ const (
 	nibsDirName            = "nibs"
 	defaultFilePerms       = 0600
 	defaultDirPerms        = 0700
-	defaultChunkSize       = 1*1024*1024
+	defaultChunkSize       = 1 * 1024 * 1024
 	// EncryptionKeySize represents the size of the key used for
 	// encrypting.
 	EncryptionKeySize = 32
@@ -39,7 +39,7 @@ const (
 // access its sub-items.
 type Repository struct {
 	Path               string
-	storage            BlobStorage
+	storage            ContentStorage
 	authPubkeyPath     string
 	encryptionKeyPath  string
 	signingPrivkeyPath string
@@ -67,11 +67,11 @@ func (r *Repository) setupPaths() {
 	r.nibsPath = filepath.Join(base, nibsDirName)
 }
 
-// getStorage returns the currently configured blob storage backend
+// getStorage returns the currently configured content storage backend
 // for the repository.
-func (r *Repository) getStorage() (BlobStorage, error) {
+func (r *Repository) getStorage() (ContentStorage, error) {
 	if r.storage == nil {
-		storage := FileBlobStorage{
+		storage := FileContentStorage{
 			StoragePath: filepath.Join(
 				r.GetManagementDir(),
 				objectsDirName)}

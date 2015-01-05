@@ -61,6 +61,27 @@ func (t *RepositoryTests) TestGetSigningPrivkey(c *C) {
 	c.Assert(k2, DeepEquals, k)
 }
 
+func (t *RepositoryTests) TestGetHashingKey(c *C) {
+	r := New(filepath.Join(t.dir, "foo"))
+	var k [HashingKeySize]byte
+	k[0] = 'z'
+	_, err := r.GetHashingKey()
+	c.Assert(err, NotNil)
+
+	err = r.SetHashingKey(k)
+	c.Assert(err, NotNil)
+
+	err = r.Create()
+	c.Assert(err, IsNil)
+
+	err = r.SetHashingKey(k)
+	c.Assert(err, IsNil)
+
+	k2, err := r.GetHashingKey()
+	c.Assert(err, IsNil)
+	c.Assert(k2, DeepEquals, k)
+}
+
 func (t *RepositoryTests) TestGetRepoRelativePath(c *C) {
 	r := New(filepath.Join(t.dir, "foo"))
 	err := r.Create()
@@ -126,6 +147,19 @@ func (t *RepositoryTests) TestCreateSigningKey(c *C) {
 	c.Assert(len(key), Equals, PrivateKeySize)
 }
 
+func (t *RepositoryTests) TestCreateHashingKey(c *C) {
+	r := New(t.dir)
+	err := r.CreateManagementDir()
+	c.Assert(err, IsNil)
+
+	err = r.CreateHashingKey()
+	c.Assert(err, IsNil)
+
+	key, err := r.GetHashingKey()
+	c.Assert(err, IsNil)
+	c.Assert(len(key), Equals, HashingKeySize)
+}
+
 func (t *RepositoryTests) TestAddObject(c *C) {
 	r := New(t.dir)
 	err := r.CreateManagementDir()
@@ -153,4 +187,38 @@ func (t *RepositoryTests) TestGetObject(c *C) {
 	data, err := ioutil.ReadAll(reader)
 
 	c.Assert(objectData, DeepEquals, data)
+}
+
+func numFilesInDir(path string) (int, error) {
+	entries, err := ioutil.ReadDir(path)
+	if err != nil {
+		return 0, err
+	}
+	return len(entries), nil
+}
+
+func (t *RepositoryTests) TestWriteFileToChunks(c *C) {
+	r := New(t.dir)
+	err := r.CreateManagementDir()
+	c.Assert(err, IsNil)
+	err = r.CreateSigningKey()
+	c.Assert(err, IsNil)
+
+	err = r.CreateEncryptionKey()
+	c.Assert(err, IsNil)
+
+	err = r.CreateHashingKey()
+	c.Assert(err, IsNil)
+
+	path := filepath.Join(t.dir, "foo.txt")
+	err = ioutil.WriteFile(path, []byte("foo"), 0600)
+	c.Assert(err, IsNil)
+	numFiles, err := numFilesInDir(filepath.Join(t.dir, ".lara", "objects"))
+	c.Assert(err, IsNil)
+	c.Assert(numFiles, Equals, 0)
+	err = r.AddItem(path)
+	c.Assert(err, IsNil)
+	numFiles, err = numFilesInDir(filepath.Join(t.dir, ".lara", "objects"))
+	c.Assert(err, IsNil)
+	c.Assert(numFiles, Equals, 2)
 }

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha512"
 	"encoding/hex"
@@ -18,6 +19,7 @@ import (
 const (
 	authPubkeyFileName     = "auth.pub"
 	encryptionKeyFileName  = "encryption.key"
+	hashingKeyFileName     = "hashing.key"
 	signingPrivkeyFileName = "signing.priv"
 	managementDirName      = ".lara"
 	objectsDirName         = "objects"
@@ -27,6 +29,9 @@ const (
 	// EncryptionKeySize represents the size of the key used for
 	// encrypting.
 	EncryptionKeySize = 32
+	// HashingKeySize represents the size of the key used for
+	// generating content hashes (HMAC).
+	HashingKeySize = 32
 )
 
 // Repository represents an on-disk repository and provides methods to
@@ -119,6 +124,19 @@ func (r *Repository) CreateSigningKey() error {
 	return err
 }
 
+// CreateHashingKey generates a random hashing key.
+func (r *Repository) CreateHashingKey() error {
+	key := make([]byte, HashingKeySize)
+	var arrKey [HashingKeySize]byte
+	_, err := rand.Read(key)
+	if err != nil {
+		return err
+	}
+	copy(arrKey[:], key)
+	err = r.SetHashingKey(arrKey)
+	return err
+}
+
 // getAuthPubkeyPath returns the path of the repository's auth pubkey
 // storage location.
 func (r *Repository) getAuthPubkeyPath() string {
@@ -135,6 +153,12 @@ func (r *Repository) getEncryptionKeyPath() string {
 // private key location.
 func (r *Repository) getSigningPrivkeyPath() string {
 	return filepath.Join(r.Path, managementDirName, signingPrivkeyFileName)
+}
+
+// getHashingKeyPath returns the path of the repository's hashing
+// key location.
+func (r *Repository) getHashingKeyPath() string {
+	return filepath.Join(r.Path, managementDirName, hashingKeyFileName)
 }
 
 // getObjectsPath returns the path of the repository's objects location
@@ -192,15 +216,39 @@ func (r *Repository) GetSigningPrivkey() ([PrivateKeySize]byte, error) {
 	return arrKey, err
 }
 
+// SetHashingKey sets the repository hashing key (content addressing)
+func (r *Repository) SetHashingKey(key [HashingKeySize]byte) error {
+	return ioutil.WriteFile(r.getHashingKeyPath(), key[:], defaultFilePerms)
+}
+
+// GetHashingKey returns the repository signing private key.
+func (r *Repository) GetHashingKey() ([HashingKeySize]byte, error) {
+	key, err := ioutil.ReadFile(r.getHashingKeyPath())
+	if len(key) != HashingKeySize {
+		return [HashingKeySize]byte{}, fmt.Errorf(
+			"invalid key length (%d)", len(key))
+	}
+	var arrKey [HashingKeySize]byte
+	copy(arrKey[:], key)
+	return arrKey, err
+}
+
 // AddItem adds a new file or directory to the repository.
 func (r *Repository) AddItem(absPath string) error {
 	metadataID, err := r.writeMetadata(absPath)
 	if err != nil {
 		return err
 	}
+
+	contentIDs, err := r.writeFileToChunks(absPath)
+	if err != nil {
+		return err
+	}
+
 	//FIXME this only works for new files / non-existing NIBs
 	rev := &Revision{}
 	rev.MetadataID = metadataID
+	rev.ContentIDs = contentIDs
 	nib := NIB{}
 	uuid, err := r.findFreeUUID()
 	if err != nil {
@@ -314,17 +362,21 @@ func (r *Repository) writeMetadata(absPath string) (string, error) {
 	return cid, nil
 }
 
+// writeContentAddressedCryptoContainer takes a piece of raw data and
+// streams it to disk in one content-addressed chunk while encrypting the
+// data in the process.
 func (r *Repository) writeContentAddressedCryptoContainer(data []byte) (string, error) {
 	// hash for content-addressing
-	hash := sha512.Sum512(data)
-	var enc []byte
-
-	enc, err := r.encryptWithRandomKey(data)
+	hexHash, err := r.hashChunk(data)
 	if err != nil {
 		return "", err
 	}
 
-	hexHash := hex.EncodeToString(hash[:])
+	var enc []byte
+	enc, err = r.encryptWithRandomKey(data)
+	if err != nil {
+		return "", err
+	}
 
 	err = r.AddObject(hexHash, bytes.NewReader(enc))
 	if err != nil {
@@ -334,6 +386,9 @@ func (r *Repository) writeContentAddressedCryptoContainer(data []byte) (string, 
 	return hexHash, nil
 }
 
+// encryptWithRandomKey takes a piece of data, encrypts it with a random
+// key and returns the result, prefixed by the random key encrypted by
+// the repository encryption key.
 func (r *Repository) encryptWithRandomKey(data []byte) ([]byte, error) {
 	var enc []byte
 
@@ -388,4 +443,32 @@ func (r *Repository) writeNIB(name string, data []byte) error {
 	}
 	err = sw.Finalize()
 	return err
+}
+
+// hashChunk takes a chunk of data and constructs its content-addressing
+// hash.
+func (r *Repository) hashChunk(chunk []byte) (string, error) {
+	key, err := r.GetHashingKey()
+	if err != nil {
+		return "", err
+	}
+	hasher := hmac.New(sha512.New, key[:])
+	hash := hasher.Sum(chunk)
+	hexHash := hex.EncodeToString(hash)
+	return hexHash, nil
+}
+
+// writeFileToChunks takes a file path and saves its contents to the
+// storage in encrypted form with a content-addressing id.
+func (r *Repository) writeFileToChunks(path string) ([]string, error) {
+	//FIXME split in chunks
+	chunk, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	id, err := r.writeContentAddressedCryptoContainer(chunk)
+	if err != nil {
+		return nil, err
+	}
+	return []string{id}, nil
 }

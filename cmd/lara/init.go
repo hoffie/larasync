@@ -42,5 +42,10 @@ func (d *Dispatcher) initAction() int {
 		fmt.Fprintf(d.stderr, "Unable to generate signing key\n")
 		return 1
 	}
+	err = repo.CreateHashingKey()
+	if err != nil {
+		fmt.Fprintf(d.stderr, "Unable to generate hashing key\n")
+		return 1
+	}
 	return 0
 }

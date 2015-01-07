@@ -7,13 +7,21 @@ import (
 // ClientNIBStore implements the NIBStore interface from the
 // client perspective.
 type ClientNIBStore struct {
-	contentStorage ContentStorage
-	repository     Repository
+	storage    UUIDContentStorage
+	repository Repository
+}
+
+// newClientNibStore generates the clientNibStore with the given data
+// and returns the new entry.
+func newClientNibStore(storage ContentStorage, repository Repository) *ClientNIBStore {
+	return &ClientNIBStore{
+		storage:    UUIDContentStorage{storage},
+		repository: repository}
 }
 
 // Get returns the NIB of the given uuid.
 func (f ClientNIBStore) Get(UUID string) (*NIB, error) {
-	reader, err := f.contentStorage.Get(UUID)
+	reader, err := f.storage.Get(UUID)
 
 	if err != nil {
 		return nil, err
@@ -30,6 +38,15 @@ func (f ClientNIBStore) Get(UUID string) (*NIB, error) {
 
 // Add adds the given NIB to the store.
 func (f ClientNIBStore) Add(nib *NIB) error {
+	// Empty UUID. Generating new one.
+	if nib.UUID == "" {
+		uuid, err := f.storage.findFreeUUID()
+		if err != nil {
+			return err
+		}
+		nib.UUID = formatUUID(uuid)
+	}
+
 	buf := &bytes.Buffer{}
 	_, err := nib.WriteTo(buf)
 	if err != nil {
@@ -57,11 +74,11 @@ func (f ClientNIBStore) writeBytes(UUID string, data []byte) error {
 	if err != nil {
 		return err
 	}
-	return f.contentStorage.Set(UUID, buf)
+	return f.storage.Set(UUID, buf)
 }
 
 // Exists returns if there is a NIB with
 // the given UUID in the store.
 func (f ClientNIBStore) Exists(UUID string) bool {
-	return f.contentStorage.Exists(UUID)
+	return f.storage.Exists(UUID)
 }

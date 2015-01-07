@@ -98,9 +98,7 @@ func (r *Repository) getNIBStore() (NIBStore, error) {
 			return nil, err
 		}
 
-		nibStore := ClientNIBStore{
-			contentStorage: nibStorage,
-			repository:     *r}
+		nibStore := newClientNibStore(nibStorage, *r)
 		r.nibStore = nibStore
 	}
 	return r.nibStore, nil
@@ -259,11 +257,11 @@ func (r *Repository) AddItem(absPath string) error {
 	rev.MetadataID = metadataID
 	rev.ContentIDs = contentIDs
 	nib := NIB{}
-	uuid, err := r.findFreeUUID()
 	if err != nil {
 		return err
 	}
-	nib.UUID = formatUUID(uuid)
+	// Setting an empty UUID to trigger the generation of a new one.
+	nib.UUID = ""
 	nib.AppendRevision(rev)
 	//FIXME: timestamp, deviceID etc.
 	nibStore, err := r.getNIBStore()
@@ -302,31 +300,6 @@ func (r *Repository) HasObject(objectID string) bool {
 	}
 
 	return storage.Exists(objectID)
-}
-
-// findFreeUUID generates a new UUID for naming a NIB; it tries to avoid
-// local collisions.
-func (r *Repository) findFreeUUID() ([]byte, error) {
-	hostname := os.Getenv("HOSTNAME")
-	rnd := make([]byte, 32)
-	for {
-		_, err := rand.Read(rnd)
-		if err != nil {
-			return nil, err
-		}
-		hasher := sha512.New()
-		hasher.Write([]byte(hostname))
-		hasher.Write(rnd)
-		hash := hasher.Sum(nil)
-		hasUUID, err := r.hasUUID(hash)
-		if err != nil {
-			return nil, err
-		}
-		if !hasUUID {
-			return hash, nil
-		}
-	}
-	return nil, errors.New("findFreeUUID: unexpected case")
 }
 
 // hasUUID checks if the given UUID is already in use in this repository;

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"sync"
 )
 
 var (
@@ -22,6 +23,7 @@ func reverseTransactionSlice(slice []*Transaction) []*Transaction {
 // in the server transaction log.
 type TransactionManager struct {
 	manager *TransactionContainerManager
+	mutex   *sync.Mutex
 }
 
 // newTransactionManager initializes a new transaction manager
@@ -29,7 +31,9 @@ type TransactionManager struct {
 func newTransactionManager(storage ContentStorage) *TransactionManager {
 	manager := newTransactionContainerManager(storage)
 	return &TransactionManager{
-		manager: manager}
+		manager: manager,
+		mutex:   &sync.Mutex{},
+	}
 }
 
 // CurrentTransactionUUID returns the most recent UUID stored in the
@@ -44,8 +48,8 @@ func (f *TransactionManager) CurrentTransactionUUID() (string, error) {
 
 // CurrentTransaction returns the most recent Transaction which is stored
 // in the TransactionLog.
-func (f *TransactionManager) CurrentTransaction() (*Transaction, error) {
-	currentTransactionContainer, err := f.manager.CurrentTransactionContainer()
+func (tm *TransactionManager) CurrentTransaction() (*Transaction, error) {
+	currentTransactionContainer, err := tm.manager.CurrentTransactionContainer()
 	if err != nil {
 		return nil, err
 	}
@@ -62,30 +66,38 @@ func (f *TransactionManager) CurrentTransaction() (*Transaction, error) {
 }
 
 // Add adds the given transaction to the storage.
-func (f *TransactionManager) Add(transaction *Transaction) error {
-	transactionContainer, err := f.manager.CurrentTransactionContainer()
-	if err != nil {
-		return err
-	}
+func (tm *TransactionManager) Add(transaction *Transaction) error {
+	mutex := tm.mutex
 
-	var previousUUID string
-	if len(transactionContainer.Transactions) > 0 {
-		latestIndex := len(transactionContainer.Transactions) - 1
-		previousUUID = transactionContainer.Transactions[latestIndex].UUID
-	}
-
-	if len(transactionContainer.Transactions) >= transactionsInContainer {
-		transactionContainer, err = f.manager.NewContainer()
+	mutex.Lock()
+	err := func() error {
+		manager := tm.manager
+		transactionContainer, err := tm.manager.CurrentTransactionContainer()
 		if err != nil {
 			return err
 		}
-	}
 
-	transaction.PreviousUUID = previousUUID
-	transactionContainer.Transactions = append(
-		transactionContainer.Transactions,
-		transaction)
-	return f.manager.Set(transactionContainer)
+		var previousUUID string
+		if len(transactionContainer.Transactions) > 0 {
+			latestIndex := len(transactionContainer.Transactions) - 1
+			previousUUID = transactionContainer.Transactions[latestIndex].UUID
+		}
+
+		if len(transactionContainer.Transactions) >= transactionsInContainer {
+			transactionContainer, err = manager.NewContainer()
+			if err != nil {
+				return err
+			}
+		}
+
+		transaction.PreviousUUID = previousUUID
+		transactionContainer.Transactions = append(
+			transactionContainer.Transactions,
+			transaction)
+		return manager.Set(transactionContainer)
+	}()
+	mutex.Unlock()
+	return err
 }
 
 // Get returns the transaction with the given UUID.

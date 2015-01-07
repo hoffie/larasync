@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"sync"
 
 	"github.com/golang/protobuf/proto"
 
@@ -16,6 +17,7 @@ import (
 // and to keep track of the most current transaction manager,
 type TransactionContainerManager struct {
 	storage UUIDContentStorage
+	mutex   *sync.Mutex
 }
 
 // newTransactionContainerManager initializes a container manager
@@ -23,7 +25,11 @@ type TransactionContainerManager struct {
 // data entries.
 func newTransactionContainerManager(storage ContentStorage) *TransactionContainerManager {
 	uuidStorage := UUIDContentStorage{storage}
-	return &TransactionContainerManager{storage: uuidStorage}
+	return &TransactionContainerManager{
+		storage: uuidStorage,
+		//@TODO: Implement global state which returns one mutex for the repository.
+		mutex: &sync.Mutex{},
+	}
 }
 
 // Get returns the TransactionContainer with the given UUID.
@@ -78,54 +84,60 @@ func (tcm TransactionContainerManager) Set(transactionContainer *TransactionCont
 	if transactionContainer.UUID == "" {
 		return errors.New("UUID must not be empty")
 	}
+	mutex := tcm.mutex
 
-	previousUUID := ""
-	protoTransactions := make([]*odf.Transaction, len(transactionContainer.Transactions))
-	protoTransactionContainer := &odf.TransactionContainer{
-		UUID:         &transactionContainer.UUID,
-		PreviousUUID: &previousUUID,
-		Transactions: protoTransactions}
+	mutex.Lock()
+	err := func() error {
+		previousUUID := ""
+		protoTransactions := make([]*odf.Transaction, len(transactionContainer.Transactions))
+		protoTransactionContainer := &odf.TransactionContainer{
+			UUID:         &transactionContainer.UUID,
+			PreviousUUID: &previousUUID,
+			Transactions: protoTransactions}
 
-	if transactionContainer.PreviousUUID != "" {
-		protoTransactionContainer.PreviousUUID = &transactionContainer.PreviousUUID
-	}
-
-	for index, transaction := range transactionContainer.Transactions {
-		if transaction.UUID == "" {
-			return errors.New("Transaction UUID must not be empty")
-		}
-		if len(transaction.NIBUUIDs) == 0 {
-			return fmt.Errorf("The transition with UUID %s has no NIB UUIDs",
-				transaction.UUID)
+		if transactionContainer.PreviousUUID != "" {
+			protoTransactionContainer.PreviousUUID = &transactionContainer.PreviousUUID
 		}
 
-		protoTransaction := &odf.Transaction{
-			UUID:         &transaction.UUID,
-			PreviousUUID: nil,
-			NIBUUIDs:     transaction.NIBUUIDs}
+		for index, transaction := range transactionContainer.Transactions {
+			if transaction.UUID == "" {
+				return errors.New("Transaction UUID must not be empty")
+			}
+			if len(transaction.NIBUUIDs) == 0 {
+				return fmt.Errorf("The transition with UUID %s has no NIB UUIDs",
+					transaction.UUID)
+			}
 
-		if transaction.PreviousUUID != "" {
-			protoTransaction.PreviousUUID = &transaction.PreviousUUID
+			protoTransaction := &odf.Transaction{
+				UUID:         &transaction.UUID,
+				PreviousUUID: nil,
+				NIBUUIDs:     transaction.NIBUUIDs}
+
+			if transaction.PreviousUUID != "" {
+				protoTransaction.PreviousUUID = &transaction.PreviousUUID
+			}
+
+			protoTransactions[index] = protoTransaction
 		}
 
-		protoTransactions[index] = protoTransaction
-	}
+		data, err := proto.Marshal(protoTransactionContainer)
+		if err != nil {
+			return err
+		}
 
-	data, err := proto.Marshal(protoTransactionContainer)
-	if err != nil {
-		return err
-	}
+		err = tcm.storage.Set(
+			transactionContainer.UUID,
+			bytes.NewBuffer(data))
+		if err != nil {
+			return err
+		}
 
-	err = tcm.storage.Set(
-		transactionContainer.UUID,
-		bytes.NewBuffer(data))
-	if err != nil {
-		return err
-	}
-
-	return tcm.storage.Set(
-		"current",
-		bytes.NewBufferString(transactionContainer.UUID))
+		return tcm.storage.Set(
+			"current",
+			bytes.NewBufferString(transactionContainer.UUID))
+	}()
+	mutex.Unlock()
+	return err
 }
 
 // Exists returns if a TransactionContainer with the given UUID exists in the system.

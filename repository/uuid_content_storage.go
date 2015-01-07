@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-// UUIDManager is a base struct which implements functionality
+// UUIDContentStorage is a base struct which implements functionality
 // to find new UUIDs for the system.
 type UUIDContentStorage struct {
 	ContentStorage

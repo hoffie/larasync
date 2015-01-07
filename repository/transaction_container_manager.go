@@ -26,6 +26,7 @@ func newTransactionContainerManager(storage ContentStorage) *TransactionContaine
 	return &TransactionContainerManager{storage: uuidStorage}
 }
 
+// Get returns the TransactionContainer with the given UUID.
 func (tcm TransactionContainerManager) Get(transactionContainerUUID string) (*TransactionContainer, error) {
 	reader, err := tcm.storage.Get(transactionContainerUUID)
 	if err != nil {
@@ -72,6 +73,7 @@ func (tcm TransactionContainerManager) Get(transactionContainerUUID string) (*Tr
 	return transactionContainer, nil
 }
 
+// Set sets the transactionContainer in the storage backend.
 func (tcm TransactionContainerManager) Set(transactionContainer *TransactionContainer) error {
 	if transactionContainer.UUID == "" {
 		return errors.New("UUID must not be empty")
@@ -126,6 +128,7 @@ func (tcm TransactionContainerManager) Set(transactionContainer *TransactionCont
 		bytes.NewBufferString(transactionContainer.UUID))
 }
 
+// Exists returns if a TransactionContainer with the given UUID exists in the system.
 func (tcm TransactionContainerManager) Exists(transactionContainerUUID string) bool {
 	return tcm.storage.Exists(transactionContainerUUID)
 }
@@ -137,9 +140,8 @@ func (tcm TransactionContainerManager) currentTransactionContainerUUID() (string
 	if err != nil {
 		if os.IsNotExist(err) {
 			return "", nil
-		} else {
-			return "", err
 		}
+		return "", err
 	}
 	data, err := ioutil.ReadAll(reader)
 	if err != nil {
@@ -159,12 +161,13 @@ func (tcm TransactionContainerManager) CurrentTransactionContainer() (*Transacti
 
 	if currentUUID != "" {
 		return tcm.Get(currentUUID)
-	} else {
-		// Have to create a new TransactionContainer due to no current existing yet.
-		return tcm.NewContainer()
 	}
+	// Have to create a new TransactionContainer due to no current existing yet.
+	return tcm.NewContainer()
 }
 
+// NewContainer returns a newly container with a new UUID which has been added to the
+// storage backend.
 func (tcm TransactionContainerManager) NewContainer() (*TransactionContainer, error) {
 	data, err := tcm.storage.findFreeUUID()
 	if err != nil {

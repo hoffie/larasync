@@ -72,7 +72,7 @@ func (tm *TransactionManager) Add(transaction *Transaction) error {
 	mutex.Lock()
 	err := func() error {
 		manager := tm.manager
-		transactionContainer, err := tm.manager.CurrentTransactionContainer()
+		transactionContainer, err := manager.CurrentTransactionContainer()
 		if err != nil {
 			return err
 		}

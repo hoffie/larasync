@@ -3,7 +3,6 @@ package repository
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"sync"
@@ -53,29 +52,7 @@ func (tcm TransactionContainerManager) Get(transactionContainerUUID string) (*Tr
 		return nil, err
 	}
 
-	transactions := make([]*Transaction, len(protoTransactionContainer.Transactions))
-	transactionContainer := &TransactionContainer{
-		UUID:         *protoTransactionContainer.UUID,
-		PreviousUUID: "",
-		Transactions: transactions}
-	if protoTransactionContainer.PreviousUUID != nil {
-		transactionContainer.PreviousUUID = *protoTransactionContainer.PreviousUUID
-	}
-
-	for index, protoTransaction := range protoTransactionContainer.Transactions {
-		uuid := *protoTransaction.UUID
-		transaction := &Transaction{
-			UUID:         uuid,
-			PreviousUUID: "",
-			NIBUUIDs:     []string{}}
-		if protoTransaction.PreviousUUID != nil {
-			transaction.PreviousUUID = *protoTransaction.PreviousUUID
-		}
-		transaction.NIBUUIDs = protoTransaction.NIBUUIDs
-
-		transactions[index] = transaction
-	}
-
+	transactionContainer := newTransactionContainerFromPb(protoTransactionContainer)
 	return transactionContainer, nil
 }
 
@@ -88,36 +65,9 @@ func (tcm TransactionContainerManager) Set(transactionContainer *TransactionCont
 
 	mutex.Lock()
 	err := func() error {
-		previousUUID := ""
-		protoTransactions := make([]*odf.Transaction, len(transactionContainer.Transactions))
-		protoTransactionContainer := &odf.TransactionContainer{
-			UUID:         &transactionContainer.UUID,
-			PreviousUUID: &previousUUID,
-			Transactions: protoTransactions}
-
-		if transactionContainer.PreviousUUID != "" {
-			protoTransactionContainer.PreviousUUID = &transactionContainer.PreviousUUID
-		}
-
-		for index, transaction := range transactionContainer.Transactions {
-			if transaction.UUID == "" {
-				return errors.New("Transaction UUID must not be empty")
-			}
-			if len(transaction.NIBUUIDs) == 0 {
-				return fmt.Errorf("The transition with UUID %s has no NIB UUIDs",
-					transaction.UUID)
-			}
-
-			protoTransaction := &odf.Transaction{
-				UUID:         &transaction.UUID,
-				PreviousUUID: nil,
-				NIBUUIDs:     transaction.NIBUUIDs}
-
-			if transaction.PreviousUUID != "" {
-				protoTransaction.PreviousUUID = &transaction.PreviousUUID
-			}
-
-			protoTransactions[index] = protoTransaction
+		protoTransactionContainer, err := transactionContainer.toPb()
+		if err != nil {
+			return err
 		}
 
 		data, err := proto.Marshal(protoTransactionContainer)

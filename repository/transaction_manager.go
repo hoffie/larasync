@@ -38,8 +38,8 @@ func newTransactionManager(storage ContentStorage) *TransactionManager {
 
 // CurrentTransactionUUID returns the most recent UUID stored in the
 // backend.
-func (f *TransactionManager) CurrentTransactionUUID() (string, error) {
-	newestTransaction, err := f.CurrentTransaction()
+func (tm *TransactionManager) CurrentTransactionUUID() (string, error) {
+	newestTransaction, err := tm.CurrentTransaction()
 	if err != nil {
 		return "", err
 	}
@@ -101,8 +101,9 @@ func (tm *TransactionManager) Add(transaction *Transaction) error {
 }
 
 // Get returns the transaction with the given UUID.
-func (f *TransactionManager) Get(transactionUUID string) (*Transaction, error) {
-	currentTransactionContainer, err := f.manager.CurrentTransactionContainer()
+func (tm *TransactionManager) Get(transactionUUID string) (*Transaction, error) {
+	manager := tm.manager
+	currentTransactionContainer, err := manager.CurrentTransactionContainer()
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +119,7 @@ func (f *TransactionManager) Get(transactionUUID string) (*Transaction, error) {
 		if transactionContainer.PreviousUUID == "" {
 			transactionContainer = nil
 		} else {
-			transactionContainer, err = f.manager.Get(
+			transactionContainer, err = manager.Get(
 				transactionContainer.PreviousUUID)
 			if err != nil {
 				return nil, err
@@ -131,8 +132,9 @@ func (f *TransactionManager) Get(transactionUUID string) (*Transaction, error) {
 
 // From returns all transactions from the given transactionUUID. It does not include
 // the transaction of the given transactionUUID.
-func (f *TransactionManager) From(transactionUUID string) ([]*Transaction, error) {
-	currentTransactionContainer, err := f.manager.CurrentTransactionContainer()
+func (tm *TransactionManager) From(transactionUUID string) ([]*Transaction, error) {
+	manager := tm.manager
+	currentTransactionContainer, err := manager.CurrentTransactionContainer()
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +168,7 @@ func (f *TransactionManager) From(transactionUUID string) ([]*Transaction, error
 		if transactionContainer.PreviousUUID == "" {
 			transactionContainer = nil
 		} else {
-			transactionContainer, err = f.manager.Get(
+			transactionContainer, err = manager.Get(
 				transactionContainer.PreviousUUID)
 			if err != nil {
 				return nil, err
@@ -178,8 +180,8 @@ func (f *TransactionManager) From(transactionUUID string) ([]*Transaction, error
 }
 
 // Exists checks if the given Transaction UUID exists in this repository.
-func (f *TransactionManager) Exists(transactionUUID string) bool {
-	_, err := f.Get(transactionUUID)
+func (tm *TransactionManager) Exists(transactionUUID string) bool {
+	_, err := tm.Get(transactionUUID)
 	if err != nil {
 		return false
 	}

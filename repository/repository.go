@@ -14,6 +14,8 @@ import (
 	"path/filepath"
 
 	"code.google.com/p/go.crypto/nacl/secretbox"
+
+	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
 )
 
 const (
@@ -98,7 +100,10 @@ func (r *Repository) getNIBStore() (NIBStore, error) {
 			return nil, err
 		}
 
-		nibStore := newClientNibStore(nibStorage, *r)
+		storage := ContentStorage(nibStorage)
+		clientNIBStore := newClientNIBStore(&storage, r)
+
+		nibStore := NIBStore(clientNIBStore)
 		r.nibStore = nibStore
 	}
 	return r.nibStore, nil
@@ -221,6 +226,15 @@ func (r *Repository) GetSigningPrivkey() ([PrivateKeySize]byte, error) {
 	var arrKey [PrivateKeySize]byte
 	copy(arrKey[:], key)
 	return arrKey, err
+}
+
+// GetSigningPubkey returns the repository signing public key.
+func (r *Repository) GetSigningPubkey() ([PubkeySize]byte, error) {
+	privKey, err := r.GetSigningPrivkey()
+	if err != nil {
+		return [PubkeySize]byte{}, err
+	}
+	return edhelpers.GetPublicKeyFromPrivate(privKey), nil
 }
 
 // SetHashingKey sets the repository hashing key (content addressing)

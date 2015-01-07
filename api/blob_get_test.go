@@ -19,11 +19,11 @@ func (t *BlobGetTests) TestRepoAccessUnauthorized(c *C) {
 	c.Assert(resp.Code, Equals, http.StatusUnauthorized)
 }
 
-// Should return not found if repository does not exist.
+// Should return unauthorized if repository does not exist.
 func (t *BlobGetTests) TestRepoAccessNotFound(c *C) {
 	t.signRequest()
 	resp := t.getResponse(t.req)
-	c.Assert(resp.Code, Equals, http.StatusNotFound)
+	c.Assert(resp.Code, Equals, http.StatusUnauthorized)
 }
 
 // Should return not found if blobID does not exist.

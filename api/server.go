@@ -85,7 +85,10 @@ func (s *Server) requireRepositoryAuth(f http.HandlerFunc) http.HandlerFunc {
 		repository, err := s.rm.Open(repositoryName)
 		if err != nil {
 			if os.IsNotExist(err) {
-				http.Error(rw, "Repository not found", http.StatusNotFound)
+				// Repository is not found. However due to security reasons
+				// we are returning Forbidden here so an unauthenticated user
+				// can not check wether a repository does exist or not.
+				http.Error(rw, "Unauthorized", http.StatusUnauthorized)
 			} else {
 				http.Error(rw, "Internal Error", http.StatusInternalServerError)
 			}

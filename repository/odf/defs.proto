@@ -1,11 +1,22 @@
 package odf;
 
+message TransactionContainer {
+	required string UUID = 1;
+	repeated Transaction transactions = 2;
+	optional string previousUUID = 3;
+}
+
+message Transaction {
+	required string UUID = 1;
+	repeated string NIBUUIDs = 2;
+	optional string previousUUID = 3;
+}
+
 message NIB {
 		required string UUID = 1;
 		repeated Revision Revisions = 2;
 		optional int64 historyOffset = 3;
 }
-
 
 message Revision {
 		required string MetadataID = 1;

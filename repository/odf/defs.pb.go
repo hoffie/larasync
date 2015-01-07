@@ -9,6 +9,8 @@ It is generated from these files:
 	defs.proto
 
 It has these top-level messages:
+	TransactionContainer
+	Transaction
 	NIB
 	Revision
 	Metadata
@@ -53,6 +55,70 @@ func (x *NodeType) UnmarshalJSON(data []byte) error {
 	}
 	*x = NodeType(value)
 	return nil
+}
+
+type TransactionContainer struct {
+	UUID             *string        `protobuf:"bytes,1,req" json:"UUID,omitempty"`
+	Transactions     []*Transaction `protobuf:"bytes,2,rep,name=transactions" json:"transactions,omitempty"`
+	PreviousUUID     *string        `protobuf:"bytes,3,opt,name=previousUUID" json:"previousUUID,omitempty"`
+	XXX_unrecognized []byte         `json:"-"`
+}
+
+func (m *TransactionContainer) Reset()         { *m = TransactionContainer{} }
+func (m *TransactionContainer) String() string { return proto.CompactTextString(m) }
+func (*TransactionContainer) ProtoMessage()    {}
+
+func (m *TransactionContainer) GetUUID() string {
+	if m != nil && m.UUID != nil {
+		return *m.UUID
+	}
+	return ""
+}
+
+func (m *TransactionContainer) GetTransactions() []*Transaction {
+	if m != nil {
+		return m.Transactions
+	}
+	return nil
+}
+
+func (m *TransactionContainer) GetPreviousUUID() string {
+	if m != nil && m.PreviousUUID != nil {
+		return *m.PreviousUUID
+	}
+	return ""
+}
+
+type Transaction struct {
+	UUID             *string  `protobuf:"bytes,1,req" json:"UUID,omitempty"`
+	NIBUUIDs         []string `protobuf:"bytes,2,rep" json:"NIBUUIDs,omitempty"`
+	PreviousUUID     *string  `protobuf:"bytes,3,opt,name=previousUUID" json:"previousUUID,omitempty"`
+	XXX_unrecognized []byte   `json:"-"`
+}
+
+func (m *Transaction) Reset()         { *m = Transaction{} }
+func (m *Transaction) String() string { return proto.CompactTextString(m) }
+func (*Transaction) ProtoMessage()    {}
+
+func (m *Transaction) GetUUID() string {
+	if m != nil && m.UUID != nil {
+		return *m.UUID
+	}
+	return ""
+}
+
+func (m *Transaction) GetNIBUUIDs() []string {
+	if m != nil {
+		return m.NIBUUIDs
+	}
+	return nil
+}
+
+func (m *Transaction) GetPreviousUUID() string {
+	if m != nil && m.PreviousUUID != nil {
+		return *m.PreviousUUID
+	}
+	return ""
 }
 
 type NIB struct {

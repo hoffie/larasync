@@ -8,7 +8,8 @@ import (
 // to request locks based on a role and
 // a path.
 type Manager interface {
-	// Get returns for the given path and the given
-	// role the allocated Locker.
+	// Get returns a unique Lock for the given path and role.
+	// Calling this function again with the same input parameters
+	// has to return the same lock.
 	Get(path string, role string) sync.Locker
 }

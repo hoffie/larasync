@@ -139,7 +139,7 @@ func (t *ClientNIBStoreTest) TestNibVerificationSignatureError(c *C) {
 	reader = bytes.NewReader(data)
 
 	c.Assert(
-		t.nibStore.VerifyContent(reader), Equals, SignatureVerificationError,
+		t.nibStore.VerifyContent(reader), Equals, ErrSignatureVerification,
 	)
 }
 
@@ -153,7 +153,7 @@ func (t *ClientNIBStoreTest) TestNibVerificationMarshallingError(c *C) {
 	reader = bytes.NewReader(data)
 
 	c.Assert(
-		t.nibStore.VerifyContent(reader), Equals, UnMarshallingError,
+		t.nibStore.VerifyContent(reader), Equals, ErrUnMarshalling,
 	)
 }
 

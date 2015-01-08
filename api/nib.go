@@ -83,25 +83,25 @@ func (s *Server) nibList(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	values := req.URL.Query()
-	fromRepositoryIdString, ok := values["from-transaction-id"]
+	fromRepositoryIDString, ok := values["from-transaction-id"]
 
 	var nibChannel <-chan *repositoryModule.NIB
 	if !ok {
 		nibChannel, err = repository.GetAllNibs()
 	} else {
-		fromRepositoryId, err := strconv.ParseInt(fromRepositoryIdString[0], 10, 64)
+		fromRepositoryID, err := strconv.ParseInt(fromRepositoryIDString[0], 10, 64)
 		if err != nil {
 			errorText(
 				rw,
 				fmt.Sprintf(
 					"from-transaction-id %s is not a valid transaction-id",
-					fromRepositoryIdString,
+					fromRepositoryIDString,
 				),
 				http.StatusBadRequest,
 			)
 			return
 		}
-		nibChannel, err = repository.GetNIBsFrom(fromRepositoryId)
+		nibChannel, err = repository.GetNIBsFrom(fromRepositoryID)
 	}
 
 	if err != nil {

@@ -189,6 +189,23 @@ func (t *RepositoryTests) TestGetObject(c *C) {
 	c.Assert(objectData, DeepEquals, data)
 }
 
+func (t *RepositoryTests) TestPathToNIBID(c *C) {
+	r := New(t.dir)
+	err := r.CreateManagementDir()
+	c.Assert(err, IsNil)
+
+	err = r.CreateHashingKey()
+	c.Assert(err, IsNil)
+
+	path := "foo/bar.txt"
+	for i := 0; i < 2; i++ { // loop checks determinism
+		id, err := r.pathToNIBID(path)
+		c.Assert(err, IsNil)
+		c.Assert(id, Not(Equals), "")
+	}
+
+}
+
 func numFilesInDir(path string) (int, error) {
 	entries, err := ioutil.ReadDir(path)
 	if err != nil {

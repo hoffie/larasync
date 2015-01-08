@@ -13,7 +13,7 @@ var _ = Suite(&NIBTests{})
 
 func (t *NIBTests) TestEncode(c *C) {
 	n := NIB{}
-	n.UUID = "1234"
+	n.ID = "1234"
 	n.HistoryOffset = 30
 	buf := &bytes.Buffer{}
 	written, err := n.WriteTo(buf)

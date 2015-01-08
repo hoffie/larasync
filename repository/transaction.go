@@ -11,7 +11,7 @@ import (
 // which is used to synchronize the different clients.
 type Transaction struct {
 	ID         int64
-	NIBUUIDs   []string
+	NIBIDs     []string
 	PreviousID int64
 }
 
@@ -21,7 +21,7 @@ func newTransactionFromPb(pbTransaction *odf.Transaction) *Transaction {
 	return &Transaction{
 		ID:         pbTransaction.GetID(),
 		PreviousID: pbTransaction.GetPreviousID(),
-		NIBUUIDs:   pbTransaction.GetNIBUUIDs(),
+		NIBIDs:     pbTransaction.GetNIBIDs(),
 	}
 }
 
@@ -31,16 +31,16 @@ func (t *Transaction) toPb() (*odf.Transaction, error) {
 	if t.ID == 0 {
 		return nil, errors.New("Transaction ID must not be empty")
 	}
-	if len(t.NIBUUIDs) == 0 {
+	if len(t.NIBIDs) == 0 {
 		return nil, fmt.Errorf(
-			"The transition with ID %d has no NIB UUIDs",
+			"The transaction with ID %d has no NIB IDs",
 			t.ID,
 		)
 	}
 	protoTransaction := &odf.Transaction{
 		ID:         &t.ID,
 		PreviousID: nil,
-		NIBUUIDs:   t.NIBUUIDs}
+		NIBIDs:     t.NIBIDs}
 	if t.PreviousID != 0 {
 		protoTransaction.PreviousID = &t.PreviousID
 	}

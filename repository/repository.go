@@ -38,6 +38,10 @@ const (
 	HashingKeySize = 32
 )
 
+// ErrNoNIB is returned if no matching NIB can be found
+// (see Repository.getFilesNIBUUID)
+var ErrNoNIB = errors.New("no such NIB")
+
 // Repository represents an on-disk repository and provides methods to
 // access its sub-items.
 type Repository struct {
@@ -289,7 +293,15 @@ func (r *Repository) AddItem(absPath string) error {
 		return err
 	}
 
-	//FIXME this only works for new files / non-existing NIBs
+	relPath, err := r.getRepoRelativePath(absPath)
+	if err != nil {
+		return err
+	}
+	uuid, err := r.getFilesNIBUUID(relPath)
+	if err != nil && err != ErrNoNIB {
+		return err
+	}
+
 	rev := &Revision{}
 	rev.MetadataID = metadataID
 	rev.ContentIDs = contentIDs
@@ -298,7 +310,7 @@ func (r *Repository) AddItem(absPath string) error {
 		return err
 	}
 	// Setting an empty UUID to trigger the generation of a new one.
-	nib.UUID = ""
+	nib.UUID = uuid
 	nib.AppendRevision(rev)
 	//FIXME: timestamp, deviceID etc.
 	nibStore, err := r.getNIBStore()
@@ -307,6 +319,13 @@ func (r *Repository) AddItem(absPath string) error {
 	}
 
 	return nibStore.Add(&nib)
+}
+
+// getFilesNIBUUID returns the NIB for the given relative path or
+// returns ErrNoNIB if no pre-existing NIB can be found.
+func (r *Repository) getFilesNIBUUID(relPath string) (string, error) {
+	//FIXME: implement after deciding on #67
+	return "", nil
 }
 
 // AddObject adds an object into the storage with the given
@@ -420,6 +439,8 @@ func (r *Repository) writeMetadata(absPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	//PERFORMANCE: avoid re-writing pre-existing metadata files by checking for
+	// existance first.
 	cid, err := r.writeContentAddressedCryptoContainer(raw.Bytes())
 	if err != nil {
 		return "", err

@@ -111,11 +111,12 @@ func (r *VerifyingReader) Read(buf []byte) (int, error) {
 	return read, nil
 }
 
-// Verify returns whether the data read is ok (as in: signature
+// VerifyAfterRead returns whether the data read is ok (as in: signature
 // matches and verifies with the given public key).
-// This must only be called after all data has been read; otherwise,
-// verification will fail.
-func (r *VerifyingReader) Verify() bool {
+//
+// IMPORTANT: This must only be called after *all data has been read*;
+// otherwise verification will always fail.
+func (r *VerifyingReader) VerifyAfterRead() bool {
 	sum := r.hash.Sum(nil)
 	return ed25519.Verify(&r.pubKey, sum, &r.sig)
 }

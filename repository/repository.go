@@ -46,7 +46,7 @@ var ErrNoNIB = errors.New("no such NIB")
 // access its sub-items.
 type Repository struct {
 	Path               string
-	storage            ContentStorage
+	objectStorage      ContentStorage
 	nibStore           NIBStore
 	encryptionKeyPath  string
 	signingPrivkeyPath string
@@ -75,10 +75,10 @@ func (r *Repository) setupPaths() {
 	r.nibsPath = filepath.Join(base, nibsDirName)
 }
 
-// getStorage returns the currently configured content storage backend
+// getObjectStorage returns the currently configured content storage backend
 // for the repository.
-func (r *Repository) getStorage() (ContentStorage, error) {
-	if r.storage == nil {
+func (r *Repository) getObjectStorage() (ContentStorage, error) {
+	if r.objectStorage == nil {
 		storage := FileContentStorage{
 			StoragePath: filepath.Join(
 				r.GetManagementDir(),
@@ -87,9 +87,9 @@ func (r *Repository) getStorage() (ContentStorage, error) {
 		if err != nil {
 			return nil, err
 		}
-		r.storage = storage
+		r.objectStorage = storage
 	}
-	return r.storage, nil
+	return r.objectStorage, nil
 }
 
 // getNIBStore returns the currently configured nib store backend
@@ -138,7 +138,7 @@ func (r *Repository) CreateManagementDir() error {
 	if err != nil && !os.IsExist(err) {
 		return err
 	}
-	_, err = r.getStorage()
+	_, err = r.getObjectStorage()
 	if err != nil {
 		return err
 	}
@@ -331,7 +331,7 @@ func (r *Repository) getFilesNIBUUID(relPath string) (string, error) {
 // AddObject adds an object into the storage with the given
 // id and adds the data in the reader to it.
 func (r *Repository) AddObject(objectID string, data io.Reader) error {
-	storage, err := r.getStorage()
+	storage, err := r.getObjectStorage()
 	if err != nil {
 		return err
 	}
@@ -393,7 +393,7 @@ func (r *Repository) GetAllNibs() (<-chan *NIB, error) {
 // GetObjectData returns the data stored for the given objectID in this
 // repository.
 func (r *Repository) GetObjectData(objectID string) (io.Reader, error) {
-	storage, err := r.getStorage()
+	storage, err := r.getObjectStorage()
 	if err != nil {
 		return nil, err
 	}
@@ -402,7 +402,7 @@ func (r *Repository) GetObjectData(objectID string) (io.Reader, error) {
 
 // HasObject returns if the given objectID exists in this repository.
 func (r *Repository) HasObject(objectID string) bool {
-	storage, err := r.getStorage()
+	storage, err := r.getObjectStorage()
 	if err != nil {
 		return false
 	}

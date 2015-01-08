@@ -344,13 +344,21 @@ func (r *Repository) GetNIBReader(UUID string) (io.Reader, error) {
 	return store.GetReader(UUID)
 }
 
-// GetNIBsFrom returns nibs starting from the passed UUID.
-func (r *Repository) GetNIBsFrom(fromUUID string) (<-chan *NIB, error) {
+// GetNIBsFrom returns nibs added since the passed transaction ID.
+func (r *Repository) GetNIBsFrom(fromTransactionId int64) (<-chan *NIB, error) {
 	store, err := r.getNIBStore()
 	if err != nil {
 		return nil, err
 	}
-	return store.GetFrom(fromUUID)
+	return store.GetFrom(fromTransactionId)
+}
+
+func (r *Repository) GetAllNibs() (<-chan *NIB, error) {
+	store, err := r.getNIBStore()
+	if err != nil {
+		return nil, err
+	}
+	return store.GetAll()
 }
 
 // GetObjectData returns the data stored for the given objectID in this

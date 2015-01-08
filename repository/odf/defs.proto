@@ -7,9 +7,9 @@ message TransactionContainer {
 }
 
 message Transaction {
-	required string UUID = 1;
+	required int64 ID = 1;
 	repeated string NIBUUIDs = 2;
-	optional string previousUUID = 3;
+	optional int64 previousID = 3;
 }
 
 message NIB {

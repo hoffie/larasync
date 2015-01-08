@@ -31,8 +31,11 @@ type NIBStore interface {
 	// GetReader returns the Reader which stores the bytes
 	// of the given NIB UUID.
 	GetReader(UUID string) (io.Reader, error)
-	// GetFrom returns all NIBs added after the given UUID.
-	GetFrom(fromUUID string) (<-chan *NIB, error)
+	// GetAll returns all NIBs in the given store in the order added to
+	// the store.
+	GetAll() (<-chan *NIB, error)
+	// GetFrom returns all NIBs added after the given transaction ID.
+	GetFrom(fromTransactionId int64) (<-chan *NIB, error)
 	// Exists returns if there is a NIB with
 	// the given UUID in the store.
 	Exists(UUID string) bool

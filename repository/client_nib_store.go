@@ -79,13 +79,7 @@ func (s ClientNIBStore) GetReader(UUID string) (io.Reader, error) {
 	return s.storage.Get(UUID)
 }
 
-// GetFrom returns all NIBs added after the given UUID.
-func (s ClientNIBStore) GetFrom(fromUUID string) (<-chan *NIB, error) {
-	transactions, err := s.transactionManager.From(fromUUID)
-	if err != nil {
-		return nil, err
-	}
-
+func (s ClientNIBStore) getFromTransactions(transactions []*Transaction) <-chan *NIB {
 	nibChannel := make(chan *NIB, 100)
 
 	go func() {
@@ -93,7 +87,7 @@ func (s ClientNIBStore) GetFrom(fromUUID string) (<-chan *NIB, error) {
 			for _, nibUUID := range transaction.NIBUUIDs {
 				nib, err := s.Get(nibUUID)
 				if err != nil {
-					nibChannel <- nil
+					break
 				}
 				nibChannel <- nib
 			}
@@ -101,7 +95,27 @@ func (s ClientNIBStore) GetFrom(fromUUID string) (<-chan *NIB, error) {
 		close(nibChannel)
 	}()
 
-	return nibChannel, nil
+	return nibChannel
+}
+
+// GetAll returns all NIBs which have been commited to the store.
+func (s ClientNIBStore) GetAll() (<-chan *NIB, error) {
+	transactions, err := s.transactionManager.All()
+	if err != nil {
+		return nil, err
+	}
+
+	return s.getFromTransactions(transactions), nil
+}
+
+// GetFrom returns all NIBs added added after the given transaction id.
+func (s ClientNIBStore) GetFrom(transactionID int64) (<-chan *NIB, error) {
+	transactions, err := s.transactionManager.From(transactionID)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.getFromTransactions(transactions), nil
 }
 
 // Add adds the given NIB to the store.
@@ -150,7 +164,6 @@ func (s ClientNIBStore) writeBytes(UUID string, data []byte) error {
 // Creates a transaction with the given UUID as NIB and Transaction id.
 func (s ClientNIBStore) createTransaction(UUID string) *Transaction {
 	return &Transaction{
-		UUID:     UUID,
 		NIBUUIDs: []string{UUID},
 	}
 }

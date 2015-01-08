@@ -114,13 +114,13 @@ func (t *TransactionContainerManagerTest) TestStoreTransaction(c *C) {
 		UUID: "testinit",
 		Transactions: []*Transaction{
 			&Transaction{
-				UUID:         "TransactionUUID",
-				NIBUUIDs:     []string{"a", "b", "c"},
-				PreviousUUID: ""},
+				ID:         1,
+				NIBUUIDs:   []string{"a", "b", "c"},
+				PreviousID: 0},
 			&Transaction{
-				UUID:         "TransactionUUID2",
-				NIBUUIDs:     []string{"d", "e", "f"},
-				PreviousUUID: "TransactionUUID"}},
+				ID:         2,
+				NIBUUIDs:   []string{"d", "e", "f"},
+				PreviousID: 1}},
 		PreviousUUID: ""}
 	err := t.tcm.Set(transactionContainer)
 	c.Assert(err, IsNil)
@@ -133,22 +133,24 @@ func (t *TransactionContainerManagerTest) TestStoreTransaction(c *C) {
 
 	for index, transaction := range retTransactionContainer.Transactions {
 		checkTransaction := transactionContainer.Transactions[index]
-		c.Assert(transaction.UUID, Equals, checkTransaction.UUID)
+		c.Assert(transaction.ID, Equals, checkTransaction.ID)
 		c.Assert(transaction.NIBUUIDs, DeepEquals, checkTransaction.NIBUUIDs)
-		c.Assert(transaction.PreviousUUID, Equals, checkTransaction.PreviousUUID)
+		c.Assert(transaction.PreviousID, Equals, checkTransaction.PreviousID)
 	}
 }
 
-// It should not be able to set a Transaction in the container which does
-// have an empty UUID.
-func (t *TransactionContainerManagerTest) TestStoreTransactionEmptyUUID(c *C) {
+// It should raise an error if the ID of a Transaction in the container
+// is set to 0.
+func (t *TransactionContainerManagerTest) TestStoreTransactionIDZero(c *C) {
 	transactionContainer := &TransactionContainer{
 		UUID: "testinit",
 		Transactions: []*Transaction{
 			&Transaction{
-				UUID:         "",
-				NIBUUIDs:     []string{"a", "b", "c"},
-				PreviousUUID: ""}},
+				ID:         0,
+				NIBUUIDs:   []string{"a", "b", "c"},
+				PreviousID: 0,
+			},
+		},
 		PreviousUUID: ""}
 
 	err := t.tcm.Set(transactionContainer)
@@ -161,9 +163,11 @@ func (t *TransactionContainerManagerTest) TestStoreTransactionEmptyNIBUUID(c *C)
 		UUID: "testinit",
 		Transactions: []*Transaction{
 			&Transaction{
-				UUID:         "transactionUUID",
-				NIBUUIDs:     []string{},
-				PreviousUUID: ""}},
+				ID:         1,
+				NIBUUIDs:   []string{},
+				PreviousID: 0,
+			},
+		},
 		PreviousUUID: ""}
 
 	err := t.tcm.Set(transactionContainer)

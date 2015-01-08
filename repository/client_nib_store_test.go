@@ -86,9 +86,9 @@ func (t *ClientNIBStoreTest) TestNibAddition(c *C) {
 // addition.
 func (t *ClientNIBStoreTest) TestTransactionAddition(c *C) {
 	testNib := t.addTestNIB(c)
-	transaction, err := t.transactionManager.Get(testNib.UUID)
+	transaction, err := t.transactionManager.CurrentTransaction()
 	c.Assert(err, IsNil)
-	c.Assert(transaction.UUID, Equals, testNib.UUID)
+	c.Assert(transaction.NIBUUIDs, DeepEquals, []string{testNib.UUID})
 }
 
 func (t *ClientNIBStoreTest) TestNibGet(c *C) {

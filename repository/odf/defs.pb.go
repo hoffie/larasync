@@ -90,9 +90,9 @@ func (m *TransactionContainer) GetPreviousUUID() string {
 }
 
 type Transaction struct {
-	UUID             *string  `protobuf:"bytes,1,req" json:"UUID,omitempty"`
+	ID               *int64   `protobuf:"varint,1,req" json:"ID,omitempty"`
 	NIBUUIDs         []string `protobuf:"bytes,2,rep" json:"NIBUUIDs,omitempty"`
-	PreviousUUID     *string  `protobuf:"bytes,3,opt,name=previousUUID" json:"previousUUID,omitempty"`
+	PreviousID       *int64   `protobuf:"varint,3,opt,name=previousID" json:"previousID,omitempty"`
 	XXX_unrecognized []byte   `json:"-"`
 }
 
@@ -100,11 +100,11 @@ func (m *Transaction) Reset()         { *m = Transaction{} }
 func (m *Transaction) String() string { return proto.CompactTextString(m) }
 func (*Transaction) ProtoMessage()    {}
 
-func (m *Transaction) GetUUID() string {
-	if m != nil && m.UUID != nil {
-		return *m.UUID
+func (m *Transaction) GetID() int64 {
+	if m != nil && m.ID != nil {
+		return *m.ID
 	}
-	return ""
+	return 0
 }
 
 func (m *Transaction) GetNIBUUIDs() []string {
@@ -114,11 +114,11 @@ func (m *Transaction) GetNIBUUIDs() []string {
 	return nil
 }
 
-func (m *Transaction) GetPreviousUUID() string {
-	if m != nil && m.PreviousUUID != nil {
-		return *m.PreviousUUID
+func (m *Transaction) GetPreviousID() int64 {
+	if m != nil && m.PreviousID != nil {
+		return *m.PreviousID
 	}
-	return ""
+	return 0
 }
 
 type NIB struct {

@@ -1,9 +1,11 @@
 package api
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gorilla/mux"
 
@@ -81,14 +83,27 @@ func (s *Server) nibList(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	values := req.URL.Query()
-	fromUUID, ok := values["from-uuid"]
+	fromRepositoryIdString, ok := values["from-transaction-id"]
 
+	var nibChannel <-chan *repositoryModule.NIB
 	if !ok {
-		errorText(rw, "from-uuid must be set", http.StatusBadRequest)
-		return
+		nibChannel, err = repository.GetAllNibs()
+	} else {
+		fromRepositoryId, err := strconv.ParseInt(fromRepositoryIdString[0], 10, 64)
+		if err != nil {
+			errorText(
+				rw,
+				fmt.Sprintf(
+					"from-transaction-id %s is not a valid transaction-id",
+					fromRepositoryIdString,
+				),
+				http.StatusBadRequest,
+			)
+			return
+		}
+		nibChannel, err = repository.GetNIBsFrom(fromRepositoryId)
 	}
 
-	nibChannel, err := repository.GetNIBsFrom(fromUUID[0])
 	if err != nil {
 		errorText(rw, "Could not extract data", http.StatusInternalServerError)
 		return

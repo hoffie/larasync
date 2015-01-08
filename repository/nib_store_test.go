@@ -50,7 +50,7 @@ func (t *NIBStoreTest) SetUpTest(c *C) {
 
 	t.transactionManager = newTransactionManager(transactionStorage)
 	t.nibStore = newNIBStore(
-		&t.storage,
+		t.storage,
 		t.repository,
 		t.transactionManager,
 	)

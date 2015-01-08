@@ -19,7 +19,7 @@ var (
 // NIBStore handles the interaction with NIBs in a specific
 // repository.
 type NIBStore struct {
-	storage            *UUIDContentStorage
+	storage            ContentStorage
 	repository         *Repository
 	transactionManager *TransactionManager
 }
@@ -27,13 +27,12 @@ type NIBStore struct {
 // newNibStore generates the NIBStore with the passed backend, repository,
 // and transactionManager.
 func newNIBStore(
-	storage *ContentStorage,
+	storage ContentStorage,
 	repository *Repository,
 	transactionManager *TransactionManager,
 ) *NIBStore {
-	uuidStorage := UUIDContentStorage{*storage}
 	return &NIBStore{
-		storage:            &uuidStorage,
+		storage:            storage,
 		repository:         repository,
 		transactionManager: transactionManager,
 	}

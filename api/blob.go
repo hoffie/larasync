@@ -16,7 +16,7 @@ func (s *Server) blobGet(rw http.ResponseWriter, req *http.Request) {
 
 	repository, err := s.rm.Open(repositoryName)
 	if err != nil {
-		errorJSON(rw, "Internal Error", http.StatusInternalServerError)
+		errorText(rw, "Internal Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -26,9 +26,9 @@ func (s *Server) blobGet(rw http.ResponseWriter, req *http.Request) {
 
 	if err != nil {
 		if os.IsNotExist(err) {
-			errorJSON(rw, "Not found", http.StatusNotFound)
+			errorText(rw, "Not found", http.StatusNotFound)
 		} else {
-			errorJSON(rw, "Internal Error", http.StatusInternalServerError)
+			errorText(rw, "Internal Error", http.StatusInternalServerError)
 		}
 		return
 	}
@@ -46,7 +46,7 @@ func (s *Server) blobPut(rw http.ResponseWriter, req *http.Request) {
 
 	repository, err := s.rm.Open(repositoryName)
 	if err != nil {
-		errorJSON(rw, "Internal Error", http.StatusInternalServerError)
+		errorText(rw, "Internal Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -55,7 +55,8 @@ func (s *Server) blobPut(rw http.ResponseWriter, req *http.Request) {
 	err = repository.AddObject(blobID, req.Body)
 
 	if err != nil {
-		errorJSON(rw, "Internal Error", http.StatusInternalServerError)
+		errorText(rw, "Internal Error", http.StatusInternalServerError)
+		return
 	}
 
 	rw.Header().Set("Location", req.URL.String())

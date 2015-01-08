@@ -3,6 +3,8 @@ package repository
 import (
 	"errors"
 	"sync"
+
+	"github.com/hoffie/larasync/helpers/lock"
 )
 
 var (
@@ -23,16 +25,19 @@ func reverseTransactionSlice(slice []*Transaction) []*Transaction {
 // in the server transaction log.
 type TransactionManager struct {
 	manager *TransactionContainerManager
-	mutex   *sync.Mutex
+	lock    sync.Locker
 }
 
 // newTransactionManager initializes a new transaction manager
 // with the given storage as a backend.
-func newTransactionManager(storage ContentStorage) *TransactionManager {
-	manager := newTransactionContainerManager(storage)
+func newTransactionManager(storage ContentStorage, lockingPath string) *TransactionManager {
+	manager := newTransactionContainerManager(storage, lockingPath)
 	return &TransactionManager{
 		manager: manager,
-		mutex:   &sync.Mutex{},
+		lock: lock.CurrentManager().Get(
+			lockingPath,
+			"transaction_manager",
+		),
 	}
 }
 
@@ -67,9 +72,9 @@ func (tm *TransactionManager) CurrentTransaction() (*Transaction, error) {
 
 // Add adds the given transaction to the storage.
 func (tm *TransactionManager) Add(transaction *Transaction) error {
-	mutex := tm.mutex
+	locker := tm.lock
 
-	mutex.Lock()
+	locker.Lock()
 	err := func() error {
 		manager := tm.manager
 		transactionContainer, err := manager.CurrentTransactionContainer()
@@ -101,7 +106,7 @@ func (tm *TransactionManager) Add(transaction *Transaction) error {
 		)
 		return manager.Set(transactionContainer)
 	}()
-	mutex.Unlock()
+	locker.Unlock()
 	return err
 }
 

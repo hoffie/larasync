@@ -17,7 +17,7 @@ func (t *TransactionContainerManagerTest) SetUpTest(c *C) {
 	t.dir = c.MkDir()
 	storage := &FileContentStorage{StoragePath: t.dir}
 
-	t.tcm = newTransactionContainerManager(storage)
+	t.tcm = newTransactionContainerManager(storage, t.dir)
 }
 
 // It should return an empty string if there is no current uuid in the

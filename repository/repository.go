@@ -116,7 +116,9 @@ func (r *Repository) getNIBStore() (*NIBStore, error) {
 			return nil, err
 		}
 
-		transactionManager := newTransactionManager(transactionStorage)
+		transactionManager := newTransactionManager(
+			transactionStorage,
+			r.GetManagementDir())
 
 		r.nibStore = newNIBStore(storage, r, transactionManager)
 	}

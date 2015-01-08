@@ -48,7 +48,9 @@ func (t *NIBStoreTest) SetUpTest(c *C) {
 	err = transactionStorage.CreateDir()
 	c.Assert(err, IsNil)
 
-	t.transactionManager = newTransactionManager(transactionStorage)
+	t.transactionManager = newTransactionManager(
+		transactionStorage,
+		t.repository.GetManagementDir())
 	t.nibStore = newNIBStore(
 		t.storage,
 		t.repository,

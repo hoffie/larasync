@@ -15,7 +15,7 @@ func (t *TransactionManagerTest) SetUpTest(c *C) {
 	t.dir = c.MkDir()
 	storage := &FileContentStorage{StoragePath: t.dir}
 
-	t.tm = newTransactionManager(storage)
+	t.tm = newTransactionManager(storage, t.dir)
 }
 
 func (t *TransactionManagerTest) transactions(count int) []*Transaction {

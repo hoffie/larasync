@@ -9,6 +9,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
+	"github.com/hoffie/larasync/helpers/lock"
 	"github.com/hoffie/larasync/repository/odf"
 )
 
@@ -16,18 +17,20 @@ import (
 // and to keep track of the most current transaction manager,
 type TransactionContainerManager struct {
 	storage UUIDContentStorage
-	mutex   *sync.Mutex
+	lock    sync.Locker
 }
 
 // newTransactionContainerManager initializes a container manager
 // the passed content storage which is used to access the stored
 // data entries.
-func newTransactionContainerManager(storage ContentStorage) *TransactionContainerManager {
+func newTransactionContainerManager(storage ContentStorage, lockingPath string) *TransactionContainerManager {
 	uuidStorage := UUIDContentStorage{storage}
 	return &TransactionContainerManager{
 		storage: uuidStorage,
-		//@TODO: Implement global state which returns one mutex for the repository.
-		mutex: &sync.Mutex{},
+		lock: lock.CurrentManager().Get(
+			lockingPath,
+			"transaction_container_manager",
+		),
 	}
 }
 
@@ -61,9 +64,9 @@ func (tcm TransactionContainerManager) Set(transactionContainer *TransactionCont
 	if transactionContainer.UUID == "" {
 		return errors.New("UUID must not be empty")
 	}
-	mutex := tcm.mutex
+	lock := tcm.lock
 
-	mutex.Lock()
+	lock.Lock()
 	err := func() error {
 		protoTransactionContainer, err := transactionContainer.toPb()
 		if err != nil {
@@ -86,7 +89,7 @@ func (tcm TransactionContainerManager) Set(transactionContainer *TransactionCont
 			"current",
 			bytes.NewBufferString(transactionContainer.UUID))
 	}()
-	mutex.Unlock()
+	lock.Unlock()
 	return err
 }
 

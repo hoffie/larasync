@@ -2,12 +2,7 @@ package repository
 
 import (
 	"bytes"
-	//	"crypto/sha256"
-	//	"encoding/hex"
-	//	"io"
 	"io/ioutil"
-	//	"os"
-	//	"path"
 	"path/filepath"
 
 	"github.com/agl/ed25519"
@@ -15,17 +10,17 @@ import (
 	. "gopkg.in/check.v1"
 )
 
-type ClientNIBStoreTest struct {
+type NIBStoreTest struct {
 	dir                string
 	repository         *Repository
-	nibStore           *ClientNIBStore
+	nibStore           *NIBStore
 	storage            ContentStorage
 	transactionManager *TransactionManager
 }
 
-var _ = Suite(&ClientNIBStoreTest{})
+var _ = Suite(&NIBStoreTest{})
 
-func (t *ClientNIBStoreTest) SetUpTest(c *C) {
+func (t *NIBStoreTest) SetUpTest(c *C) {
 	t.dir = c.MkDir()
 	t.repository = New(filepath.Join(t.dir, "repo"))
 	t.repository.Create()
@@ -45,8 +40,7 @@ func (t *ClientNIBStoreTest) SetUpTest(c *C) {
 	err = fileStorage.CreateDir()
 	c.Assert(err, IsNil)
 
-	storage := ContentStorage(fileStorage)
-	t.storage = storage
+	t.storage = fileStorage
 
 	transactionStorage := FileContentStorage{
 		StoragePath: filepath.Join(t.dir, "transactions"),
@@ -55,21 +49,21 @@ func (t *ClientNIBStoreTest) SetUpTest(c *C) {
 	c.Assert(err, IsNil)
 
 	t.transactionManager = newTransactionManager(transactionStorage)
-	t.nibStore = newClientNIBStore(
+	t.nibStore = newNIBStore(
 		&t.storage,
 		t.repository,
 		t.transactionManager,
 	)
 }
 
-func (t *ClientNIBStoreTest) getTestNIB() *NIB {
+func (t *NIBStoreTest) getTestNIB() *NIB {
 	n := &NIB{}
 	n.AppendRevision(&Revision{})
 	n.AppendRevision(&Revision{})
 	return n
 }
 
-func (t *ClientNIBStoreTest) addTestNIB(c *C) *NIB {
+func (t *NIBStoreTest) addTestNIB(c *C) *NIB {
 	n := t.getTestNIB()
 	err := t.nibStore.Add(n)
 	c.Assert(err, IsNil)
@@ -77,28 +71,28 @@ func (t *ClientNIBStoreTest) addTestNIB(c *C) *NIB {
 }
 
 // It should be able to add a NIB
-func (t *ClientNIBStoreTest) TestNibAddition(c *C) {
+func (t *NIBStoreTest) TestNibAddition(c *C) {
 	testNib := t.addTestNIB(c)
 	c.Assert(testNib.UUID, Not(Equals), "")
 }
 
 // It should create a transaction with the NIBs UUID on
 // addition.
-func (t *ClientNIBStoreTest) TestTransactionAddition(c *C) {
+func (t *NIBStoreTest) TestTransactionAddition(c *C) {
 	testNib := t.addTestNIB(c)
 	transaction, err := t.transactionManager.CurrentTransaction()
 	c.Assert(err, IsNil)
 	c.Assert(transaction.NIBUUIDs, DeepEquals, []string{testNib.UUID})
 }
 
-func (t *ClientNIBStoreTest) TestNibGet(c *C) {
+func (t *NIBStoreTest) TestNibGet(c *C) {
 	testNib := t.addTestNIB(c)
 	nib, err := t.nibStore.Get(testNib.UUID)
 	c.Assert(err, IsNil)
 	c.Assert(nib.UUID, Equals, testNib.UUID)
 }
 
-func (t *ClientNIBStoreTest) TestNibGetSignatureMangled(c *C) {
+func (t *NIBStoreTest) TestNibGetSignatureMangled(c *C) {
 	testNib := t.addTestNIB(c)
 	reader, err := t.storage.Get(testNib.UUID)
 	data, err := ioutil.ReadAll(reader)
@@ -109,7 +103,7 @@ func (t *ClientNIBStoreTest) TestNibGetSignatureMangled(c *C) {
 	c.Assert(err, NotNil)
 }
 
-func (t *ClientNIBStoreTest) TestNibGetContentMangled(c *C) {
+func (t *NIBStoreTest) TestNibGetContentMangled(c *C) {
 	testNib := t.addTestNIB(c)
 	reader, err := t.storage.Get(testNib.UUID)
 	data, err := ioutil.ReadAll(reader)
@@ -120,16 +114,16 @@ func (t *ClientNIBStoreTest) TestNibGetContentMangled(c *C) {
 	c.Assert(err, NotNil)
 }
 
-func (t *ClientNIBStoreTest) TestNibExistsPositive(c *C) {
+func (t *NIBStoreTest) TestNibExistsPositive(c *C) {
 	testNib := t.addTestNIB(c)
 	c.Assert(t.nibStore.Exists(testNib.UUID), Equals, true)
 }
 
-func (t *ClientNIBStoreTest) TestNibExistsNegative(c *C) {
+func (t *NIBStoreTest) TestNibExistsNegative(c *C) {
 	c.Assert(t.nibStore.Exists("Does not exist"), Equals, false)
 }
 
-func (t *ClientNIBStoreTest) TestNibVerificationSignatureError(c *C) {
+func (t *NIBStoreTest) TestNibVerificationSignatureError(c *C) {
 	testNib := t.addTestNIB(c)
 	reader, err := t.storage.Get(testNib.UUID)
 	data, err := ioutil.ReadAll(reader)
@@ -143,7 +137,7 @@ func (t *ClientNIBStoreTest) TestNibVerificationSignatureError(c *C) {
 	)
 }
 
-func (t *ClientNIBStoreTest) TestNibVerificationMarshallingError(c *C) {
+func (t *NIBStoreTest) TestNibVerificationMarshallingError(c *C) {
 	testNib := t.addTestNIB(c)
 	reader, err := t.storage.Get(testNib.UUID)
 	data, err := ioutil.ReadAll(reader)
@@ -157,7 +151,7 @@ func (t *ClientNIBStoreTest) TestNibVerificationMarshallingError(c *C) {
 	)
 }
 
-func (t *ClientNIBStoreTest) TestNibVerification(c *C) {
+func (t *NIBStoreTest) TestNibVerification(c *C) {
 	testNib := t.addTestNIB(c)
 	reader, err := t.storage.Get(testNib.UUID)
 	c.Assert(err, IsNil)

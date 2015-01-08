@@ -47,7 +47,7 @@ var ErrNoNIB = errors.New("no such NIB")
 type Repository struct {
 	Path               string
 	objectStorage      ContentStorage
-	nibStore           NIBStore
+	nibStore           *NIBStore
 	encryptionKeyPath  string
 	signingPrivkeyPath string
 	signingPubkeyPath  string
@@ -87,14 +87,14 @@ func (r *Repository) getObjectStorage() (ContentStorage, error) {
 		if err != nil {
 			return nil, err
 		}
-		r.objectStorage = storage
+		r.objectStorage = &storage
 	}
 	return r.objectStorage, nil
 }
 
 // getNIBStore returns the currently configured nib store backend
 // for the repository.
-func (r *Repository) getNIBStore() (NIBStore, error) {
+func (r *Repository) getNIBStore() (*NIBStore, error) {
 	if r.nibStore == nil {
 		nibStorage := FileContentStorage{
 			StoragePath: filepath.Join(
@@ -118,10 +118,8 @@ func (r *Repository) getNIBStore() (NIBStore, error) {
 		}
 
 		transactionManager := newTransactionManager(transactionStorage)
-		clientNIBStore := newClientNIBStore(&storage, r, transactionManager)
 
-		nibStore := NIBStore(clientNIBStore)
-		r.nibStore = nibStore
+		r.nibStore = newNIBStore(&storage, r, transactionManager)
 	}
 	return r.nibStore, nil
 }

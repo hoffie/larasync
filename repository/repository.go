@@ -39,7 +39,6 @@ const (
 )
 
 // ErrNoNIB is returned if no matching NIB can be found
-// (see Repository.getFilesNIBUUID)
 var ErrNoNIB = errors.New("no such NIB")
 
 // Repository represents an on-disk repository and provides methods to
@@ -297,7 +296,7 @@ func (r *Repository) AddItem(absPath string) error {
 	if err != nil {
 		return err
 	}
-	uuid, err := r.getFilesNIBUUID(relPath)
+	nibID, err := r.pathToNIBID(relPath)
 	if err != nil && err != ErrNoNIB {
 		return err
 	}
@@ -309,8 +308,7 @@ func (r *Repository) AddItem(absPath string) error {
 	if err != nil {
 		return err
 	}
-	// Setting an empty UUID to trigger the generation of a new one.
-	nib.UUID = uuid
+	nib.ID = nibID
 	nib.AppendRevision(rev)
 	//FIXME: timestamp, deviceID etc.
 	nibStore, err := r.getNIBStore()
@@ -321,11 +319,11 @@ func (r *Repository) AddItem(absPath string) error {
 	return nibStore.Add(&nib)
 }
 
-// getFilesNIBUUID returns the NIB for the given relative path or
+// pathToNIBID returns the NIB id for the given relative path or
 // returns ErrNoNIB if no pre-existing NIB can be found.
-func (r *Repository) getFilesNIBUUID(relPath string) (string, error) {
-	//FIXME: implement after deciding on #67
-	return "", nil
+func (r *Repository) pathToNIBID(relPath string) (string, error) {
+	//FIXME: implement
+	return r.hashChunk([]byte(relPath))
 }
 
 // AddObject adds an object into the storage with the given
@@ -339,7 +337,7 @@ func (r *Repository) AddObject(objectID string, data io.Reader) error {
 }
 
 // AddNIBContent adds NIBData to the repository after verifying it.
-func (r *Repository) AddNIBContent(UUID string, nibData io.Reader) error {
+func (r *Repository) AddNIBContent(nibID string, nibData io.Reader) error {
 	nibStore, err := r.getNIBStore()
 	if err != nil {
 		return err
@@ -350,27 +348,27 @@ func (r *Repository) AddNIBContent(UUID string, nibData io.Reader) error {
 		return err
 	}
 
-	return nibStore.AddContent(UUID, nibData)
+	return nibStore.AddContent(nibID, nibData)
 }
 
-// GetNIB returns a NIB for the given UUID in this repository.
-func (r *Repository) GetNIB(UUID string) (*NIB, error) {
+// GetNIB returns a NIB for the given ID in this repository.
+func (r *Repository) GetNIB(id string) (*NIB, error) {
 	store, err := r.getNIBStore()
 	if err != nil {
 		return nil, err
 	}
 
-	return store.Get(UUID)
+	return store.Get(id)
 }
 
-// GetNIBReader returns the NIB with the given UUID in this repository.
-func (r *Repository) GetNIBReader(UUID string) (io.Reader, error) {
+// GetNIBReader returns the NIB with the given id in this repository.
+func (r *Repository) GetNIBReader(id string) (io.Reader, error) {
 	store, err := r.getNIBStore()
 	if err != nil {
 		return nil, err
 	}
 
-	return store.GetReader(UUID)
+	return store.GetReader(id)
 }
 
 // GetNIBsFrom returns nibs added since the passed transaction ID.
@@ -408,17 +406,6 @@ func (r *Repository) HasObject(objectID string) bool {
 	}
 
 	return storage.Exists(objectID)
-}
-
-// hasUUID checks if the given UUID is already in use in this repository;
-// this is a local-only check.
-func (r *Repository) hasUUID(hash []byte) (bool, error) {
-	UUID := formatUUID(hash)
-	nibStore, err := r.getNIBStore()
-	if err != nil {
-		return false, err
-	}
-	return nibStore.Exists(UUID), nil
 }
 
 // getRepoRelativePath turns the given path into a path relative to the

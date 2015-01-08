@@ -15,7 +15,7 @@ import (
 // Besides containing administration information on its own,
 // it contains references to revisions.
 type NIB struct {
-	UUID          string
+	ID            string
 	Revisions     []*Revision
 	HistoryOffset int64
 }
@@ -33,7 +33,7 @@ func (n *NIB) ReadFrom(r io.Reader) (int64, error) {
 	if err != nil {
 		return read, err
 	}
-	n.UUID = pb.GetUUID()
+	n.ID = pb.GetID()
 	n.HistoryOffset = pb.GetHistoryOffset()
 	if pb.Revisions != nil {
 		for _, pbRev := range pb.Revisions {
@@ -47,7 +47,7 @@ func (n *NIB) ReadFrom(r io.Reader) (int64, error) {
 // Returns the number of bytes written and an error if applicable.
 func (n *NIB) WriteTo(w io.Writer) (int64, error) {
 	pb := &odf.NIB{
-		UUID:          &n.UUID,
+		ID:            &n.ID,
 		HistoryOffset: &n.HistoryOffset,
 		Revisions:     make([]*odf.Revision, 0),
 	}

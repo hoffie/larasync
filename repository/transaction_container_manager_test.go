@@ -33,7 +33,7 @@ func (t *TransactionContainerManagerTest) TestEmptyCurrentUUID(c *C) {
 func (t *TransactionContainerManagerTest) TestNewContainerCreation(c *C) {
 	transactionContainer, err := t.tcm.CurrentTransactionContainer()
 	c.Assert(err, IsNil)
-	c.Assert(transactionContainer.UUID != "", Equals, true)
+	c.Assert(transactionContainer.UUID, Not(Equals), "")
 	c.Assert(transactionContainer.PreviousUUID, Equals, "")
 	c.Assert(transactionContainer.Transactions, HasLen, 0)
 }
@@ -115,11 +115,11 @@ func (t *TransactionContainerManagerTest) TestStoreTransaction(c *C) {
 		Transactions: []*Transaction{
 			&Transaction{
 				ID:         1,
-				NIBUUIDs:   []string{"a", "b", "c"},
+				NIBIDs:     []string{"a", "b", "c"},
 				PreviousID: 0},
 			&Transaction{
 				ID:         2,
-				NIBUUIDs:   []string{"d", "e", "f"},
+				NIBIDs:     []string{"d", "e", "f"},
 				PreviousID: 1}},
 		PreviousUUID: ""}
 	err := t.tcm.Set(transactionContainer)
@@ -134,7 +134,7 @@ func (t *TransactionContainerManagerTest) TestStoreTransaction(c *C) {
 	for index, transaction := range retTransactionContainer.Transactions {
 		checkTransaction := transactionContainer.Transactions[index]
 		c.Assert(transaction.ID, Equals, checkTransaction.ID)
-		c.Assert(transaction.NIBUUIDs, DeepEquals, checkTransaction.NIBUUIDs)
+		c.Assert(transaction.NIBIDs, DeepEquals, checkTransaction.NIBIDs)
 		c.Assert(transaction.PreviousID, Equals, checkTransaction.PreviousID)
 	}
 }
@@ -147,7 +147,7 @@ func (t *TransactionContainerManagerTest) TestStoreTransactionIDZero(c *C) {
 		Transactions: []*Transaction{
 			&Transaction{
 				ID:         0,
-				NIBUUIDs:   []string{"a", "b", "c"},
+				NIBIDs:     []string{"a", "b", "c"},
 				PreviousID: 0,
 			},
 		},
@@ -158,13 +158,13 @@ func (t *TransactionContainerManagerTest) TestStoreTransactionIDZero(c *C) {
 }
 
 // It should not be able to set a Transaction which does not any NIBUUIDs stored.
-func (t *TransactionContainerManagerTest) TestStoreTransactionEmptyNIBUUID(c *C) {
+func (t *TransactionContainerManagerTest) TestStoreTransactionEmptyNIBID(c *C) {
 	transactionContainer := &TransactionContainer{
 		UUID: "testinit",
 		Transactions: []*Transaction{
 			&Transaction{
 				ID:         1,
-				NIBUUIDs:   []string{},
+				NIBIDs:     []string{},
 				PreviousID: 0,
 			},
 		},

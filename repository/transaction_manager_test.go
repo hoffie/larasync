@@ -19,12 +19,12 @@ func (t *TransactionManagerTest) SetUpTest(c *C) {
 }
 
 func (t *TransactionManagerTest) transactions(count int) []*Transaction {
-	nibUUIDs := []string{"a", "b"}
+	nibIDs := []string{"a", "b"}
 	transactions := make([]*Transaction, count)
 	for i := 1; i <= count; i++ {
 		transaction := &Transaction{
-			ID:       int64(i),
-			NIBUUIDs: nibUUIDs}
+			ID:     int64(i),
+			NIBIDs: nibIDs}
 		transactions[i-1] = transaction
 	}
 	return transactions
@@ -39,16 +39,16 @@ func (t *TransactionManagerTest) addTransactions() {
 
 func (t *TransactionManagerTest) TestAddTransaction(c *C) {
 	transaction := &Transaction{
-		ID:       1,
-		NIBUUIDs: []string{"a", "b", "c"}}
+		ID:     1,
+		NIBIDs: []string{"a", "b", "c"}}
 	err := t.tm.Add(transaction)
 	c.Assert(err, IsNil)
 }
 
 func (t *TransactionManagerTest) TestAddTransactionFirst(c *C) {
 	transaction := &Transaction{
-		ID:       1,
-		NIBUUIDs: []string{"a", "b", "c"}}
+		ID:     1,
+		NIBIDs: []string{"a", "b", "c"}}
 	err := t.tm.Add(transaction)
 	c.Assert(err, IsNil)
 	c.Assert(transaction.PreviousID, Equals, int64(0))
@@ -56,14 +56,14 @@ func (t *TransactionManagerTest) TestAddTransactionFirst(c *C) {
 
 func (t *TransactionManagerTest) TestAddTransactionPreviousSet(c *C) {
 	transaction := &Transaction{
-		ID:       1,
-		NIBUUIDs: []string{"a", "b"}}
+		ID:     1,
+		NIBIDs: []string{"a", "b"}}
 	err := t.tm.Add(transaction)
 	c.Assert(err, IsNil)
 
 	transaction = &Transaction{
-		ID:       2,
-		NIBUUIDs: []string{"c", "d"}}
+		ID:     2,
+		NIBIDs: []string{"c", "d"}}
 	err = t.tm.Add(transaction)
 	c.Assert(err, IsNil)
 

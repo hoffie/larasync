@@ -63,7 +63,7 @@ func (t *ClientNIBStoreTest) SetUpTest(c *C) {
 }
 
 func (t *ClientNIBStoreTest) getTestNIB() *NIB {
-	n := &NIB{}
+	n := &NIB{ID: "test"}
 	n.AppendRevision(&Revision{})
 	n.AppendRevision(&Revision{})
 	return n
@@ -79,50 +79,50 @@ func (t *ClientNIBStoreTest) addTestNIB(c *C) *NIB {
 // It should be able to add a NIB
 func (t *ClientNIBStoreTest) TestNibAddition(c *C) {
 	testNib := t.addTestNIB(c)
-	c.Assert(testNib.UUID, Not(Equals), "")
+	c.Assert(testNib.ID, Not(Equals), "")
 }
 
-// It should create a transaction with the NIBs UUID on
+// It should create a transaction with the NIBs ID on
 // addition.
 func (t *ClientNIBStoreTest) TestTransactionAddition(c *C) {
 	testNib := t.addTestNIB(c)
 	transaction, err := t.transactionManager.CurrentTransaction()
 	c.Assert(err, IsNil)
-	c.Assert(transaction.NIBUUIDs, DeepEquals, []string{testNib.UUID})
+	c.Assert(transaction.NIBIDs, DeepEquals, []string{testNib.ID})
 }
 
 func (t *ClientNIBStoreTest) TestNibGet(c *C) {
 	testNib := t.addTestNIB(c)
-	nib, err := t.nibStore.Get(testNib.UUID)
+	nib, err := t.nibStore.Get(testNib.ID)
 	c.Assert(err, IsNil)
-	c.Assert(nib.UUID, Equals, testNib.UUID)
+	c.Assert(nib.ID, Equals, testNib.ID)
 }
 
 func (t *ClientNIBStoreTest) TestNibGetSignatureMangled(c *C) {
 	testNib := t.addTestNIB(c)
-	reader, err := t.storage.Get(testNib.UUID)
+	reader, err := t.storage.Get(testNib.ID)
 	data, err := ioutil.ReadAll(reader)
 	c.Assert(err, IsNil)
 	data[len(data)-1] = 50
-	t.storage.Set(testNib.UUID, bytes.NewReader(data))
-	_, err = t.nibStore.Get(testNib.UUID)
+	t.storage.Set(testNib.ID, bytes.NewReader(data))
+	_, err = t.nibStore.Get(testNib.ID)
 	c.Assert(err, NotNil)
 }
 
 func (t *ClientNIBStoreTest) TestNibGetContentMangled(c *C) {
 	testNib := t.addTestNIB(c)
-	reader, err := t.storage.Get(testNib.UUID)
+	reader, err := t.storage.Get(testNib.ID)
 	data, err := ioutil.ReadAll(reader)
 	c.Assert(err, IsNil)
 	data[0] = 50
-	t.storage.Set(testNib.UUID, bytes.NewReader(data))
-	_, err = t.nibStore.Get(testNib.UUID)
+	t.storage.Set(testNib.ID, bytes.NewReader(data))
+	_, err = t.nibStore.Get(testNib.ID)
 	c.Assert(err, NotNil)
 }
 
 func (t *ClientNIBStoreTest) TestNibExistsPositive(c *C) {
 	testNib := t.addTestNIB(c)
-	c.Assert(t.nibStore.Exists(testNib.UUID), Equals, true)
+	c.Assert(t.nibStore.Exists(testNib.ID), Equals, true)
 }
 
 func (t *ClientNIBStoreTest) TestNibExistsNegative(c *C) {
@@ -131,7 +131,7 @@ func (t *ClientNIBStoreTest) TestNibExistsNegative(c *C) {
 
 func (t *ClientNIBStoreTest) TestNibVerificationSignatureError(c *C) {
 	testNib := t.addTestNIB(c)
-	reader, err := t.storage.Get(testNib.UUID)
+	reader, err := t.storage.Get(testNib.ID)
 	data, err := ioutil.ReadAll(reader)
 	c.Assert(err, IsNil)
 	data[len(data)-1] = 50
@@ -145,7 +145,7 @@ func (t *ClientNIBStoreTest) TestNibVerificationSignatureError(c *C) {
 
 func (t *ClientNIBStoreTest) TestNibVerificationMarshallingError(c *C) {
 	testNib := t.addTestNIB(c)
-	reader, err := t.storage.Get(testNib.UUID)
+	reader, err := t.storage.Get(testNib.ID)
 	data, err := ioutil.ReadAll(reader)
 	c.Assert(err, IsNil)
 	data[0] = 50
@@ -159,7 +159,7 @@ func (t *ClientNIBStoreTest) TestNibVerificationMarshallingError(c *C) {
 
 func (t *ClientNIBStoreTest) TestNibVerification(c *C) {
 	testNib := t.addTestNIB(c)
-	reader, err := t.storage.Get(testNib.UUID)
+	reader, err := t.storage.Get(testNib.ID)
 	c.Assert(err, IsNil)
 
 	c.Assert(

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"io/ioutil"
 )
@@ -21,22 +22,22 @@ func newClientNIBStore(
 	repository *Repository,
 	transactionManager *TransactionManager,
 ) *ClientNIBStore {
-	uuidStorage := UUIDContentStorage{*storage}
+	nibStorage := &UUIDContentStorage{*storage}
 	return &ClientNIBStore{
-		storage:            &uuidStorage,
+		storage:            nibStorage,
 		repository:         repository,
 		transactionManager: transactionManager,
 	}
 }
 
-// Get returns the NIB of the given uuid.
-func (s ClientNIBStore) Get(UUID string) (*NIB, error) {
+// Get returns the NIB of the given id.
+func (s ClientNIBStore) Get(id string) (*NIB, error) {
 	pubKey, err := s.repository.GetSigningPubkey()
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := s.GetBytes(UUID)
+	data, err := s.GetBytes(id)
 	if err != nil {
 		return nil, err
 	}
@@ -64,9 +65,9 @@ func (s ClientNIBStore) Get(UUID string) (*NIB, error) {
 }
 
 // GetBytes returns the Byte representation of the
-// given NIB UUID.
-func (s ClientNIBStore) GetBytes(UUID string) ([]byte, error) {
-	reader, err := s.GetReader(UUID)
+// given NIB ID.
+func (s ClientNIBStore) GetBytes(id string) ([]byte, error) {
+	reader, err := s.GetReader(id)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -74,9 +75,9 @@ func (s ClientNIBStore) GetBytes(UUID string) ([]byte, error) {
 }
 
 // GetReader returns the Reader which stores the bytes
-// of the given NIB UUID.
-func (s ClientNIBStore) GetReader(UUID string) (io.Reader, error) {
-	return s.storage.Get(UUID)
+// of the given NIB ID.
+func (s ClientNIBStore) GetReader(id string) (io.Reader, error) {
+	return s.storage.Get(id)
 }
 
 func (s ClientNIBStore) getFromTransactions(transactions []*Transaction) <-chan *NIB {
@@ -84,8 +85,8 @@ func (s ClientNIBStore) getFromTransactions(transactions []*Transaction) <-chan 
 
 	go func() {
 		for _, transaction := range transactions {
-			for _, nibUUID := range transaction.NIBUUIDs {
-				nib, err := s.Get(nibUUID)
+			for _, nibID := range transaction.NIBIDs {
+				nib, err := s.Get(nibID)
 				if err != nil {
 					break
 				}
@@ -120,13 +121,8 @@ func (s ClientNIBStore) GetFrom(transactionID int64) (<-chan *NIB, error) {
 
 // Add adds the given NIB to the store.
 func (s ClientNIBStore) Add(nib *NIB) error {
-	// Empty UUID. Generating new one.
-	if nib.UUID == "" {
-		uuid, err := s.storage.findFreeUUID()
-		if err != nil {
-			return err
-		}
-		nib.UUID = formatUUID(uuid)
+	if nib.ID == "" {
+		return errors.New("empty NIB id")
 	}
 
 	buf := &bytes.Buffer{}
@@ -135,11 +131,11 @@ func (s ClientNIBStore) Add(nib *NIB) error {
 		return err
 	}
 
-	return s.writeBytes(nib.UUID, buf.Bytes())
+	return s.writeBytes(nib.ID, buf.Bytes())
 }
 
-// writeBytes signs and adds the bytes for the given NIB UUID.
-func (s ClientNIBStore) writeBytes(UUID string, data []byte) error {
+// writeBytes signs and adds the bytes for the given NIB ID.
+func (s ClientNIBStore) writeBytes(id string, data []byte) error {
 	key, err := s.repository.GetSigningPrivkey()
 
 	if err != nil {
@@ -158,20 +154,20 @@ func (s ClientNIBStore) writeBytes(UUID string, data []byte) error {
 		return err
 	}
 
-	return s.AddContent(UUID, buf)
+	return s.AddContent(id, buf)
 }
 
-// Creates a transaction with the given UUID as NIB and Transaction id.
-func (s ClientNIBStore) createTransaction(UUID string) *Transaction {
+// Creates a transaction with the given id as NIB and Transaction id.
+func (s ClientNIBStore) createTransaction(id string) *Transaction {
 	return &Transaction{
-		NIBUUIDs: []string{UUID},
+		NIBIDs: []string{id},
 	}
 }
 
-func (s ClientNIBStore) AddContent(UUID string, reader io.Reader) error {
-	transaction := s.createTransaction(UUID)
+func (s ClientNIBStore) AddContent(id string, reader io.Reader) error {
+	transaction := s.createTransaction(id)
 
-	err := s.storage.Set(UUID, reader)
+	err := s.storage.Set(id, reader)
 	if err != nil {
 		return err
 	}
@@ -179,9 +175,9 @@ func (s ClientNIBStore) AddContent(UUID string, reader io.Reader) error {
 }
 
 // Exists returns if there is a NIB with
-// the given UUID in the store.
-func (s ClientNIBStore) Exists(UUID string) bool {
-	return s.storage.Exists(UUID)
+// the given ID in the store.
+func (s ClientNIBStore) Exists(id string) bool {
+	return s.storage.Exists(id)
 }
 
 // VerifyContent verifies the correctness of the given

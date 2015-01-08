@@ -9,6 +9,10 @@ import (
 type NIBStore interface {
 	// Add adds the given NIB to the store.
 	Add(nib *NIB) error
+	// AddContent adds the given data in the reader to the
+	// store. This should be only used if the NIB object
+	// is not available.
+	AddContent(UUID string, reader io.Reader) error
 	// Get returns the NIB of the given uuid.
 	Get(UUID string) (*NIB, error)
 	// GetBytes returns the Byte representation of the

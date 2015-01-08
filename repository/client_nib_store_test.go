@@ -16,10 +16,11 @@ import (
 )
 
 type ClientNIBStoreTest struct {
-	dir        string
-	repository *Repository
-	nibStore   *ClientNIBStore
-	storage    ContentStorage
+	dir                string
+	repository         *Repository
+	nibStore           *ClientNIBStore
+	storage            ContentStorage
+	transactionManager *TransactionManager
 }
 
 var _ = Suite(&ClientNIBStoreTest{})
@@ -46,7 +47,19 @@ func (t *ClientNIBStoreTest) SetUpTest(c *C) {
 
 	storage := ContentStorage(fileStorage)
 	t.storage = storage
-	t.nibStore = newClientNIBStore(&t.storage, t.repository)
+
+	transactionStorage := FileContentStorage{
+		StoragePath: filepath.Join(t.dir, "transactions"),
+	}
+	err = transactionStorage.CreateDir()
+	c.Assert(err, IsNil)
+
+	t.transactionManager = newTransactionManager(transactionStorage)
+	t.nibStore = newClientNIBStore(
+		&t.storage,
+		t.repository,
+		t.transactionManager,
+	)
 }
 
 func (t *ClientNIBStoreTest) getTestNIB() *NIB {
@@ -67,6 +80,15 @@ func (t *ClientNIBStoreTest) addTestNIB(c *C) *NIB {
 func (t *ClientNIBStoreTest) TestNibAddition(c *C) {
 	testNib := t.addTestNIB(c)
 	c.Assert(testNib.UUID, Not(Equals), "")
+}
+
+// It should create a transaction with the NIBs UUID on
+// addition.
+func (t *ClientNIBStoreTest) TestTransactionAddition(c *C) {
+	testNib := t.addTestNIB(c)
+	transaction, err := t.transactionManager.Get(testNib.UUID)
+	c.Assert(err, IsNil)
+	c.Assert(transaction.UUID, Equals, testNib.UUID)
 }
 
 func (t *ClientNIBStoreTest) TestNibGet(c *C) {

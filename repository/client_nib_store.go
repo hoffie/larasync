@@ -10,17 +10,24 @@ import (
 // ClientNIBStore implements the NIBStore interface from the
 // client perspective.
 type ClientNIBStore struct {
-	storage    *UUIDContentStorage
-	repository *Repository
+	storage            *UUIDContentStorage
+	repository         *Repository
+	transactionManager *TransactionManager
 }
 
 // newClientNIBStore generates the clientNibStore with the given data
 // and returns the new entry.
-func newClientNIBStore(storage *ContentStorage, repository *Repository) *ClientNIBStore {
+func newClientNIBStore(
+	storage *ContentStorage,
+	repository *Repository,
+	transactionManager *TransactionManager,
+) *ClientNIBStore {
 	uuidStorage := UUIDContentStorage{*storage}
 	return &ClientNIBStore{
-		storage:    &uuidStorage,
-		repository: repository}
+		storage:            &uuidStorage,
+		repository:         repository,
+		transactionManager: transactionManager,
+	}
 }
 
 // Get returns the NIB of the given uuid.
@@ -113,7 +120,25 @@ func (s ClientNIBStore) writeBytes(UUID string, data []byte) error {
 		return err
 	}
 
-	return s.storage.Set(UUID, buf)
+	return s.AddContent(UUID, buf)
+}
+
+// Creates a transaction with the given UUID as NIB and Transaction id.
+func (s ClientNIBStore) createTransaction(UUID string) *Transaction {
+	return &Transaction{
+		UUID:     UUID,
+		NIBUUIDs: []string{UUID},
+	}
+}
+
+func (s ClientNIBStore) AddContent(UUID string, reader io.Reader) error {
+	transaction := s.createTransaction(UUID)
+
+	err := s.storage.Set(UUID, reader)
+	if err != nil {
+		return err
+	}
+	return s.transactionManager.Add(transaction)
 }
 
 // Exists returns if there is a NIB with

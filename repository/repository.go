@@ -26,6 +26,7 @@ const (
 	managementDirName      = ".lara"
 	objectsDirName         = "objects"
 	nibsDirName            = "nibs"
+	transactionsDirName    = "transaction"
 	defaultFilePerms       = 0600
 	defaultDirPerms        = 0700
 	defaultChunkSize       = 1 * 1024 * 1024
@@ -101,7 +102,19 @@ func (r *Repository) getNIBStore() (NIBStore, error) {
 		}
 
 		storage := ContentStorage(nibStorage)
-		clientNIBStore := newClientNIBStore(&storage, r)
+
+		transactionStorage := FileContentStorage{
+			StoragePath: filepath.Join(
+				r.GetManagementDir(),
+				transactionsDirName,
+			)}
+		err = transactionStorage.CreateDir()
+		if err != nil {
+			return nil, err
+		}
+
+		transactionManager := newTransactionManager(transactionStorage)
+		clientNIBStore := newClientNIBStore(&storage, r, transactionManager)
 
 		nibStore := NIBStore(clientNIBStore)
 		r.nibStore = nibStore

@@ -93,7 +93,8 @@ func (tm *TransactionManager) Add(transaction *Transaction) error {
 		transaction.PreviousUUID = previousUUID
 		transactionContainer.Transactions = append(
 			transactionContainer.Transactions,
-			transaction)
+			transaction,
+		)
 		return manager.Set(transactionContainer)
 	}()
 	mutex.Unlock()

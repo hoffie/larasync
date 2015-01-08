@@ -19,5 +19,5 @@ func errorJSON(w http.ResponseWriter, error string, code int) {
 func errorText(w http.ResponseWriter, error string, code int) {
 	w.Header().Set("Content-Type", "plain/text")
 	w.WriteHeader(code)
-	w.Write(error)
+	w.Write([]byte(error))
 }

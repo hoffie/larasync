@@ -22,19 +22,6 @@ type Metadata struct {
 	RepoRelativePath string
 }
 
-// newMetadataFromPb returns a new Metadata object, pre-filled with the
-// data from the given protobuf object.
-func newMetadataFromPb(pbRev *odf.Metadata) *Metadata {
-	return &Metadata{}
-}
-
-// toPb converts this Metadata object to a protobuf object.
-// This is used by the encoder.
-func (m *Metadata) toPb() *odf.Metadata {
-	pb := &odf.Metadata{}
-	return pb
-}
-
 // WriteTo encodes this Metadata object to the supplied Writer in binary
 // form.
 // Returns the number of bytes written and an error if applicable.

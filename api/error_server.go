@@ -15,3 +15,9 @@ func errorJSON(w http.ResponseWriter, error string, code int) {
 	data, _ := json.Marshal(errorObj)
 	w.Write(data)
 }
+
+func errorText(w http.ResponseWriter, error string, code int) {
+	w.Header().Set("Content-Type", "plain/text")
+	w.WriteHeader(code)
+	w.Write(error)
+}

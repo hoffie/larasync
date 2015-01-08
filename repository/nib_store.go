@@ -6,12 +6,12 @@ import (
 )
 
 var (
-	// SignatureVerificationError gets returned if a signature of a signed NIB could
+	// ErrSignatureVerification gets returned if a signature of a signed NIB could
 	// not be verified.
-	SignatureVerificationError = errors.New("Signature verification failed")
-	// UnMarshallingError gets returned if a NIB could not be extracted from stored
+	ErrSignatureVerification = errors.New("Signature verification failed")
+	// ErrUnMarshalling gets returned if a NIB could not be extracted from stored
 	// bytes.
-	UnMarshallingError = errors.New("Couldn't extract item from byte stream")
+	ErrUnMarshalling = errors.New("Couldn't extract item from byte stream")
 )
 
 // NIBStore represents an interface which can be used

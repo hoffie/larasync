@@ -57,7 +57,7 @@ func (s ClientNIBStore) Get(UUID string) (*NIB, error) {
 	}
 
 	if !signatureReader.VerifyAfterRead() {
-		return nil, SignatureVerificationError
+		return nil, ErrSignatureVerification
 	}
 
 	return &nib, nil
@@ -195,11 +195,11 @@ func (s ClientNIBStore) VerifyContent(reader io.Reader) error {
 	nib := &NIB{}
 	_, err = nib.ReadFrom(signatureReader)
 	if err != nil {
-		return UnMarshallingError
+		return ErrUnMarshalling
 	}
 
 	if !signatureReader.VerifyAfterRead() {
-		return SignatureVerificationError
+		return ErrSignatureVerification
 	}
 
 	return nil

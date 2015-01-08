@@ -1,7 +1,13 @@
 package repository
 
 import (
+	"errors"
 	"io"
+)
+
+var (
+	SignatureVerificationError = errors.New("Signature verification failed")
+	UnMarshallingError         = errors.New("Couldn't extract item from byte stream")
 )
 
 // NIBStore represents an interface which can be used
@@ -24,4 +30,7 @@ type NIBStore interface {
 	// Exists returns if there is a NIB with
 	// the given UUID in the store.
 	Exists(UUID string) bool
+	// VerifyContent verifies the correctness of the given
+	// data in the reader.
+	VerifyContent(reader io.Reader) error
 }

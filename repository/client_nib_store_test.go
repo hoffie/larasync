@@ -128,3 +128,40 @@ func (t *ClientNIBStoreTest) TestNibExistsPositive(c *C) {
 func (t *ClientNIBStoreTest) TestNibExistsNegative(c *C) {
 	c.Assert(t.nibStore.Exists("Does not exist"), Equals, false)
 }
+
+func (t *ClientNIBStoreTest) TestNibVerificationSignatureError(c *C) {
+	testNib := t.addTestNIB(c)
+	reader, err := t.storage.Get(testNib.UUID)
+	data, err := ioutil.ReadAll(reader)
+	c.Assert(err, IsNil)
+	data[len(data)-1] = 50
+
+	reader = bytes.NewReader(data)
+
+	c.Assert(
+		t.nibStore.VerifyContent(reader), Equals, SignatureVerificationError,
+	)
+}
+
+func (t *ClientNIBStoreTest) TestNibVerificationMarshallingError(c *C) {
+	testNib := t.addTestNIB(c)
+	reader, err := t.storage.Get(testNib.UUID)
+	data, err := ioutil.ReadAll(reader)
+	c.Assert(err, IsNil)
+	data[0] = 50
+
+	reader = bytes.NewReader(data)
+
+	c.Assert(
+		t.nibStore.VerifyContent(reader), Equals, UnMarshallingError,
+	)
+}
+
+func (t *ClientNIBStoreTest) TestNibVerification(c *C) {
+	testNib := t.addTestNIB(c)
+	reader, err := t.storage.Get(testNib.UUID)
+	c.Assert(err, IsNil)
+
+	c.Assert(
+		t.nibStore.VerifyContent(reader), IsNil)
+}

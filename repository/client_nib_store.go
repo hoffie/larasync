@@ -2,7 +2,6 @@ package repository
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"io/ioutil"
 )
@@ -58,7 +57,7 @@ func (s ClientNIBStore) Get(UUID string) (*NIB, error) {
 	}
 
 	if !signatureReader.Verify() {
-		return nil, fmt.Errorf("Signature of NIB %s invalid", UUID)
+		return nil, SignatureVerificationError
 	}
 
 	return &nib, nil
@@ -145,4 +144,38 @@ func (s ClientNIBStore) AddContent(UUID string, reader io.Reader) error {
 // the given UUID in the store.
 func (s ClientNIBStore) Exists(UUID string) bool {
 	return s.storage.Exists(UUID)
+}
+
+// VerifyContent verifies the correctness of the given
+// data in the reader.
+func (s ClientNIBStore) VerifyContent(reader io.Reader) error {
+	pubKey, err := s.repository.GetSigningPubkey()
+	if err != nil {
+		return err
+	}
+
+	data, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return err
+	}
+
+	signatureReader, err := NewVerifyingReader(
+		pubKey,
+		bytes.NewReader(data),
+	)
+	if err != nil {
+		return err
+	}
+
+	nib := &NIB{}
+	_, err = nib.ReadFrom(signatureReader)
+	if err != nil {
+		return UnMarshallingError
+	}
+
+	if !signatureReader.Verify() {
+		return SignatureVerificationError
+	}
+
+	return nil
 }

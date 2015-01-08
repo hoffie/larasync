@@ -77,7 +77,7 @@ func (tm *TransactionManager) Add(transaction *Transaction) error {
 			return err
 		}
 
-		var previousID int64 = 0
+		var previousID int64
 		if len(transactionContainer.Transactions) > 0 {
 			latestIndex := len(transactionContainer.Transactions) - 1
 			previousID = transactionContainer.Transactions[latestIndex].ID

@@ -46,7 +46,7 @@ var ErrNoNIB = errors.New("no such NIB")
 type Repository struct {
 	Path               string
 	objectStorage      ContentStorage
-	nibStore           NIBStore
+	nibStore           *NIBStore
 	encryptionKeyPath  string
 	signingPrivkeyPath string
 	signingPubkeyPath  string
@@ -86,14 +86,14 @@ func (r *Repository) getObjectStorage() (ContentStorage, error) {
 		if err != nil {
 			return nil, err
 		}
-		r.objectStorage = storage
+		r.objectStorage = &storage
 	}
 	return r.objectStorage, nil
 }
 
 // getNIBStore returns the currently configured nib store backend
 // for the repository.
-func (r *Repository) getNIBStore() (NIBStore, error) {
+func (r *Repository) getNIBStore() (*NIBStore, error) {
 	if r.nibStore == nil {
 		nibStorage := FileContentStorage{
 			StoragePath: filepath.Join(
@@ -117,10 +117,8 @@ func (r *Repository) getNIBStore() (NIBStore, error) {
 		}
 
 		transactionManager := newTransactionManager(transactionStorage)
-		clientNIBStore := newClientNIBStore(&storage, r, transactionManager)
 
-		nibStore := NIBStore(clientNIBStore)
-		r.nibStore = nibStore
+		r.nibStore = newNIBStore(&storage, r, transactionManager)
 	}
 	return r.nibStore, nil
 }
@@ -372,14 +370,17 @@ func (r *Repository) GetNIBReader(id string) (io.Reader, error) {
 }
 
 // GetNIBsFrom returns nibs added since the passed transaction ID.
-func (r *Repository) GetNIBsFrom(fromTransactionId int64) (<-chan *NIB, error) {
+func (r *Repository) GetNIBsFrom(fromTransactionID int64) (<-chan *NIB, error) {
 	store, err := r.getNIBStore()
 	if err != nil {
 		return nil, err
 	}
-	return store.GetFrom(fromTransactionId)
+	return store.GetFrom(fromTransactionID)
 }
 
+// GetAllNibs returns all the nibs which are stored in this repository.
+// Those will be returned with the oldest one first and the newest added
+// last.
 func (r *Repository) GetAllNibs() (<-chan *NIB, error) {
 	store, err := r.getNIBStore()
 	if err != nil {

@@ -58,9 +58,9 @@ func (s *Server) nibPut(rw http.ResponseWriter, req *http.Request) {
 	err = repository.AddNIBContent(nibUUID, req.Body)
 
 	if err != nil {
-		if err == repositoryModule.SignatureVerificationError {
+		if err == repositoryModule.ErrSignatureVerification {
 			errorText(rw, "Signature could not be verified", http.StatusBadRequest)
-		} else if err == repositoryModule.UnMarshallingError {
+		} else if err == repositoryModule.ErrUnMarshalling {
 			errorText(rw, "Could not extract NIB", http.StatusBadRequest)
 		} else {
 			errorText(rw, "Internal Error", http.StatusInternalServerError)

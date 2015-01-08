@@ -196,29 +196,3 @@ func numFilesInDir(path string) (int, error) {
 	}
 	return len(entries), nil
 }
-
-func (t *RepositoryTests) TestWriteFileToChunks(c *C) {
-	r := New(t.dir)
-	err := r.CreateManagementDir()
-	c.Assert(err, IsNil)
-	err = r.CreateSigningKey()
-	c.Assert(err, IsNil)
-
-	err = r.CreateEncryptionKey()
-	c.Assert(err, IsNil)
-
-	err = r.CreateHashingKey()
-	c.Assert(err, IsNil)
-
-	path := filepath.Join(t.dir, "foo.txt")
-	err = ioutil.WriteFile(path, []byte("foo"), 0600)
-	c.Assert(err, IsNil)
-	numFiles, err := numFilesInDir(filepath.Join(t.dir, ".lara", "objects"))
-	c.Assert(err, IsNil)
-	c.Assert(numFiles, Equals, 0)
-	err = r.AddItem(path)
-	c.Assert(err, IsNil)
-	numFiles, err = numFilesInDir(filepath.Join(t.dir, ".lara", "objects"))
-	c.Assert(err, IsNil)
-	c.Assert(numFiles, Equals, 2)
-}

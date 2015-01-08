@@ -85,9 +85,10 @@ func (s *Server) requireRepositoryAuth(f http.HandlerFunc) http.HandlerFunc {
 		repository, err := s.rm.Open(repositoryName)
 		if err != nil {
 			if os.IsNotExist(err) {
-				// Repository is not found. However due to security reasons
-				// we are returning Forbidden here so an unauthenticated user
-				// can not check wether a repository does exist or not.
+				// Repository is not found. However, due to security reasons
+				// we are returning Unauthorized here so that an unauthenticated user
+				// cannot check wether a repository does exist or not.
+				// FIXME: timing side channel
 				http.Error(rw, "Unauthorized", http.StatusUnauthorized)
 			} else {
 				http.Error(rw, "Internal Error", http.StatusInternalServerError)
@@ -96,7 +97,7 @@ func (s *Server) requireRepositoryAuth(f http.HandlerFunc) http.HandlerFunc {
 		}
 
 		var pubKeyArray [PubkeySize]byte
-		pubKey, err := repository.GetAuthPubkey()
+		pubKey, err := repository.GetSigningPubkey()
 		if err != nil {
 			http.Error(rw, "Internal Error", http.StatusInternalServerError)
 		}

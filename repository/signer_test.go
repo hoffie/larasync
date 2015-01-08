@@ -33,7 +33,7 @@ func (t *SignerTests) TestReadAndWrite(c *C) {
 	_, err = io.Copy(gotten, v)
 
 	c.Assert(gotten.Bytes(), DeepEquals, testBytes)
-	c.Assert(v.Verify(), Equals, true)
+	c.Assert(v.VerifyAfterRead(), Equals, true)
 }
 
 func (t *SignerTests) TestReadAndWriteTamper(c *C) {
@@ -58,7 +58,7 @@ func (t *SignerTests) TestReadAndWriteTamper(c *C) {
 	gotten := &bytes.Buffer{}
 	_, err = io.Copy(gotten, v)
 	c.Assert(err, IsNil)
-	c.Assert(v.Verify(), Equals, false)
+	c.Assert(v.VerifyAfterRead(), Equals, false)
 }
 
 func (t *SignerTests) TestReadAndWriteWrongPubkey(c *C) {
@@ -85,5 +85,5 @@ func (t *SignerTests) TestReadAndWriteWrongPubkey(c *C) {
 	gotten := &bytes.Buffer{}
 	_, err = io.Copy(gotten, v)
 	c.Assert(err, IsNil)
-	c.Assert(v.Verify(), Equals, false)
+	c.Assert(v.VerifyAfterRead(), Equals, false)
 }

@@ -2,26 +2,15 @@ package main
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"github.com/hoffie/larasync/repository"
 )
 
 // addAction adds the current state of the given file or directory to the repository.
 func (d *Dispatcher) addAction() int {
-	numArgs := len(d.flags.Args())
-	if numArgs < 1 {
-		fmt.Fprint(d.stderr, "No items specified\n")
-		return 1
-	}
-	absPath, err := filepath.Abs(d.flags.Arg(0))
+	absPath, root, err := d.parseFirstPathArg()
 	if err != nil {
-		fmt.Fprint(d.stderr, "Unable to resolve path\n")
-		return 1
-	}
-	root, err := repository.GetRoot(absPath)
-	if err != nil {
-		fmt.Fprint(d.stderr, "Unable to find the repository root\n")
+		fmt.Fprintf(d.stderr, "Error: %s\n", err)
 		return 1
 	}
 	r := repository.New(root)

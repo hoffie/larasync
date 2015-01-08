@@ -1,10 +1,12 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/inconshreveable/log15"
 
@@ -95,4 +97,22 @@ func (d *Dispatcher) defaultAction() int {
 	fmt.Fprint(d.stderr, "Error: unknown action\n")
 	fmt.Fprint(d.stderr, "Please specify a valid action, see \n\tlara help\n")
 	return 1
+}
+
+// parseFirstPathArg takes the first command line argument and returns its
+// absolute value along with the associated repository root.
+func (d *Dispatcher) parseFirstPathArg() (string, string, error) {
+	numArgs := len(d.flags.Args())
+	if numArgs < 1 {
+		return "", "", errors.New("no path specified")
+	}
+	absPath, err := filepath.Abs(d.flags.Arg(0))
+	if err != nil {
+		return "", "", errors.New("unable to resolve path")
+	}
+	root, err := repository.GetRoot(absPath)
+	if err != nil {
+		return "", "", errors.New("unable to find the repository root")
+	}
+	return absPath, root, nil
 }

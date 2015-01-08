@@ -93,13 +93,17 @@ func (t *Tests) TestOpen(c *C) {
 }
 
 func (t *Tests) TestPubkey(c *C) {
-	t.m.Create("test", []byte("pubkey"))
+	expKey := []byte("01234567890123456789012345678901")
+	var arrExpKey [PubkeySize]byte
+	copy(arrExpKey[:], expKey[:PubkeySize])
+
+	t.m.Create("test", expKey)
 	r, err := t.m.Open("test")
 	c.Assert(err, IsNil)
 	c.Assert(r, FitsTypeOf, &Repository{})
-	key, err := r.GetAuthPubkey()
+	key, err := r.GetSigningPubkey()
 	c.Assert(err, IsNil)
-	c.Assert(key, DeepEquals, []byte("pubkey"))
+	c.Assert(key, DeepEquals, arrExpKey)
 }
 
 func (t *Tests) TestOpenNonExisting(c *C) {

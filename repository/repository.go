@@ -19,10 +19,10 @@ import (
 )
 
 const (
-	authPubkeyFileName     = "auth.pub"
 	encryptionKeyFileName  = "encryption.key"
 	hashingKeyFileName     = "hashing.key"
 	signingPrivkeyFileName = "signing.priv"
+	signingPubkeyFileName  = "signing.pub"
 	managementDirName      = ".lara"
 	objectsDirName         = "objects"
 	nibsDirName            = "nibs"
@@ -44,9 +44,9 @@ type Repository struct {
 	Path               string
 	storage            ContentStorage
 	nibStore           NIBStore
-	authPubkeyPath     string
 	encryptionKeyPath  string
 	signingPrivkeyPath string
+	signingPubkeyPath  string
 	hashingKeyPath     string
 	objectsPath        string
 	nibsPath           string
@@ -63,9 +63,9 @@ func New(path string) *Repository {
 // such as encryption key paths.
 func (r *Repository) setupPaths() {
 	base := filepath.Join(r.Path, managementDirName)
-	r.authPubkeyPath = filepath.Join(base, authPubkeyFileName)
 	r.encryptionKeyPath = filepath.Join(base, encryptionKeyFileName)
 	r.signingPrivkeyPath = filepath.Join(base, signingPrivkeyFileName)
+	r.signingPubkeyPath = filepath.Join(base, signingPubkeyFileName)
 	r.hashingKeyPath = filepath.Join(base, hashingKeyFileName)
 	r.objectsPath = filepath.Join(base, objectsDirName)
 	r.nibsPath = filepath.Join(base, nibsDirName)
@@ -196,17 +196,6 @@ func (r *Repository) CreateHashingKey() error {
 	return err
 }
 
-// GetAuthPubkey returns the repository auth key's public key.
-func (r *Repository) GetAuthPubkey() ([]byte, error) {
-	pubkey, err := ioutil.ReadFile(r.authPubkeyPath)
-	return pubkey, err
-}
-
-// SetAuthPubkey sets the repository auth key's public key.
-func (r *Repository) SetAuthPubkey(key []byte) error {
-	return ioutil.WriteFile(r.authPubkeyPath, key, defaultFilePerms)
-}
-
 // SetEncryptionKey sets the repository encryption key
 func (r *Repository) SetEncryptionKey(key [EncryptionKeySize]byte) error {
 	return ioutil.WriteFile(r.encryptionKeyPath, key[:], defaultFilePerms)
@@ -241,13 +230,34 @@ func (r *Repository) GetSigningPrivkey() ([PrivateKeySize]byte, error) {
 	return arrKey, err
 }
 
+// SetSigningPubkey sets the repository signing key's public key.
+func (r *Repository) SetSigningPubkey(key []byte) error {
+	return ioutil.WriteFile(r.signingPubkeyPath, key, defaultFilePerms)
+}
+
 // GetSigningPubkey returns the repository signing public key.
 func (r *Repository) GetSigningPubkey() ([PubkeySize]byte, error) {
 	privKey, err := r.GetSigningPrivkey()
 	if err != nil {
-		return [PubkeySize]byte{}, err
+		return r.getSigningPubkeyFromFile()
 	}
 	return edhelpers.GetPublicKeyFromPrivate(privKey), nil
+}
+
+// getSigningPubkeyFromFile returns the repository signing public key.
+//
+// It tries to retrieve the stored copy and is only called if the public key
+// cannot be derived from the private key (i.e. if the private key is not
+// available in this repository).
+func (r *Repository) getSigningPubkeyFromFile() ([PubkeySize]byte, error) {
+	key, err := ioutil.ReadFile(r.signingPubkeyPath)
+	if len(key) != PubkeySize {
+		return [PubkeySize]byte{}, fmt.Errorf(
+			"invalid key length (%d)", len(key))
+	}
+	var arrKey [PubkeySize]byte
+	copy(arrKey[:], key)
+	return arrKey, err
 }
 
 // SetHashingKey sets the repository hashing key (content addressing)

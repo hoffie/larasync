@@ -178,6 +178,8 @@ func (s *NIBStore) createTransaction(UUID string) *Transaction {
 	}
 }
 
+// AddContent adds the byte data of a NIB with the passed UUID in the
+// storage backend.
 func (s *NIBStore) AddContent(UUID string, reader io.Reader) error {
 	transaction := s.createTransaction(UUID)
 

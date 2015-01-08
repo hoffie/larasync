@@ -372,14 +372,17 @@ func (r *Repository) GetNIBReader(UUID string) (io.Reader, error) {
 }
 
 // GetNIBsFrom returns nibs added since the passed transaction ID.
-func (r *Repository) GetNIBsFrom(fromTransactionId int64) (<-chan *NIB, error) {
+func (r *Repository) GetNIBsFrom(fromTransactionID int64) (<-chan *NIB, error) {
 	store, err := r.getNIBStore()
 	if err != nil {
 		return nil, err
 	}
-	return store.GetFrom(fromTransactionId)
+	return store.GetFrom(fromTransactionID)
 }
 
+// GetAllNibs returns all the nibs which are stored in this repository.
+// Those will be returned with the oldest one first and the newest added
+// last.
 func (r *Repository) GetAllNibs() (<-chan *NIB, error) {
 	store, err := r.getNIBStore()
 	if err != nil {

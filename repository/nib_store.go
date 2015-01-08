@@ -6,8 +6,12 @@ import (
 )
 
 var (
+	// SignatureVerificationError gets returned if a signature of a signed NIB could
+	// not be verified.
 	SignatureVerificationError = errors.New("Signature verification failed")
-	UnMarshallingError         = errors.New("Couldn't extract item from byte stream")
+	// UnMarshallingError gets returned if a NIB could not be extracted from stored
+	// bytes.
+	UnMarshallingError = errors.New("Couldn't extract item from byte stream")
 )
 
 // NIBStore represents an interface which can be used
@@ -27,6 +31,8 @@ type NIBStore interface {
 	// GetReader returns the Reader which stores the bytes
 	// of the given NIB UUID.
 	GetReader(UUID string) (io.Reader, error)
+	// GetFrom returns all NIBs added after the given UUID.
+	GetFrom(fromUUID string) (<-chan *NIB, error)
 	// Exists returns if there is a NIB with
 	// the given UUID in the store.
 	Exists(UUID string) bool

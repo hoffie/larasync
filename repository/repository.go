@@ -309,6 +309,50 @@ func (r *Repository) AddObject(objectID string, data io.Reader) error {
 	return storage.Set(objectID, data)
 }
 
+// AddNIBContent adds NIBData to the repository after verifying it.
+func (r *Repository) AddNIBContent(UUID string, nibData io.Reader) error {
+	nibStore, err := r.getNIBStore()
+	if err != nil {
+		return err
+	}
+
+	err = nibStore.VerifyContent(nibData)
+	if err != nil {
+		return err
+	}
+
+	return nibStore.AddContent(UUID, nibData)
+}
+
+// GetNIB returns a NIB for the given UUID in this repository.
+func (r *Repository) GetNIB(UUID string) (*NIB, error) {
+	store, err := r.getNIBStore()
+	if err != nil {
+		return nil, err
+	}
+
+	return store.Get(UUID)
+}
+
+// GetNIBReader returns the NIB with the given UUID in this repository.
+func (r *Repository) GetNIBReader(UUID string) (io.Reader, error) {
+	store, err := r.getNIBStore()
+	if err != nil {
+		return nil, err
+	}
+
+	return store.GetReader(UUID)
+}
+
+// GetNIBsFrom returns nibs starting from the passed UUID.
+func (r *Repository) GetNIBsFrom(fromUUID string) (<-chan *NIB, error) {
+	store, err := r.getNIBStore()
+	if err != nil {
+		return nil, err
+	}
+	return store.GetFrom(fromUUID)
+}
+
 // GetObjectData returns the data stored for the given objectID in this
 // repository.
 func (r *Repository) GetObjectData(objectID string) (io.Reader, error) {

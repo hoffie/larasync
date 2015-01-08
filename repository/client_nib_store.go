@@ -79,6 +79,31 @@ func (s ClientNIBStore) GetReader(UUID string) (io.Reader, error) {
 	return s.storage.Get(UUID)
 }
 
+// GetFrom returns all NIBs added after the given UUID.
+func (s ClientNIBStore) GetFrom(fromUUID string) (<-chan *NIB, error) {
+	transactions, err := s.transactionManager.From(fromUUID)
+	if err != nil {
+		return nil, err
+	}
+
+	nibChannel := make(chan *NIB, 100)
+
+	go func() {
+		for _, transaction := range transactions {
+			for _, nibUUID := range transaction.NIBUUIDs {
+				nib, err := s.Get(nibUUID)
+				if err != nil {
+					nibChannel <- nil
+				}
+				nibChannel <- nib
+			}
+		}
+		close(nibChannel)
+	}()
+
+	return nibChannel, nil
+}
+
 // Add adds the given NIB to the store.
 func (s ClientNIBStore) Add(nib *NIB) error {
 	// Empty UUID. Generating new one.

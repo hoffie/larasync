@@ -509,11 +509,10 @@ func (r *Repository) writeContentAddressedCryptoContainer(data []byte) (string, 
 // key and returns the result, prefixed by the random key encrypted by
 // the repository encryption key.
 func (r *Repository) encryptWithRandomKey(data []byte) ([]byte, error) {
-	var enc []byte
 
 	// first generate and encrypt the per-file key and append it to
 	// the result buffer:
-	var nonce1 [24]byte
+	var nonce1 [nonceSize]byte
 	_, err := rand.Read(nonce1[:])
 	if err != nil {
 		return nil, err

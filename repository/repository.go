@@ -465,7 +465,7 @@ func (r *Repository) writeMetadata(absPath string) (string, error) {
 	}
 	m := Metadata{
 		RepoRelativePath: relPath,
-		Type:             MetadataTypeFile, //FIXME
+		Type:             MetadataTypeFile,
 	}
 	raw := &bytes.Buffer{}
 	_, err = m.WriteTo(raw)

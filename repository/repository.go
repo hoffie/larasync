@@ -19,20 +19,29 @@ import (
 )
 
 const (
+	// paths to our key files
 	encryptionKeyFileName  = "encryption.key"
 	hashingKeyFileName     = "hashing.key"
 	signingPrivkeyFileName = "signing.priv"
 	signingPubkeyFileName  = "signing.pub"
-	managementDirName      = ".lara"
-	objectsDirName         = "objects"
-	nibsDirName            = "nibs"
-	transactionsDirName    = "transaction"
-	defaultFilePerms       = 0600
-	defaultDirPerms        = 0700
-	defaultChunkSize       = 1 * 1024 * 1024
+
+	// internal directory names
+	managementDirName   = ".lara"
+	objectsDirName      = "objects"
+	nibsDirName         = "nibs"
+	transactionsDirName = "transaction"
+
+	// default permissions
+	defaultFilePerms = 0600
+	defaultDirPerms  = 0700
+
+	// default chunk splitting size
+	defaultChunkSize = 1 * 1024 * 1024
+
 	// EncryptionKeySize represents the size of the key used for
 	// encrypting.
 	EncryptionKeySize = 32
+
 	// HashingKeySize represents the size of the key used for
 	// generating content hashes (HMAC).
 	HashingKeySize = 32

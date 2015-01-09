@@ -454,7 +454,6 @@ func (r *Repository) writeContentAddressedCryptoContainer(data []byte) (string, 
 // key and returns the result, prefixed by the random key encrypted by
 // the repository encryption key.
 func (r *Repository) encryptWithRandomKey(data []byte) ([]byte, error) {
-
 	// first generate and encrypt the per-file key and append it to
 	// the result buffer:
 	var nonce1 [nonceSize]byte

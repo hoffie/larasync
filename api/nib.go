@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/hoffie/larasync/helpers/bincontainer"
 	repositoryModule "github.com/hoffie/larasync/repository"
 )
 
@@ -85,23 +86,23 @@ func (s *Server) nibList(rw http.ResponseWriter, req *http.Request) {
 	values := req.URL.Query()
 	fromRepositoryIDString, ok := values["from-transaction-id"]
 
-	var nibChannel <-chan *repositoryModule.NIB
+	var nibChannel <-chan []byte
 	if !ok {
-		nibChannel, err = repository.GetAllNibs()
+		nibChannel, err = repository.GetAllNIBBytes()
 	} else {
 		fromRepositoryID, err := strconv.ParseInt(fromRepositoryIDString[0], 10, 64)
 		if err != nil {
 			errorText(
 				rw,
 				fmt.Sprintf(
-					"from-transaction-id %s is not a valid transaction-id",
+					"from-transaction-id %s is not a valid transaction id",
 					fromRepositoryIDString,
 				),
 				http.StatusBadRequest,
 			)
 			return
 		}
-		nibChannel, err = repository.GetNIBsFrom(fromRepositoryID)
+		nibChannel, err = repository.GetNIBBytesFrom(fromRepositoryID)
 	}
 
 	if err != nil {
@@ -111,7 +112,9 @@ func (s *Server) nibList(rw http.ResponseWriter, req *http.Request) {
 
 	rw.Header().Set("Content-Type", "application/octet-stream")
 	rw.WriteHeader(http.StatusOK)
-	for nib := range nibChannel {
-		nib.WriteTo(rw)
+
+	encoder := bincontainer.NewEncoder(rw)
+	for nibData := range nibChannel {
+		encoder.WriteChunk(nibData)
 	}
 }

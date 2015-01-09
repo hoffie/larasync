@@ -1,15 +1,15 @@
 package odf;
 
 message TransactionContainer {
-	required string UUID = 1;
-	repeated Transaction transactions = 2;
-	optional string previousUUID = 3;
+		required string UUID = 1;
+		repeated Transaction transactions = 2;
+		optional string previousUUID = 3;
 }
 
 message Transaction {
-	required int64 ID = 1;
-	repeated string NIBIDs = 2;
-	optional int64 previousID = 3;
+		required int64 ID = 1;
+		repeated string NIBIDs = 2;
+		optional int64 previousID = 3;
 }
 
 message NIB {

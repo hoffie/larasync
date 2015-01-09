@@ -99,7 +99,7 @@ func (t *BaseTests) requestWithReader(c *C, httpBody io.Reader) *http.Request {
 func (t *BaseTests) createRepository(c *C) *repository.Repository {
 	err := t.rm.Create(t.repositoryName, t.pubKey[:])
 	c.Assert(err, IsNil)
-	rep, err := t.rm.Get(t.repositoryName)
+	rep, err := t.rm.Open(t.repositoryName)
 	c.Assert(err, IsNil)
 	return rep
 }

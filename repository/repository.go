@@ -333,10 +333,89 @@ func (r *Repository) AddItem(absPath string) error {
 	return nibStore.Add(&nib)
 }
 
-// pathToNIBID returns the NIB id for the given relative path or
-// returns ErrNoNIB if no pre-existing NIB can be found.
+// CheckoutPath looks up the given path name in the internal repository state and
+// writes the content from the repository state to the path in the working directory,
+// possibly overwriting an existing version of the file.
+func (r *Repository) CheckoutPath(absPath string) error {
+	relPath, err := r.getRepoRelativePath(absPath)
+	if err != nil {
+		return err
+	}
+
+	id, err := r.pathToNIBID(relPath)
+	if err != nil {
+		return err
+	}
+
+	nibStore, err := r.getNIBStore()
+	if err != nil {
+		return err
+	}
+
+	// nibStore.Get also handles signature verification
+	nib, err := nibStore.Get(id)
+	if err != nil {
+		return err
+	}
+
+	rev, err := nib.LatestRevision()
+	if err != nil {
+		return err
+	}
+
+	rawMetadata, err := r.readEncryptedObject(rev.MetadataID)
+	if err != nil {
+		return err
+	}
+
+	metadata := &Metadata{}
+	_, err = metadata.ReadFrom(bytes.NewReader(rawMetadata))
+	if err != nil {
+		return err
+	}
+
+	if metadata.RepoRelativePath != relPath {
+		return errors.New("metadata name mismatch")
+	}
+
+	//FIXME make atomic (rename) / write to tempfile
+	out, err := os.OpenFile(absPath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0600)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	for _, contentID := range rev.ContentIDs {
+		content, err := r.readEncryptedObject(contentID)
+		_, err = out.Write(content)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// readEncryptedObject reads the object with the given id and returns its
+// authenticated, unencrypted content.
+func (r *Repository) readEncryptedObject(id string) ([]byte, error) {
+	objectStorage, err := r.getObjectStorage()
+	if err != nil {
+		return nil, err
+	}
+
+	reader, err := objectStorage.Get(id)
+	if err != nil {
+		return nil, err
+	}
+	encryptedContent, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+	return r.decryptContent(encryptedContent)
+}
+
+// getFilesNIBUUID returns the NIB for the given relative path
 func (r *Repository) pathToNIBID(relPath string) (string, error) {
-	//FIXME: implement
 	return r.hashChunk([]byte(relPath))
 }
 
@@ -527,16 +606,58 @@ func (r *Repository) encryptWithRandomKey(data []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	out := secretbox.Seal(enc, fileKey[:], &nonce1, &repoKey)
+	out := nonce1[:]
+	out = secretbox.Seal(out, fileKey[:], &nonce1, &repoKey)
 
 	// then append the actual encrypted contents
-	var nonce2 [24]byte
+	var nonce2 [nonceSize]byte
 	_, err = rand.Read(nonce2[:])
 	if err != nil {
 		return nil, err
 	}
+	out = append(out, nonce2[:]...)
 	out = secretbox.Seal(out, data, &nonce2, &fileKey)
 	return out, nil
+}
+
+// decryptContent is the counter-part of encryptWithRandomKey, i.e.
+// it returns the plain text again.
+func (r *Repository) decryptContent(enc []byte) ([]byte, error) {
+	if len(enc) < encryptedContentMinSize {
+		return nil, errors.New("truncated ciphertext")
+	}
+
+	// first decrypt the file-specific key using the master key
+	var nonce [nonceSize]byte
+	readNonce := func() {
+		copy(nonce[:], enc[:nonceSize])
+		enc = enc[nonceSize:]
+	}
+	readNonce()
+	repoKey, err := r.GetEncryptionKey()
+	if err != nil {
+		return nil, err
+	}
+	l := EncryptionKeySize + secretbox.Overhead
+	encryptedFileKey := enc[:l]
+	enc = enc[l:]
+	var fileKey []byte
+	fileKey, success := secretbox.Open(fileKey, encryptedFileKey, &nonce, &repoKey)
+	if !success {
+		return nil, errors.New("file key decryption failed")
+	}
+
+	var arrFileKey [EncryptionKeySize]byte
+	copy(arrFileKey[:], fileKey)
+
+	readNonce()
+	var content []byte
+	content, success = secretbox.Open(content, enc, &nonce, &arrFileKey)
+	if !success {
+		return nil, errors.New("content decryption failed")
+	}
+
+	return content, nil
 }
 
 // hashChunk takes a chunk of data and constructs its content-addressing

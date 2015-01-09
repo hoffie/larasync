@@ -42,6 +42,8 @@ func (d *Dispatcher) run(args []string) int {
 	switch action {
 	case "add":
 		cmd = d.addAction
+	case "checkout":
+		cmd = d.checkoutAction
 	case "help":
 		cmd = d.helpAction
 	case "init":
@@ -65,10 +67,11 @@ func (d *Dispatcher) setupLogging() {
 func (d *Dispatcher) helpAction() int {
 	fmt.Fprint(d.stderr, "Syntax: lara ACTION\n\n")
 	fmt.Fprint(d.stderr, "Possible actions:\n")
-	fmt.Fprint(d.stderr, "\tadd\tadds the current state of the given file or directory\n")
-	fmt.Fprint(d.stderr, "\thelp\tthis information\n")
-	fmt.Fprint(d.stderr, "\tinit\tinitialize a new repository\n")
-	fmt.Fprint(d.stderr, "\tserver\trun in server mode\n")
+	fmt.Fprint(d.stderr, "\tadd      adds the current state of the given file or directory\n")
+	fmt.Fprint(d.stderr, "\tcheckout (over)writes the given path with the repository's state\n")
+	fmt.Fprint(d.stderr, "\thelp     this information\n")
+	fmt.Fprint(d.stderr, "\tinit     initialize a new repository\n")
+	fmt.Fprint(d.stderr, "\tserver   run in server mode\n")
 	return 0
 }
 

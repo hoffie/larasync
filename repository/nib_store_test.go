@@ -53,7 +53,7 @@ func (t *NIBStoreTest) SetUpTest(c *C) {
 		t.repository.GetManagementDir())
 	t.nibStore = newNIBStore(
 		t.storage,
-		t.repository,
+		t.repository.keys,
 		t.transactionManager,
 	)
 }

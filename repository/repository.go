@@ -120,7 +120,7 @@ func (r *Repository) getNIBStore() (*NIBStore, error) {
 			transactionStorage,
 			r.GetManagementDir())
 
-		r.nibStore = newNIBStore(storage, r, transactionManager)
+		r.nibStore = newNIBStore(storage, r.keys, transactionManager)
 	}
 	return r.nibStore, nil
 }

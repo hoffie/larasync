@@ -48,7 +48,8 @@ func (t *RepositoryAddItemTests) TestWriteFileToChunks(c *C) {
 func (t *RepositoryAddItemTests) TestExistingFileNIBReuse(c *C) {
 	c.Skip("waiting for decision on #67")
 	nibsPath := filepath.Join(t.dir, ".lara", "nibs")
-	path := filepath.Join(t.dir, "foo.txt")
+	filename := "foo.txt"
+	path := filepath.Join(t.dir, filename)
 	err := ioutil.WriteFile(path, []byte("foo"), 0600)
 	c.Assert(err, IsNil)
 
@@ -63,6 +64,9 @@ func (t *RepositoryAddItemTests) TestExistingFileNIBReuse(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 1)
 
+	err = ioutil.WriteFile(path, []byte("foo2"), 0600)
+	c.Assert(err, IsNil)
+
 	err = t.r.AddItem(path)
 	c.Assert(err, IsNil)
 
@@ -70,4 +74,9 @@ func (t *RepositoryAddItemTests) TestExistingFileNIBReuse(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 1)
 
+	nibId, err := t.r.pathToNIBID(filename)
+	c.Assert(err, IsNil)
+	nib, err := t.r.nibStore.Get(nibId)
+	c.Assert(err, IsNil)
+	c.Assert(len(nib.Revisions), Equals, 2)
 }

@@ -46,10 +46,14 @@ const (
 	// HashingKeySize represents the size of the key used for
 	// generating content hashes (HMAC).
 	HashingKeySize = 32
-)
 
-// ErrNoNIB is returned if no matching NIB can be found
-var ErrNoNIB = errors.New("no such NIB")
+	// secretbox nonceSize
+	nonceSize = 24
+
+	// pre-computed minimal length of ciphertext; anything less cannot be valid
+	// and will be rejected before attempting any other operations.
+	encryptedContentMinSize = 2*(nonceSize+secretbox.Overhead) + EncryptionKeySize
+)
 
 // Repository represents an on-disk repository and provides methods to
 // access its sub-items.
@@ -307,7 +311,7 @@ func (r *Repository) AddItem(absPath string) error {
 		return err
 	}
 	nibID, err := r.pathToNIBID(relPath)
-	if err != nil && err != ErrNoNIB {
+	if err != nil {
 		return err
 	}
 

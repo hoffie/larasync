@@ -11,7 +11,7 @@ func Test(t *testing.T) {
 }
 
 var adminSecret = []byte("foo")
-var adminPubkey [PubkeySize]byte
+var adminPubkey [PublicKeySize]byte
 
 func init() {
 	var err error

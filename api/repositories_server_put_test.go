@@ -64,7 +64,7 @@ func (t *RepoListCreateTests) SetUpTest(c *C) {
 }
 
 func (t *RepoListCreateTests) SetUpSuite(c *C) {
-	t.pubKey = make([]byte, PubkeySize)
+	t.pubKey = make([]byte, PublicKeySize)
 }
 
 func (t *RepoListCreateTests) TearDownTest(c *C) {

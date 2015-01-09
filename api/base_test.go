@@ -22,7 +22,7 @@ type BaseTests struct {
 	req            *http.Request
 	repos          string
 	repositoryName string
-	pubKey         [PubkeySize]byte
+	pubKey         [PublicKeySize]byte
 	privateKey     [PrivateKeySize]byte
 	httpMethod     string
 	getURL         func() string

@@ -16,7 +16,7 @@ type ServerConfig struct {
 	}
 	Signatures struct {
 		AdminPubkey       string
-		AdminPubkeyBinary *[api.PubkeySize]byte
+		AdminPubkeyBinary *[api.PublicKeySize]byte
 		MaxAge            time.Duration
 	}
 	Repository struct {
@@ -54,10 +54,10 @@ func (c *ServerConfig) decodeAdminPubkey() error {
 	if err != nil {
 		return err
 	}
-	if len(dec) != api.PubkeySize {
+	if len(dec) != api.PublicKeySize {
 		return errors.New("admin pubkey too short")
 	}
-	c.Signatures.AdminPubkeyBinary = new([api.PubkeySize]byte)
+	c.Signatures.AdminPubkeyBinary = new([api.PublicKeySize]byte)
 	copy(c.Signatures.AdminPubkeyBinary[:], dec)
 	return nil
 }

@@ -18,8 +18,8 @@ import (
 const (
 	// PrivateKeySize denotes how many bytes a private key needs (binary encoded)
 	PrivateKeySize = ed25519.PrivateKeySize
-	// PubkeySize denotes how many bytes a pubkey needs (binary encoded)
-	PubkeySize = ed25519.PublicKeySize
+	// PublicKeySize denotes how many bytes a pubkey needs (binary encoded)
+	PublicKeySize = ed25519.PublicKeySize
 	// SignatureSize denotes how many bytes a sig needs (binary encoded)
 	SignatureSize = ed25519.SignatureSize
 )
@@ -51,7 +51,7 @@ func SignWithKey(req *http.Request, key [PrivateKeySize]byte) {
 // ValidateRequest checks whether the request signature is valid and
 // matches the given public key. It also checks whether the request
 // is not outdated according to the provided maxAge.
-func ValidateRequest(req *http.Request, pubkey [PubkeySize]byte, maxAge time.Duration) bool {
+func ValidateRequest(req *http.Request, pubkey [PublicKeySize]byte, maxAge time.Duration) bool {
 	if !validateRequestSig(req, pubkey) {
 		return false
 	}
@@ -63,7 +63,7 @@ func ValidateRequest(req *http.Request, pubkey [PubkeySize]byte, maxAge time.Dur
 
 // validateRequestSig is a helper which ensures that the request's signature
 // is valid. It extracts the signature on its own.
-func validateRequestSig(req *http.Request, pubkey [PubkeySize]byte) bool {
+func validateRequestSig(req *http.Request, pubkey [PublicKeySize]byte) bool {
 	auth := req.Header.Get("Authorization")
 	if auth == "" {
 		return false
@@ -115,7 +115,7 @@ func getSignature(req *http.Request, key [PrivateKeySize]byte) []byte {
 
 // verifySig checks if the signature matches the provided
 // public key and is valid for the given request.
-func verifySig(req *http.Request, pubkey [PubkeySize]byte, sig [SignatureSize]byte) bool {
+func verifySig(req *http.Request, pubkey [PublicKeySize]byte, sig [SignatureSize]byte) bool {
 	mac := sha512.New()
 	concatenateTo(req, mac)
 	hash := mac.Sum(nil)
@@ -137,10 +137,10 @@ func passphraseToKey(passphrase []byte) ([PrivateKeySize]byte, error) {
 
 // GetAdminSecretPubkey transforms the given passphrase into a private key
 // and returns the accompying public key (e.g. for storage on the server)
-func GetAdminSecretPubkey(passphrase []byte) ([PubkeySize]byte, error) {
+func GetAdminSecretPubkey(passphrase []byte) ([PublicKeySize]byte, error) {
 	key, err := passphraseToKey(passphrase)
 	if err != nil {
-		return [PubkeySize]byte{}, err
+		return [PublicKeySize]byte{}, err
 	}
 	return edhelpers.GetPublicKeyFromPrivate(key), nil
 }

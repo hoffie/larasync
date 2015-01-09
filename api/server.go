@@ -13,7 +13,7 @@ import (
 
 // Server represents our http environment.
 type Server struct {
-	adminPubkey   [PubkeySize]byte
+	adminPubkey   [PublicKeySize]byte
 	router        *mux.Router
 	maxRequestAge time.Duration
 	http          *http.Server
@@ -26,7 +26,7 @@ const (
 )
 
 // New returns a new Server.
-func New(adminPubkey [PubkeySize]byte, maxRequestAge time.Duration, rm *repository.Manager) *Server {
+func New(adminPubkey [PublicKeySize]byte, maxRequestAge time.Duration, rm *repository.Manager) *Server {
 	serveMux := http.NewServeMux()
 	s := Server{
 		adminPubkey:   adminPubkey,
@@ -96,13 +96,13 @@ func (s *Server) requireRepositoryAuth(f http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		var pubKeyArray [PubkeySize]byte
+		var pubKeyArray [PublicKeySize]byte
 		pubKey, err := repository.GetSigningPublicKey()
 		if err != nil {
 			http.Error(rw, "Internal Error", http.StatusInternalServerError)
 		}
 
-		copy(pubKeyArray[0:PubkeySize], pubKey[:PubkeySize])
+		copy(pubKeyArray[0:PublicKeySize], pubKey[:PublicKeySize])
 		// TODO: Find if there is a better way for this.
 
 		if !ValidateRequest(req, pubKeyArray, s.maxRequestAge) {

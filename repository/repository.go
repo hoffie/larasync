@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 
 	"code.google.com/p/go.crypto/nacl/secretbox"
+	"github.com/agl/ed25519"
 
 	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
 )
@@ -184,14 +185,14 @@ func (r *Repository) CreateEncryptionKey() error {
 
 // CreateSigningKey generates a random signing key.
 func (r *Repository) CreateSigningKey() error {
-	key := make([]byte, PrivateKeySize)
-	var arrKey [PrivateKeySize]byte
-	_, err := rand.Read(key)
+	_, privKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		return err
 	}
-	copy(arrKey[:], key)
-	err = r.SetSigningPrivkey(arrKey)
+	if privKey == nil {
+		return errors.New("no private key generated")
+	}
+	err = r.SetSigningPrivkey(*privKey)
 	return err
 }
 

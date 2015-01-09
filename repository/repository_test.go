@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/agl/ed25519"
+
 	. "gopkg.in/check.v1"
 )
 
@@ -145,6 +147,26 @@ func (t *RepositoryTests) TestCreateSigningKey(c *C) {
 	key, err := r.GetSigningPrivkey()
 	c.Assert(err, IsNil)
 	c.Assert(len(key), Equals, PrivateKeySize)
+}
+
+func (t *RepositoryTests) TestCreateSigningKeyTestEncryption(c *C) {
+	r := New(t.dir)
+	err := r.CreateManagementDir()
+	c.Assert(err, IsNil)
+
+	err = r.CreateSigningKey()
+	c.Assert(err, IsNil)
+
+	priv, err := r.GetSigningPrivkey()
+	c.Assert(err, IsNil)
+
+	pub, err := r.GetSigningPubkey()
+	c.Assert(err, IsNil)
+
+	content := []byte("test")
+	sig := ed25519.Sign(&priv, content)
+	res := ed25519.Verify(&pub, content, sig)
+	c.Assert(res, Equals, true)
 }
 
 func (t *RepositoryTests) TestCreateHashingKey(c *C) {

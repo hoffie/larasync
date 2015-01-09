@@ -19,13 +19,13 @@ func (t *RepositoryAddItemTests) SetUpTest(c *C) {
 	t.r = New(t.dir)
 	err := t.r.CreateManagementDir()
 	c.Assert(err, IsNil)
-	err = t.r.CreateSigningKey()
+	err = t.r.keys.CreateSigningKey()
 	c.Assert(err, IsNil)
 
-	err = t.r.CreateEncryptionKey()
+	err = t.r.keys.CreateEncryptionKey()
 	c.Assert(err, IsNil)
 
-	err = t.r.CreateHashingKey()
+	err = t.r.keys.CreateHashingKey()
 	c.Assert(err, IsNil)
 }
 

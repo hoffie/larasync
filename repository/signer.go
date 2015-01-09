@@ -13,8 +13,8 @@ import (
 const (
 	// PrivateKeySize denotes how many bytes a private key needs (binary encoded)
 	PrivateKeySize = ed25519.PrivateKeySize
-	// PubkeySize denotes how many bytes a pubkey needs (binary encoded)
-	PubkeySize = ed25519.PublicKeySize
+	// PublicKeySize denotes how many bytes a pubkey needs (binary encoded)
+	PublicKeySize = ed25519.PublicKeySize
 	// SignatureSize denotes how many bytes a sig needs (binary encoded)
 	SignatureSize = ed25519.SignatureSize
 )
@@ -66,13 +66,13 @@ type VerifyingReader struct {
 	hash          hash.Hash
 	reader        io.Reader
 	limitedReader io.Reader
-	pubKey        [PubkeySize]byte
+	pubKey        [PublicKeySize]byte
 	sig           [SignatureSize]byte
 	dataLength    int64
 }
 
 // NewVerifyingReader returns a new VerifyingReader.
-func NewVerifyingReader(pubKey [PubkeySize]byte, reader io.ReadSeeker) (*VerifyingReader, error) {
+func NewVerifyingReader(pubKey [PublicKeySize]byte, reader io.ReadSeeker) (*VerifyingReader, error) {
 	r := &VerifyingReader{
 		hash:   sha512.New(),
 		reader: reader,

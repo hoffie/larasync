@@ -97,7 +97,7 @@ func (s *Server) requireRepositoryAuth(f http.HandlerFunc) http.HandlerFunc {
 		}
 
 		var pubKeyArray [PubkeySize]byte
-		pubKey, err := repository.GetSigningPubkey()
+		pubKey, err := repository.GetSigningPublicKey()
 		if err != nil {
 			http.Error(rw, "Internal Error", http.StatusInternalServerError)
 		}

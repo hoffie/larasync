@@ -29,9 +29,9 @@ func (t *NIBStoreTest) SetUpTest(c *C) {
 		bytes.NewBufferString("just some deterministic 'random' bytes"))
 	c.Assert(err, IsNil)
 
-	err = t.repository.SetSigningPrivkey(*privKey)
+	err = t.repository.keys.SetSigningPrivateKey(*privKey)
 	c.Assert(err, IsNil)
-	signingPubKey, err := t.repository.GetSigningPubkey()
+	signingPubKey, err := t.repository.keys.SigningPublicKey()
 	c.Assert(*pubKey, DeepEquals, signingPubKey)
 
 	fileStorage := FileContentStorage{

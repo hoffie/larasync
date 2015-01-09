@@ -47,7 +47,7 @@ func (m *Manager) Create(name string, pubKey []byte) error {
 	if err != nil {
 		return err
 	}
-	return r.SetSigningPubkey(pubKey)
+	return r.keys.SetSigningPublicKey(pubKey)
 }
 
 // Open returns a handle for the given existing repository.

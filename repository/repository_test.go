@@ -6,8 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/agl/ed25519"
-
 	. "gopkg.in/check.v1"
 )
 
@@ -19,69 +17,6 @@ var _ = Suite(&RepositoryTests{})
 
 func (t *RepositoryTests) SetUpTest(c *C) {
 	t.dir = c.MkDir()
-}
-
-func (t *RepositoryTests) TestGetEncryptionKey(c *C) {
-	r := New(filepath.Join(t.dir, "foo"))
-	var k [EncryptionKeySize]byte
-	k[0] = 'z'
-	_, err := r.GetEncryptionKey()
-	c.Assert(err, NotNil)
-
-	err = r.SetEncryptionKey(k)
-	c.Assert(err, NotNil)
-
-	err = r.Create()
-	c.Assert(err, IsNil)
-
-	err = r.SetEncryptionKey(k)
-	c.Assert(err, IsNil)
-
-	k2, err := r.GetEncryptionKey()
-	c.Assert(err, IsNil)
-	c.Assert(k2, DeepEquals, k)
-}
-
-func (t *RepositoryTests) TestGetSigningPrivkey(c *C) {
-	r := New(filepath.Join(t.dir, "foo"))
-	var k [PrivateKeySize]byte
-	k[0] = 'z'
-	_, err := r.GetSigningPrivkey()
-	c.Assert(err, NotNil)
-
-	err = r.SetSigningPrivkey(k)
-	c.Assert(err, NotNil)
-
-	err = r.Create()
-	c.Assert(err, IsNil)
-
-	err = r.SetSigningPrivkey(k)
-	c.Assert(err, IsNil)
-
-	k2, err := r.GetSigningPrivkey()
-	c.Assert(err, IsNil)
-	c.Assert(k2, DeepEquals, k)
-}
-
-func (t *RepositoryTests) TestGetHashingKey(c *C) {
-	r := New(filepath.Join(t.dir, "foo"))
-	var k [HashingKeySize]byte
-	k[0] = 'z'
-	_, err := r.GetHashingKey()
-	c.Assert(err, NotNil)
-
-	err = r.SetHashingKey(k)
-	c.Assert(err, NotNil)
-
-	err = r.Create()
-	c.Assert(err, IsNil)
-
-	err = r.SetHashingKey(k)
-	c.Assert(err, IsNil)
-
-	k2, err := r.GetHashingKey()
-	c.Assert(err, IsNil)
-	c.Assert(k2, DeepEquals, k)
 }
 
 func (t *RepositoryTests) TestGetRepoRelativePath(c *C) {
@@ -123,65 +58,6 @@ func (t *RepositoryTests) TestCreateManagementDir(c *C) {
 
 }
 
-func (t *RepositoryTests) TestCreateEncryptionKey(c *C) {
-	r := New(t.dir)
-	err := r.CreateManagementDir()
-	c.Assert(err, IsNil)
-
-	err = r.CreateEncryptionKey()
-	c.Assert(err, IsNil)
-
-	key, err := r.GetEncryptionKey()
-	c.Assert(err, IsNil)
-	c.Assert(len(key), Equals, EncryptionKeySize)
-}
-
-func (t *RepositoryTests) TestCreateSigningKey(c *C) {
-	r := New(t.dir)
-	err := r.CreateManagementDir()
-	c.Assert(err, IsNil)
-
-	err = r.CreateSigningKey()
-	c.Assert(err, IsNil)
-
-	key, err := r.GetSigningPrivkey()
-	c.Assert(err, IsNil)
-	c.Assert(len(key), Equals, PrivateKeySize)
-}
-
-func (t *RepositoryTests) TestCreateSigningKeyTestEncryption(c *C) {
-	r := New(t.dir)
-	err := r.CreateManagementDir()
-	c.Assert(err, IsNil)
-
-	err = r.CreateSigningKey()
-	c.Assert(err, IsNil)
-
-	priv, err := r.GetSigningPrivkey()
-	c.Assert(err, IsNil)
-
-	pub, err := r.GetSigningPubkey()
-	c.Assert(err, IsNil)
-
-	content := []byte("test")
-	sig := ed25519.Sign(&priv, content)
-	res := ed25519.Verify(&pub, content, sig)
-	c.Assert(res, Equals, true)
-}
-
-func (t *RepositoryTests) TestCreateHashingKey(c *C) {
-	r := New(t.dir)
-	err := r.CreateManagementDir()
-	c.Assert(err, IsNil)
-
-	err = r.CreateHashingKey()
-	c.Assert(err, IsNil)
-
-	key, err := r.GetHashingKey()
-	c.Assert(err, IsNil)
-	c.Assert(len(key), Equals, HashingKeySize)
-}
-
 func (t *RepositoryTests) TestAddObject(c *C) {
 	r := New(t.dir)
 	err := r.CreateManagementDir()
@@ -216,7 +92,7 @@ func (t *RepositoryTests) TestPathToNIBID(c *C) {
 	err := r.CreateManagementDir()
 	c.Assert(err, IsNil)
 
-	err = r.CreateHashingKey()
+	err = r.keys.CreateHashingKey()
 	c.Assert(err, IsNil)
 
 	path := "foo/bar.txt"

@@ -7,25 +7,15 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"code.google.com/p/go.crypto/nacl/secretbox"
-	"github.com/agl/ed25519"
-
-	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
 )
 
 const (
-	// paths to our key files
-	encryptionKeyFileName  = "encryption.key"
-	hashingKeyFileName     = "hashing.key"
-	signingPrivkeyFileName = "signing.priv"
-	signingPubkeyFileName  = "signing.pub"
-
 	// internal directory names
 	managementDirName   = ".lara"
 	objectsDirName      = "objects"
@@ -58,21 +48,20 @@ const (
 // Repository represents an on-disk repository and provides methods to
 // access its sub-items.
 type Repository struct {
-	Path               string
-	objectStorage      ContentStorage
-	nibStore           *NIBStore
-	encryptionKeyPath  string
-	signingPrivkeyPath string
-	signingPubkeyPath  string
-	hashingKeyPath     string
-	objectsPath        string
-	nibsPath           string
+	Path              string
+	keys              *KeyStore
+	objectStorage     ContentStorage
+	nibStore          *NIBStore
+	managementDirPath string
+	objectsPath       string
+	nibsPath          string
 }
 
 // New returns a new repository instance with the given base path
 func New(path string) *Repository {
 	r := &Repository{Path: path}
 	r.setupPaths()
+	r.keys = NewKeyStore(r.managementDirPath)
 	return r
 }
 
@@ -80,10 +69,7 @@ func New(path string) *Repository {
 // such as encryption key paths.
 func (r *Repository) setupPaths() {
 	base := filepath.Join(r.Path, managementDirName)
-	r.encryptionKeyPath = filepath.Join(base, encryptionKeyFileName)
-	r.signingPrivkeyPath = filepath.Join(base, signingPrivkeyFileName)
-	r.signingPubkeyPath = filepath.Join(base, signingPubkeyFileName)
-	r.hashingKeyPath = filepath.Join(base, hashingKeyFileName)
+	r.managementDirPath = base
 	r.objectsPath = filepath.Join(base, objectsDirName)
 	r.nibsPath = filepath.Join(base, nibsDirName)
 }
@@ -172,126 +158,6 @@ func (r *Repository) Create() error {
 	}
 	err = r.CreateManagementDir()
 	return err
-}
-
-// CreateEncryptionKey generates a random encryption key.
-func (r *Repository) CreateEncryptionKey() error {
-	key := make([]byte, EncryptionKeySize)
-	var arrKey [EncryptionKeySize]byte
-	_, err := rand.Read(key)
-	if err != nil {
-		return err
-	}
-	copy(arrKey[:], key)
-	err = r.SetEncryptionKey(arrKey)
-	return err
-}
-
-// CreateSigningKey generates a random signing key.
-func (r *Repository) CreateSigningKey() error {
-	_, privKey, err := ed25519.GenerateKey(rand.Reader)
-	if err != nil {
-		return err
-	}
-	if privKey == nil {
-		return errors.New("no private key generated")
-	}
-	err = r.SetSigningPrivkey(*privKey)
-	return err
-}
-
-// CreateHashingKey generates a random hashing key.
-func (r *Repository) CreateHashingKey() error {
-	key := make([]byte, HashingKeySize)
-	var arrKey [HashingKeySize]byte
-	_, err := rand.Read(key)
-	if err != nil {
-		return err
-	}
-	copy(arrKey[:], key)
-	err = r.SetHashingKey(arrKey)
-	return err
-}
-
-// SetEncryptionKey sets the repository encryption key
-func (r *Repository) SetEncryptionKey(key [EncryptionKeySize]byte) error {
-	return ioutil.WriteFile(r.encryptionKeyPath, key[:], defaultFilePerms)
-}
-
-// GetEncryptionKey returns the repository encryption key.
-func (r *Repository) GetEncryptionKey() ([EncryptionKeySize]byte, error) {
-	key, err := ioutil.ReadFile(r.encryptionKeyPath)
-	if len(key) != EncryptionKeySize {
-		return [EncryptionKeySize]byte{}, fmt.Errorf(
-			"invalid key length (%d)", len(key))
-	}
-	var arrKey [EncryptionKeySize]byte
-	copy(arrKey[:], key)
-	return arrKey, err
-}
-
-// SetSigningPrivkey sets the repository signing private key
-func (r *Repository) SetSigningPrivkey(key [PrivateKeySize]byte) error {
-	return ioutil.WriteFile(r.signingPrivkeyPath, key[:], defaultFilePerms)
-}
-
-// GetSigningPrivkey returns the repository signing private key.
-func (r *Repository) GetSigningPrivkey() ([PrivateKeySize]byte, error) {
-	key, err := ioutil.ReadFile(r.signingPrivkeyPath)
-	if len(key) != PrivateKeySize {
-		return [PrivateKeySize]byte{}, fmt.Errorf(
-			"invalid key length (%d)", len(key))
-	}
-	var arrKey [PrivateKeySize]byte
-	copy(arrKey[:], key)
-	return arrKey, err
-}
-
-// SetSigningPubkey sets the repository signing key's public key.
-func (r *Repository) SetSigningPubkey(key []byte) error {
-	return ioutil.WriteFile(r.signingPubkeyPath, key, defaultFilePerms)
-}
-
-// GetSigningPubkey returns the repository signing public key.
-func (r *Repository) GetSigningPubkey() ([PubkeySize]byte, error) {
-	privKey, err := r.GetSigningPrivkey()
-	if err != nil {
-		return r.getSigningPubkeyFromFile()
-	}
-	return edhelpers.GetPublicKeyFromPrivate(privKey), nil
-}
-
-// getSigningPubkeyFromFile returns the repository signing public key.
-//
-// It tries to retrieve the stored copy and is only called if the public key
-// cannot be derived from the private key (i.e. if the private key is not
-// available in this repository).
-func (r *Repository) getSigningPubkeyFromFile() ([PubkeySize]byte, error) {
-	key, err := ioutil.ReadFile(r.signingPubkeyPath)
-	if len(key) != PubkeySize {
-		return [PubkeySize]byte{}, fmt.Errorf(
-			"invalid key length (%d)", len(key))
-	}
-	var arrKey [PubkeySize]byte
-	copy(arrKey[:], key)
-	return arrKey, err
-}
-
-// SetHashingKey sets the repository hashing key (content addressing)
-func (r *Repository) SetHashingKey(key [HashingKeySize]byte) error {
-	return ioutil.WriteFile(r.hashingKeyPath, key[:], defaultFilePerms)
-}
-
-// GetHashingKey returns the repository signing private key.
-func (r *Repository) GetHashingKey() ([HashingKeySize]byte, error) {
-	key, err := ioutil.ReadFile(r.hashingKeyPath)
-	if len(key) != HashingKeySize {
-		return [HashingKeySize]byte{}, fmt.Errorf(
-			"invalid key length (%d)", len(key))
-	}
-	var arrKey [HashingKeySize]byte
-	copy(arrKey[:], key)
-	return arrKey, err
 }
 
 // AddItem adds a new file or directory to the repository.
@@ -602,7 +468,7 @@ func (r *Repository) encryptWithRandomKey(data []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	repoKey, err := r.GetEncryptionKey()
+	repoKey, err := r.keys.EncryptionKey()
 	if err != nil {
 		return nil, err
 	}
@@ -634,7 +500,7 @@ func (r *Repository) decryptContent(enc []byte) ([]byte, error) {
 		enc = enc[nonceSize:]
 	}
 	readNonce()
-	repoKey, err := r.GetEncryptionKey()
+	repoKey, err := r.keys.EncryptionKey()
 	if err != nil {
 		return nil, err
 	}
@@ -663,7 +529,7 @@ func (r *Repository) decryptContent(enc []byte) ([]byte, error) {
 // hashChunk takes a chunk of data and constructs its content-addressing
 // hash.
 func (r *Repository) hashChunk(chunk []byte) (string, error) {
-	key, err := r.GetHashingKey()
+	key, err := r.keys.HashingKey()
 	if err != nil {
 		return "", err
 	}
@@ -694,4 +560,30 @@ func (r *Repository) writeFileToChunks(path string) ([]string, error) {
 		ids = append(ids, id)
 	}
 	return ids, nil
+}
+
+// GetSigningPublicKey exposes the signing public key as it is required
+// in foreign packages such as api.
+func (r *Repository) GetSigningPublicKey() ([PublicKeySize]byte, error) {
+	return r.keys.SigningPublicKey()
+}
+
+// CreateKeys handles creation of all required cryptographic keys.
+func (r *Repository) CreateKeys() error {
+	err := r.keys.CreateEncryptionKey()
+	if err != nil {
+		return err
+	}
+
+	err = r.keys.CreateSigningKey()
+	if err != nil {
+		return err
+	}
+
+	err = r.keys.CreateHashingKey()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -40,7 +40,7 @@ func newNIBStore(
 
 // Get returns the NIB of the given id.
 func (s *NIBStore) Get(id string) (*NIB, error) {
-	pubKey, err := s.repository.GetSigningPubkey()
+	pubKey, err := s.repository.keys.SigningPublicKey()
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func (s *NIBStore) Add(nib *NIB) error {
 
 // writeBytes signs and adds the bytes for the given NIB ID.
 func (s *NIBStore) writeBytes(id string, data []byte) error {
-	key, err := s.repository.GetSigningPrivkey()
+	key, err := s.repository.keys.SigningPrivateKey()
 
 	if err != nil {
 		return err
@@ -227,7 +227,7 @@ func (s *NIBStore) Exists(id string) bool {
 // VerifyContent verifies the correctness of the given
 // data in the reader.
 func (s *NIBStore) VerifyContent(reader io.Reader) error {
-	pubKey, err := s.repository.GetSigningPubkey()
+	pubKey, err := s.repository.keys.SigningPublicKey()
 	if err != nil {
 		return err
 	}

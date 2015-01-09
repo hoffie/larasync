@@ -94,14 +94,14 @@ func (t *Tests) TestOpen(c *C) {
 
 func (t *Tests) TestPubkey(c *C) {
 	expKey := []byte("01234567890123456789012345678901")
-	var arrExpKey [PubkeySize]byte
-	copy(arrExpKey[:], expKey[:PubkeySize])
+	var arrExpKey [PublicKeySize]byte
+	copy(arrExpKey[:], expKey[:PublicKeySize])
 
 	t.m.Create("test", expKey)
 	r, err := t.m.Open("test")
 	c.Assert(err, IsNil)
 	c.Assert(r, FitsTypeOf, &Repository{})
-	key, err := r.GetSigningPubkey()
+	key, err := r.keys.SigningPublicKey()
 	c.Assert(err, IsNil)
 	c.Assert(key, DeepEquals, arrExpKey)
 }

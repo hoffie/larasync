@@ -46,3 +46,16 @@ func (t *Transaction) toPb() (*odf.Transaction, error) {
 	}
 	return protoTransaction, nil
 }
+
+// nibUUIDsFromTransactions returns all uuids from a list of transactions.
+func nibUUIDsFromTransactions(transactions []*Transaction) <-chan string {
+	nibUUIDChannel := make(chan string, 100)
+	go func() {
+		for _, transaction := range transactions {
+			for _, nibID := range transaction.NIBIDs {
+				nibUUIDChannel <- nibID
+			}
+		}
+	}()
+	return nibUUIDChannel
+}

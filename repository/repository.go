@@ -371,6 +371,17 @@ func (r *Repository) GetNIBReader(id string) (io.Reader, error) {
 	return store.GetReader(id)
 }
 
+// GetNIBBytesFrom returns the signed byte structure for NIBs from the given
+// transaction id
+func (r *Repository) GetNIBBytesFrom(fromTransactionID int64) (<-chan []byte, error) {
+	store, err := r.getNIBStore()
+	if err != nil {
+		return nil, err
+	}
+
+	return store.GetBytesFrom(fromTransactionID)
+}
+
 // GetNIBsFrom returns nibs added since the passed transaction ID.
 func (r *Repository) GetNIBsFrom(fromTransactionID int64) (<-chan *NIB, error) {
 	store, err := r.getNIBStore()
@@ -378,6 +389,16 @@ func (r *Repository) GetNIBsFrom(fromTransactionID int64) (<-chan *NIB, error) {
 		return nil, err
 	}
 	return store.GetFrom(fromTransactionID)
+}
+
+// GetAllNIBBytes returns all NIBs signed byte representations in this repository.
+func (r *Repository) GetAllNIBBytes() (<-chan []byte, error) {
+	store, err := r.getNIBStore()
+	if err != nil {
+		return nil, err
+	}
+
+	return store.GetAllBytes()
 }
 
 // GetAllNibs returns all the nibs which are stored in this repository.

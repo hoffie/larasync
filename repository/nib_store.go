@@ -92,18 +92,30 @@ func (s *NIBStore) getFromTransactions(transactions []*Transaction) <-chan *NIB 
 	nibChannel := make(chan *NIB, 100)
 
 	go func() {
-		for _, transaction := range transactions {
-			for _, nibID := range transaction.NIBIDs {
-				nib, err := s.Get(nibID)
-				if err != nil {
-					break
-				}
-				nibChannel <- nib
+		for nibID := range nibUUIDsFromTransactions(transactions) {
+			nib, err := s.Get(nibID)
+			if err != nil {
+				break
 			}
+			nibChannel <- nib
 		}
 		close(nibChannel)
 	}()
 
+	return nibChannel
+}
+
+func (s *NIBStore) getByteRepresentationsFromTransactions(transactions []*Transaction) <-chan []byte {
+	nibChannel := make(chan []byte, 100)
+	go func() {
+		for nibID := range nibUUIDsFromTransactions(transactions) {
+			data, err := s.GetBytes(nibID)
+			if err != nil {
+				break
+			}
+			nibChannel <- data
+		}
+	}()
 	return nibChannel
 }
 
@@ -117,6 +129,17 @@ func (s *NIBStore) GetAll() (<-chan *NIB, error) {
 	return s.getFromTransactions(transactions), nil
 }
 
+// GetAllBytes returns all signed NIB byte representations of the NIBs
+// in the repository.
+func (s *NIBStore) GetAllBytes() (<-chan []byte, error) {
+	transactions, err := s.transactionManager.All()
+	if err != nil {
+		return nil, err
+	}
+
+	return s.getByteRepresentationsFromTransactions(transactions), nil
+}
+
 // GetFrom returns all NIBs added added after the given transaction id.
 func (s *NIBStore) GetFrom(transactionID int64) (<-chan *NIB, error) {
 	transactions, err := s.transactionManager.From(transactionID)
@@ -125,6 +148,17 @@ func (s *NIBStore) GetFrom(transactionID int64) (<-chan *NIB, error) {
 	}
 
 	return s.getFromTransactions(transactions), nil
+}
+
+// GetBytesFrom returns all signed byte representations for all NIBs
+// changed since the given transactionID were added.
+func (s *NIBStore) GetBytesFrom(transactionID int64) (<-chan []byte, error) {
+	transactions, err := s.transactionManager.From(transactionID)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.getByteRepresentationsFromTransactions(transactions), nil
 }
 
 // Add adds the given NIB to the store.

@@ -11,7 +11,11 @@ type BlobGetTests struct {
 	BlobTests
 }
 
-var _ = Suite(&BlobGetTests{BlobTests{}})
+var _ = Suite(
+	&BlobGetTests{
+		createBlobTests(),
+	},
+)
 
 func (t *BlobGetTests) TestRepoAccessUnauthorized(c *C) {
 	t.createRepository(c)

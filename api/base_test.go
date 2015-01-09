@@ -25,7 +25,7 @@ type BaseTests struct {
 	pubKey         [PubkeySize]byte
 	privateKey     [PrivateKeySize]byte
 	httpMethod     string
-	getUrl         func() string
+	getURL         func() string
 }
 
 func (t *BaseTests) SetUpTest(c *C) {
@@ -38,7 +38,7 @@ func (t *BaseTests) SetUpTest(c *C) {
 	t.server = New(adminPubkey, time.Minute, rm)
 	c.Assert(rm.Exists(t.repositoryName), Equals, false)
 	t.rm = rm
-	t.getUrl = func() string {
+	t.getURL = func() string {
 		return fmt.Sprintf(
 			"http://example.org/repositories/%s",
 			t.repositoryName,
@@ -87,7 +87,7 @@ func (t *BaseTests) requestWithBytes(c *C, body []byte) *http.Request {
 func (t *BaseTests) requestWithReader(c *C, httpBody io.Reader) *http.Request {
 	req, err := http.NewRequest(
 		t.httpMethod,
-		t.getUrl(),
+		t.getURL(),
 		httpBody)
 	c.Assert(err, IsNil)
 	if httpBody != nil {

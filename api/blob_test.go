@@ -24,11 +24,11 @@ func (t *BlobTests) SetUpTest(c *C) {
 	t.BaseTests.SetUpTest(c)
 	t.blobID = "1234567890"
 	t.blobData = []byte("This is testdata")
-	baseUrlGet := t.getUrl
-	t.getUrl = func() string {
+	baseURLGet := t.getURL
+	t.getURL = func() string {
 		return fmt.Sprintf(
 			"%s/blobs/%s",
-			baseUrlGet(),
+			baseURLGet(),
 			t.blobID,
 		)
 	}

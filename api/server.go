@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/hoffie/larasync/helpers/lock"
 	"github.com/hoffie/larasync/repository"
 )
 
@@ -64,7 +65,13 @@ func (s *Server) setupRoutes() {
 	s.router.HandleFunc("/repositories/{repository}/nibs/{nibID}",
 		s.requireRepositoryAuth(s.nibGet)).Methods("GET")
 	s.router.HandleFunc("/repositories/{repository}/nibs/{nibID}",
-		s.requireRepositoryAuth(s.nibPut)).Methods("PUT")
+		s.requireRepositoryAuth(
+			s.synchronizeWith(
+				"nibPUT",
+				s.checkTransactionPrecondition(s.nibPut),
+			),
+		),
+	).Methods("PUT")
 
 	s.router.HandleFunc("/", func(rw http.ResponseWriter, req *http.Request) {
 		rw.Write([]byte("larasync\n"))
@@ -107,6 +114,7 @@ func (s *Server) requireRepositoryAuth(f http.HandlerFunc) http.HandlerFunc {
 		pubKey, err := repository.GetSigningPublicKey()
 		if err != nil {
 			http.Error(rw, "Internal Error", http.StatusInternalServerError)
+			return
 		}
 
 		copy(pubKeyArray[0:PublicKeySize], pubKey[:PublicKeySize])
@@ -118,6 +126,74 @@ func (s *Server) requireRepositoryAuth(f http.HandlerFunc) http.HandlerFunc {
 		}
 
 		f(rw, req)
+	}
+}
+
+// synchronizeWith can be used as a wrapper. The endpoint will then be synchronized
+// via the lock manager and the given role and in the given repository.
+func (s *Server) synchronizeWith(roleName string, f http.HandlerFunc) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		repositoryName := vars["repository"]
+		repository, err := s.rm.Open(repositoryName)
+		if err != nil {
+			http.Error(rw, "Internal Error", http.StatusInternalServerError)
+			return
+		}
+
+		manager := lock.CurrentManager()
+		lock := manager.Get(
+			repository.GetManagementDir(),
+			fmt.Sprintf("api:%s", roleName),
+		)
+
+		lock.Lock()
+		f(rw, req)
+		lock.Unlock()
+	}
+}
+
+// checkTransactionPrecondition checks if there is a if-match header set that this
+// entry is the current transaction id in the system.
+func (s *Server) checkTransactionPrecondition(f http.HandlerFunc) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		repositoryName := vars["repository"]
+		repository, err := s.rm.Open(repositoryName)
+		if err != nil {
+			http.Error(rw, "Internal Error", http.StatusInternalServerError)
+			return
+		}
+
+		header := req.Header
+		ifMatch := header.Get("If-Match")
+		if ifMatch != "" {
+			currentTransaction, err := repository.CurrentTransaction()
+			if err != nil {
+				http.Error(rw, "Internal Error", http.StatusInternalServerError)
+				return
+			}
+
+			if ifMatch != currentTransaction.IDString() {
+				rw.WriteHeader(http.StatusPreconditionFailed)
+				return
+			}
+		}
+
+		f(rw, req)
+	}
+}
+
+// attachCurrentTransactionHeader is used to notify
+func attachCurrentTransactionHeader(r *repository.Repository, rw http.ResponseWriter) {
+	header := rw.Header()
+
+	currentTransaction, err := r.CurrentTransaction()
+	if err != nil && err != repository.ErrTransactionNotExists {
+		errorText(rw, "Internal Error", http.StatusInternalServerError)
+		return
+	} else if currentTransaction != nil {
+		header.Set("X-Current-Transaction-Id", currentTransaction.IDString())
 	}
 }
 

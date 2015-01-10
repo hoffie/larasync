@@ -13,17 +13,6 @@ import (
 	repositoryModule "github.com/hoffie/larasync/repository"
 )
 
-func attachCurrentTransactionHeader(r *repositoryModule.Repository, rw http.ResponseWriter) {
-	header := rw.Header()
-	currentTransaction, err := repository.CurrentTransaction()
-	if err != nil && err != repositoryModule.ErrTransactionNotExists {
-		errorText(rw, "Internal Error", http.StatusInternalServerError)
-		return
-	} else if currentTransaction != nil {
-		header.Set("X-Current-Transaction-Id", currentTransaction.IDString())
-	}
-}
-
 // nibGet returns the NIB data for a given repository and a given UUID.
 func (s *Server) nibGet(rw http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)

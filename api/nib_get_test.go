@@ -7,13 +7,13 @@ import (
 )
 
 type NIBGetTest struct {
-	NIBTest
+	NIBItemTest
 }
 
-var _ = Suite(&NIBGetTest{getNIBTest()})
+var _ = Suite(&NIBGetTest{getNIBItemTest()})
 
 func (t *NIBGetTest) SetUpTest(c *C) {
-	t.NIBTest.SetUpTest(c)
+	t.NIBItemTest.SetUpTest(c)
 	t.addTestNIB(c)
 }
 

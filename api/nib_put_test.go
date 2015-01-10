@@ -9,13 +9,13 @@ import (
 )
 
 type NIBPutTest struct {
-	NIBTest
+	NIBItemTest
 }
 
-var _ = Suite(&NIBPutTest{getNIBTest()})
+var _ = Suite(&NIBPutTest{getNIBItemTest()})
 
 func (t *NIBPutTest) SetUpTest(c *C) {
-	t.NIBTest.SetUpTest(c)
+	t.NIBItemTest.SetUpTest(c)
 	t.httpMethod = "PUT"
 	t.req = t.requestWithBytes(c, t.signNIBBytes(c, t.getTestNIBBytes()))
 	t.createRepository(c)

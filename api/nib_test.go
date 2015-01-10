@@ -39,9 +39,8 @@ func (t *NIBTest) SetUpTest(c *C) {
 	origGetURL := t.getURL
 	t.getURL = func() string {
 		return fmt.Sprintf(
-			"%s/nibs/%s",
+			"%s/nibs",
 			origGetURL(),
-			t.nibID,
 		)
 	}
 	t.setNIBId("")

@@ -226,13 +226,8 @@ func (s *NIBStore) Exists(id string) bool {
 
 // VerifyContent verifies the correctness of the given
 // data in the reader.
-func (s *NIBStore) VerifyContent(reader io.Reader) error {
+func (s *NIBStore) VerifyContent(data []byte) error {
 	pubKey, err := s.keys.SigningPublicKey()
-	if err != nil {
-		return err
-	}
-
-	data, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return err
 	}

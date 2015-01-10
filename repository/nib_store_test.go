@@ -132,10 +132,8 @@ func (t *NIBStoreTest) TestNibVerificationSignatureError(c *C) {
 	c.Assert(err, IsNil)
 	data[len(data)-1] = 50
 
-	reader = bytes.NewReader(data)
-
 	c.Assert(
-		t.nibStore.VerifyContent(reader), Equals, ErrSignatureVerification,
+		t.nibStore.VerifyContent(data), Equals, ErrSignatureVerification,
 	)
 }
 
@@ -146,10 +144,8 @@ func (t *NIBStoreTest) TestNibVerificationMarshallingError(c *C) {
 	c.Assert(err, IsNil)
 	data[0] = 50
 
-	reader = bytes.NewReader(data)
-
 	c.Assert(
-		t.nibStore.VerifyContent(reader), Equals, ErrUnMarshalling,
+		t.nibStore.VerifyContent(data), Equals, ErrUnMarshalling,
 	)
 }
 
@@ -158,6 +154,9 @@ func (t *NIBStoreTest) TestNibVerification(c *C) {
 	reader, err := t.storage.Get(testNib.ID)
 	c.Assert(err, IsNil)
 
+	data, err := ioutil.ReadAll(reader)
+	c.Assert(err, IsNil)
+
 	c.Assert(
-		t.nibStore.VerifyContent(reader), IsNil)
+		t.nibStore.VerifyContent(data), IsNil)
 }

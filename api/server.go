@@ -59,6 +59,13 @@ func (s *Server) setupRoutes() {
 	s.router.HandleFunc("/repositories/{repository}/blobs/{blobID}",
 		s.requireRepositoryAuth(s.blobPut)).Methods("PUT")
 
+	s.router.HandleFunc("/repositories/{repository}/nibs",
+		s.requireRepositoryAuth(s.nibList)).Methods("GET")
+	s.router.HandleFunc("/repositories/{repository}/nibs/{nibID}",
+		s.requireRepositoryAuth(s.nibGet)).Methods("GET")
+	s.router.HandleFunc("/repositories/{repository}/nibs/{nibID}",
+		s.requireRepositoryAuth(s.nibPut)).Methods("PUT")
+
 	s.router.HandleFunc("/", func(rw http.ResponseWriter, req *http.Request) {
 		rw.Write([]byte("larasync\n"))
 	})

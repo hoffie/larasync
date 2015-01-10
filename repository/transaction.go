@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/hoffie/larasync/repository/odf"
 )
@@ -45,6 +46,11 @@ func (t *Transaction) toPb() (*odf.Transaction, error) {
 		protoTransaction.PreviousID = &t.PreviousID
 	}
 	return protoTransaction, nil
+}
+
+// IDString returns the ID of this Transaction as a string.
+func (t *Transaction) IDString() string {
+	return strconv.FormatInt(t.ID, 10)
 }
 
 // nibUUIDsFromTransactions returns all uuids from a list of transactions.

@@ -24,9 +24,9 @@ func (s *Server) nibGet(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	nibUUID := vars["nibUUID"]
+	nibID := vars["nibID"]
 
-	reader, err := repository.GetNIBReader(nibUUID)
+	reader, err := repository.GetNIBReader(nibID)
 
 	if err != nil {
 		rw.Header().Set("Content-Type", "plain/text")
@@ -54,13 +54,18 @@ func (s *Server) nibPut(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	nibUUID := vars["nibUUID"]
+	nibID := vars["nibID"]
 
-	err = repository.AddNIBContent(nibUUID, req.Body)
+	successReturnStatus := http.StatusOK
+	if !repository.HasNIB(nibID) {
+		successReturnStatus = http.StatusCreated
+	}
+
+	err = repository.AddNIBContent(nibID, req.Body)
 
 	if err != nil {
 		if err == repositoryModule.ErrSignatureVerification {
-			errorText(rw, "Signature could not be verified", http.StatusBadRequest)
+			errorText(rw, "Signature could not be verified", http.StatusUnauthorized)
 		} else if err == repositoryModule.ErrUnMarshalling {
 			errorText(rw, "Could not extract NIB", http.StatusBadRequest)
 		} else {
@@ -70,7 +75,7 @@ func (s *Server) nibPut(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	rw.Header().Set("Location", req.URL.String())
-	rw.WriteHeader(http.StatusOK)
+	rw.WriteHeader(successReturnStatus)
 }
 
 func (s *Server) nibList(rw http.ResponseWriter, req *http.Request) {

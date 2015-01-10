@@ -181,22 +181,34 @@ func (r *Repository) AddItem(absPath string) error {
 		return err
 	}
 
-	rev := &Revision{}
-	rev.MetadataID = metadataID
-	rev.ContentIDs = contentIDs
-	nib := NIB{}
-	if err != nil {
-		return err
-	}
-	nib.ID = nibID
-	nib.AppendRevision(rev)
-	//FIXME: timestamp, deviceID etc.
 	nibStore, err := r.getNIBStore()
 	if err != nil {
 		return err
 	}
 
-	return nibStore.Add(&nib)
+	nib := &NIB{ID: nibID}
+	if nibStore.Exists(nibID) {
+		nib, err = nibStore.Get(nibID)
+		if err != nil {
+			return err
+		}
+	}
+
+	rev := &Revision{}
+	rev.MetadataID = metadataID
+	rev.ContentIDs = contentIDs
+	if err != nil {
+		return err
+	}
+	latestRev, err := nib.LatestRevision()
+	if err != nil && err != ErrNoRevision {
+		return err
+	}
+	if err == ErrNoRevision || !latestRev.HasSameContent(rev) {
+		nib.AppendRevision(rev)
+	}
+	//FIXME: timestamp, deviceID etc.
+	return nibStore.Add(nib)
 }
 
 // CheckoutPath looks up the given path name in the internal repository state and
@@ -393,16 +405,6 @@ func (r *Repository) GetObjectData(objectID string) (io.Reader, error) {
 		return nil, err
 	}
 	return storage.Get(objectID)
-}
-
-// HasObject returns if the given objectID exists in this repository.
-func (r *Repository) HasObject(objectID string) bool {
-	storage, err := r.getObjectStorage()
-	if err != nil {
-		return false
-	}
-
-	return storage.Exists(objectID)
 }
 
 // getRepoRelativePath turns the given path into a path relative to the

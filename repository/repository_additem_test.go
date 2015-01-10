@@ -46,7 +46,6 @@ func (t *RepositoryAddItemTests) TestWriteFileToChunks(c *C) {
 // TestExistingFileNIBReuse ensures that pre-existing NIBs for a path are
 // re-used upon updates.
 func (t *RepositoryAddItemTests) TestExistingFileNIBReuse(c *C) {
-	c.Skip("waiting for decision on #67")
 	nibsPath := filepath.Join(t.dir, ".lara", "nibs")
 	filename := "foo.txt"
 	path := filepath.Join(t.dir, filename)
@@ -79,4 +78,38 @@ func (t *RepositoryAddItemTests) TestExistingFileNIBReuse(c *C) {
 	nib, err := t.r.nibStore.Get(nibID)
 	c.Assert(err, IsNil)
 	c.Assert(len(nib.Revisions), Equals, 2)
+}
+
+// TestExistingFileNoChange ensures that no unnecessary updates
+// are recorded.
+func (t *RepositoryAddItemTests) TestExistingFileNoChange(c *C) {
+	nibsPath := filepath.Join(t.dir, ".lara", "nibs")
+	filename := "foo.txt"
+	path := filepath.Join(t.dir, filename)
+	err := ioutil.WriteFile(path, []byte("foo"), 0600)
+	c.Assert(err, IsNil)
+
+	numFiles, err := numFilesInDir(nibsPath)
+	c.Assert(err, IsNil)
+	c.Assert(numFiles, Equals, 0)
+
+	err = t.r.AddItem(path)
+	c.Assert(err, IsNil)
+
+	numFiles, err = numFilesInDir(nibsPath)
+	c.Assert(err, IsNil)
+	c.Assert(numFiles, Equals, 1)
+
+	err = t.r.AddItem(path)
+	c.Assert(err, IsNil)
+
+	numFiles, err = numFilesInDir(nibsPath)
+	c.Assert(err, IsNil)
+	c.Assert(numFiles, Equals, 1)
+
+	nibID, err := t.r.pathToNIBID(filename)
+	c.Assert(err, IsNil)
+	nib, err := t.r.nibStore.Get(nibID)
+	c.Assert(err, IsNil)
+	c.Assert(len(nib.Revisions), Equals, 1)
 }

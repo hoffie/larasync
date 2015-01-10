@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"reflect"
+
 	"github.com/hoffie/larasync/repository/odf"
 )
 
@@ -41,4 +43,16 @@ func (r *Revision) toPb() *odf.Revision {
 func (r *Revision) AddContentID(id string) error {
 	r.ContentIDs = append(r.ContentIDs, id)
 	return nil
+}
+
+// HasSameContent returns whether this revision's metadata and
+// content ids match the ids of the provided other revision instance.
+func (r *Revision) HasSameContent(other *Revision) bool {
+	if r.MetadataID != other.MetadataID {
+		return false
+	}
+	if !reflect.DeepEqual(r.ContentIDs, other.ContentIDs) {
+		return false
+	}
+	return true
 }

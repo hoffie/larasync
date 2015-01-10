@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"time"
 
@@ -26,6 +27,7 @@ type BaseTests struct {
 	privateKey     [PrivateKeySize]byte
 	httpMethod     string
 	getURL         func() string
+	urlParams      url.Values
 }
 
 func (t *BaseTests) SetUpTest(c *C) {
@@ -45,6 +47,7 @@ func (t *BaseTests) SetUpTest(c *C) {
 		)
 	}
 	t.req = t.requestWithBytes(c, nil)
+	t.urlParams = url.Values{}
 }
 
 func (t *BaseTests) SetUpSuite(c *C) {
@@ -89,9 +92,12 @@ func (t *BaseTests) requestWithBytes(c *C, body []byte) *http.Request {
 }
 
 func (t *BaseTests) requestWithReader(c *C, httpBody io.Reader) *http.Request {
+	requestURL, err := url.Parse(t.getURL())
+	c.Assert(err, IsNil)
+	requestURL.RawQuery = t.urlParams.Encode()
 	req, err := http.NewRequest(
 		t.httpMethod,
-		t.getURL(),
+		requestURL.String(),
 		httpBody)
 	c.Assert(err, IsNil)
 	if httpBody != nil {

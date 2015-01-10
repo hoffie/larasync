@@ -56,6 +56,7 @@ func nibUUIDsFromTransactions(transactions []*Transaction) <-chan string {
 				nibUUIDChannel <- nibID
 			}
 		}
+		close(nibUUIDChannel)
 	}()
 	return nibUUIDChannel
 }

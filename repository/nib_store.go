@@ -92,12 +92,15 @@ func (s *NIBStore) getFromTransactions(transactions []*Transaction) <-chan *NIB 
 	nibChannel := make(chan *NIB, 100)
 
 	go func() {
+		errorOccured := false
 		for nibID := range nibUUIDsFromTransactions(transactions) {
 			nib, err := s.Get(nibID)
 			if err != nil {
-				break
+				errorOccured = true
 			}
-			nibChannel <- nib
+			if !errorOccured {
+				nibChannel <- nib
+			}
 		}
 		close(nibChannel)
 	}()
@@ -115,6 +118,7 @@ func (s *NIBStore) getByteRepresentationsFromTransactions(transactions []*Transa
 			}
 			nibChannel <- data
 		}
+		close(nibChannel)
 	}()
 	return nibChannel
 }

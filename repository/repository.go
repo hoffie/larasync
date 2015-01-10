@@ -296,18 +296,23 @@ func (r *Repository) AddObject(objectID string, data io.Reader) error {
 }
 
 // AddNIBContent adds NIBData to the repository after verifying it.
-func (r *Repository) AddNIBContent(nibID string, nibData io.Reader) error {
+func (r *Repository) AddNIBContent(nibID string, nibReader io.Reader) error {
 	nibStore, err := r.getNIBStore()
 	if err != nil {
 		return err
 	}
 
-	err = nibStore.VerifyContent(nibData)
+	data, err := ioutil.ReadAll(nibReader)
 	if err != nil {
 		return err
 	}
 
-	return nibStore.AddContent(nibID, nibData)
+	err = nibStore.VerifyContent(data)
+	if err != nil {
+		return err
+	}
+
+	return nibStore.AddContent(nibID, bytes.NewReader(data))
 }
 
 // GetNIB returns a NIB for the given ID in this repository.
@@ -369,6 +374,15 @@ func (r *Repository) GetAllNibs() (<-chan *NIB, error) {
 		return nil, err
 	}
 	return store.GetAll()
+}
+
+// HasNIB checks if a NIB with the given ID exists in the repository.
+func (r *Repository) HasNIB(id string) bool {
+	store, err := r.getNIBStore()
+	if err != nil {
+		return false
+	}
+	return store.Exists(id)
 }
 
 // GetObjectData returns the data stored for the given objectID in this

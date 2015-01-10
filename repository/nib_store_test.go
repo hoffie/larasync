@@ -2,6 +2,7 @@ package repository
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 
@@ -159,4 +160,104 @@ func (t *NIBStoreTest) TestNibVerification(c *C) {
 
 	c.Assert(
 		t.nibStore.VerifyContent(data), IsNil)
+}
+
+// It should return all added bytes
+func (t *NIBStoreTest) TestGetAllBytes(c *C) {
+	for i := 0; i < 100; i++ {
+		nib := t.getTestNIB()
+		nib.ID = fmt.Sprintf("test%d", i)
+		t.nibStore.Add(nib)
+	}
+	found := 0
+
+	channel, err := t.nibStore.GetAllBytes()
+	c.Assert(err, IsNil)
+
+	for _ = range channel {
+		found += 1
+	}
+
+	c.Assert(found, Equals, 100)
+}
+
+// It should Return all nib bytes
+func (t *NIBStoreTest) TestGetAll(c *C) {
+	for i := 0; i < 100; i++ {
+		nib := t.getTestNIB()
+		nib.ID = fmt.Sprintf("test%d", i)
+		t.nibStore.Add(nib)
+	}
+	seen := []string{}
+
+	channel, err := t.nibStore.GetAll()
+	c.Assert(err, IsNil)
+
+	for nib := range channel {
+		if nib == nil {
+			c.Error("error from channel")
+			return
+		}
+		for _, existingNib := range seen {
+			if existingNib == nib.ID {
+				c.Error("Double nib found.")
+			}
+		}
+		seen = append(seen, nib.ID)
+	}
+
+	c.Assert(len(seen), Equals, 100)
+
+}
+
+func (t *NIBStoreTest) TestGetFrom(c *C) {
+	for i := 0; i < 100; i++ {
+		nib := t.getTestNIB()
+		nib.ID = fmt.Sprintf("test%d", i)
+		t.nibStore.Add(nib)
+	}
+
+	transaction, err := t.transactionManager.CurrentTransaction()
+	c.Assert(err, IsNil)
+	for i := 0; i < 5; i++ {
+		transaction, err = t.transactionManager.Get(transaction.PreviousID)
+		c.Assert(err, IsNil)
+	}
+
+	expectedIds := []string{}
+	for i := 95; i < 100; i++ {
+		expectedIds = append(expectedIds, fmt.Sprintf("test%d", i))
+	}
+	foundIds := []string{}
+	channel, err := t.nibStore.GetFrom(transaction.ID)
+
+	for nib := range channel {
+		foundIds = append(foundIds, nib.ID)
+	}
+
+	c.Assert(expectedIds, DeepEquals, foundIds)
+}
+
+func (t *NIBStoreTest) TestGetBytesFrom(c *C) {
+	for i := 0; i < 100; i++ {
+		nib := t.getTestNIB()
+		nib.ID = fmt.Sprintf("test%d", i)
+		t.nibStore.Add(nib)
+	}
+
+	transaction, err := t.transactionManager.CurrentTransaction()
+	c.Assert(err, IsNil)
+	for i := 0; i < 5; i++ {
+		transaction, err = t.transactionManager.Get(transaction.PreviousID)
+		c.Assert(err, IsNil)
+	}
+
+	channel, err := t.nibStore.GetBytesFrom(transaction.ID)
+
+	found := 0
+	for _ = range channel {
+		found += 1
+	}
+
+	c.Assert(found, Equals, 5)
 }

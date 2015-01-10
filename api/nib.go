@@ -13,6 +13,17 @@ import (
 	repositoryModule "github.com/hoffie/larasync/repository"
 )
 
+func attachCurrentTransactionHeader(r *repositoryModule.Repository, rw http.ResponseWriter) {
+	header := rw.Header()
+	currentTransaction, err := repository.CurrentTransaction()
+	if err != nil && err != repositoryModule.ErrTransactionNotExists {
+		errorText(rw, "Internal Error", http.StatusInternalServerError)
+		return
+	} else if currentTransaction != nil {
+		header.Set("X-Current-Transaction-Id", currentTransaction.IDString())
+	}
+}
+
 // nibGet returns the NIB data for a given repository and a given UUID.
 func (s *Server) nibGet(rw http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
@@ -39,6 +50,7 @@ func (s *Server) nibGet(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	rw.Header().Set("Content-Type", "application/octet-stream")
+	attachCurrentTransactionHeader(repository, rw)
 	rw.WriteHeader(http.StatusOK)
 	io.Copy(rw, reader)
 }
@@ -75,6 +87,7 @@ func (s *Server) nibPut(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	rw.Header().Set("Location", req.URL.String())
+	attachCurrentTransactionHeader(repository, rw)
 	rw.WriteHeader(successReturnStatus)
 }
 
@@ -117,13 +130,7 @@ func (s *Server) nibList(rw http.ResponseWriter, req *http.Request) {
 
 	header := rw.Header()
 	header.Set("Content-Type", "application/octet-stream")
-	currentTransaction, err := repository.CurrentTransaction()
-	if err != nil && err != repositoryModule.ErrTransactionNotExists {
-		errorText(rw, "Internal Error", http.StatusInternalServerError)
-		return
-	} else if currentTransaction != nil {
-		header.Set("X-Current-Transaction-Id", currentTransaction.IDString())
-	}
+	attachCurrentTransactionHeader(repository, rw)
 
 	rw.WriteHeader(http.StatusOK)
 

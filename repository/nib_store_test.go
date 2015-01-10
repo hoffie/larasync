@@ -175,7 +175,7 @@ func (t *NIBStoreTest) TestGetAllBytes(c *C) {
 	c.Assert(err, IsNil)
 
 	for _ = range channel {
-		found += 1
+		found++
 	}
 
 	c.Assert(found, Equals, 100)
@@ -256,7 +256,7 @@ func (t *NIBStoreTest) TestGetBytesFrom(c *C) {
 
 	found := 0
 	for _ = range channel {
-		found += 1
+		found++
 	}
 
 	c.Assert(found, Equals, 5)

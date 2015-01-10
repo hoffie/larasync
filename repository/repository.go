@@ -411,6 +411,8 @@ func (r *Repository) HasNIB(id string) bool {
 	return store.Exists(id)
 }
 
+// CurrentTransaction returns the currently newest Transaction for this
+// repository.
 func (r *Repository) CurrentTransaction() (*Transaction, error) {
 	tm, err := r.getTransactionManager()
 	if err != nil {

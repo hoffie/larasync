@@ -393,16 +393,6 @@ func (r *Repository) GetObjectData(objectID string) (io.Reader, error) {
 	return storage.Get(objectID)
 }
 
-// HasObject returns if the given objectID exists in this repository.
-func (r *Repository) HasObject(objectID string) bool {
-	storage, err := r.getObjectStorage()
-	if err != nil {
-		return false
-	}
-
-	return storage.Exists(objectID)
-}
-
 // getRepoRelativePath turns the given path into a path relative to the
 // repository root and returns it.
 func (r *Repository) getRepoRelativePath(absPath string) (string, error) {

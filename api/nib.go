@@ -115,7 +115,16 @@ func (s *Server) nibList(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	rw.Header().Set("Content-Type", "application/octet-stream")
+	header := rw.Header()
+	header.Set("Content-Type", "application/octet-stream")
+	currentTransaction, err := repository.CurrentTransaction()
+	if err != nil && err != repositoryModule.ErrTransactionNotExists {
+		errorText(rw, "Internal Error", http.StatusInternalServerError)
+		return
+	} else if currentTransaction != nil {
+		header.Set("X-Current-Transaction-Id", currentTransaction.IDString())
+	}
+
 	rw.WriteHeader(http.StatusOK)
 
 	encoder := bincontainer.NewEncoder(rw)

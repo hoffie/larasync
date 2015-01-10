@@ -48,13 +48,14 @@ const (
 // Repository represents an on-disk repository and provides methods to
 // access its sub-items.
 type Repository struct {
-	Path              string
-	keys              *KeyStore
-	objectStorage     ContentStorage
-	nibStore          *NIBStore
-	managementDirPath string
-	objectsPath       string
-	nibsPath          string
+	Path               string
+	keys               *KeyStore
+	objectStorage      ContentStorage
+	nibStore           *NIBStore
+	transactionManager *TransactionManager
+	managementDirPath  string
+	objectsPath        string
+	nibsPath           string
 }
 
 // New returns a new repository instance with the given base path
@@ -91,7 +92,29 @@ func (r *Repository) getObjectStorage() (ContentStorage, error) {
 	return r.objectStorage, nil
 }
 
-// getNIBStore returns the currently configured nib store backend
+// getTransactionManager returns the currently configured
+// transaction manager for the repository.
+func (r *Repository) getTransactionManager() (*TransactionManager, error) {
+	if r.transactionManager == nil {
+		transactionStorage := FileContentStorage{
+			StoragePath: filepath.Join(
+				r.GetManagementDir(),
+				transactionsDirName,
+			)}
+		err := transactionStorage.CreateDir()
+		if err != nil {
+			return nil, err
+		}
+
+		r.transactionManager = newTransactionManager(
+			transactionStorage,
+			r.GetManagementDir(),
+		)
+	}
+	return r.transactionManager, nil
+}
+
+// getNIBStore returns the currently configured nib store
 // for the repository.
 func (r *Repository) getNIBStore() (*NIBStore, error) {
 	if r.nibStore == nil {
@@ -104,21 +127,12 @@ func (r *Repository) getNIBStore() (*NIBStore, error) {
 			return nil, err
 		}
 
-		storage := ContentStorage(nibStorage)
-
-		transactionStorage := FileContentStorage{
-			StoragePath: filepath.Join(
-				r.GetManagementDir(),
-				transactionsDirName,
-			)}
-		err = transactionStorage.CreateDir()
+		transactionManager, err := r.getTransactionManager()
 		if err != nil {
 			return nil, err
 		}
 
-		transactionManager := newTransactionManager(
-			transactionStorage,
-			r.GetManagementDir())
+		storage := ContentStorage(nibStorage)
 
 		r.nibStore = newNIBStore(storage, r.keys, transactionManager)
 	}
@@ -395,6 +409,14 @@ func (r *Repository) HasNIB(id string) bool {
 		return false
 	}
 	return store.Exists(id)
+}
+
+func (r *Repository) CurrentTransaction() (*Transaction, error) {
+	tm, err := r.getTransactionManager()
+	if err != nil {
+		return nil, err
+	}
+	return tm.CurrentTransaction()
 }
 
 // GetObjectData returns the data stored for the given objectID in this

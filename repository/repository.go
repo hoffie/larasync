@@ -181,22 +181,34 @@ func (r *Repository) AddItem(absPath string) error {
 		return err
 	}
 
-	rev := &Revision{}
-	rev.MetadataID = metadataID
-	rev.ContentIDs = contentIDs
-	nib := NIB{}
-	if err != nil {
-		return err
-	}
-	nib.ID = nibID
-	nib.AppendRevision(rev)
-	//FIXME: timestamp, deviceID etc.
 	nibStore, err := r.getNIBStore()
 	if err != nil {
 		return err
 	}
 
-	return nibStore.Add(&nib)
+	nib := &NIB{ID: nibID}
+	if nibStore.Exists(nibID) {
+		nib, err = nibStore.Get(nibID)
+		if err != nil {
+			return err
+		}
+	}
+
+	rev := &Revision{}
+	rev.MetadataID = metadataID
+	rev.ContentIDs = contentIDs
+	if err != nil {
+		return err
+	}
+	latestRev, err := nib.LatestRevision()
+	if err != nil && err != ErrNoRevision {
+		return err
+	}
+	if err == ErrNoRevision || !latestRev.HasSameContent(rev) {
+		nib.AppendRevision(rev)
+	}
+	//FIXME: timestamp, deviceID etc.
+	return nibStore.Add(nib)
 }
 
 // CheckoutPath looks up the given path name in the internal repository state and

@@ -20,6 +20,9 @@ type NIB struct {
 	HistoryOffset int64
 }
 
+// ErrNoRevision is returned if no such revision can be found.
+var ErrNoRevision = errors.New("no revision")
+
 // ReadFrom fills this NIB's data with the contents supplied by
 // the binary representation available through the given reader.
 func (n *NIB) ReadFrom(r io.Reader) (int64, error) {
@@ -72,7 +75,7 @@ func (n *NIB) AppendRevision(r *Revision) {
 func (n *NIB) LatestRevision() (*Revision, error) {
 	l := len(n.Revisions)
 	if l < 1 {
-		return nil, errors.New("no revision")
+		return nil, ErrNoRevision
 	}
 	return n.Revisions[l-1], nil
 }

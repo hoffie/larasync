@@ -74,9 +74,9 @@ func (t *RepositoryAddItemTests) TestExistingFileNIBReuse(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 1)
 
-	nibId, err := t.r.pathToNIBID(filename)
+	nibID, err := t.r.pathToNIBID(filename)
 	c.Assert(err, IsNil)
-	nib, err := t.r.nibStore.Get(nibId)
+	nib, err := t.r.nibStore.Get(nibID)
 	c.Assert(err, IsNil)
 	c.Assert(len(nib.Revisions), Equals, 2)
 }

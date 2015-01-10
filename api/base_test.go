@@ -74,6 +74,10 @@ func (t *BaseTests) getResponse(req *http.Request) *httptest.ResponseRecorder {
 	return rw
 }
 
+func (t *BaseTests) requestEmptyBody(c *C) *http.Request {
+	return t.requestWithBytes(c, nil)
+}
+
 func (t *BaseTests) requestWithBytes(c *C, body []byte) *http.Request {
 	var httpBody io.Reader
 	if body == nil {
@@ -98,12 +102,18 @@ func (t *BaseTests) requestWithReader(c *C, httpBody io.Reader) *http.Request {
 
 func (t *BaseTests) createRepository(c *C) *repository.Repository {
 	err := t.rm.Create(t.repositoryName, t.pubKey[:])
-	c.Assert(err, IsNil)
+	if err != nil && !os.IsExist(err) {
+		c.Assert(err, IsNil)
+	}
+	return t.getRepository(c)
+}
+
+func (t *BaseTests) getRepository(c *C) *repository.Repository {
 	rep, err := t.rm.Open(t.repositoryName)
 	c.Assert(err, IsNil)
 	return rep
 }
 
-func (t *BlobTests) signRequest() {
+func (t *BaseTests) signRequest() {
 	SignWithKey(t.req, t.privateKey)
 }

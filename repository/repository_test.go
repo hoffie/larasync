@@ -99,12 +99,13 @@ func (t *RepositoryTests) TestPathToNIBID(c *C) {
 	c.Assert(err, IsNil)
 
 	path := "foo/bar.txt"
-	for i := 0; i < 2; i++ { // loop checks determinism
-		id, err := r.pathToNIBID(path)
-		c.Assert(err, IsNil)
-		c.Assert(id, Not(Equals), "")
-	}
+	id, err := r.pathToNIBID(path)
+	c.Assert(err, IsNil)
+	c.Assert(id, Not(Equals), "")
 
+	id2, err := r.pathToNIBID(path)
+	c.Assert(err, IsNil)
+	c.Assert(id2, Equals, id)
 }
 
 func numFilesInDir(path string) (int, error) {

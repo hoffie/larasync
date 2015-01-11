@@ -11,7 +11,10 @@ import (
 )
 
 var (
-	InvalidPublicKeySize = errors.New("Invalid public key size.")
+	// ErrInvalidPublicKeySize will get thrown if a string is passed
+	// which couldn't be encoded to the correct size to pass it as a
+	// Public Key signature.
+	ErrInvalidPublicKeySize = errors.New("Invalid public key size.")
 )
 
 // AuthorizationManager handles the Authorizations of a specific
@@ -68,7 +71,7 @@ func (am *AuthorizationManager) GetReaderString(key string) (io.ReadCloser, erro
 	}
 
 	if len(byteKey) != PublicKeySize {
-		return nil, InvalidPublicKeySize
+		return nil, ErrInvalidPublicKeySize
 	}
 	inputKey := [PublicKeySize]byte{}
 	copy(inputKey[:], byteKey)

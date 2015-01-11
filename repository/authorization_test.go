@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"bytes"
 	"crypto/rand"
 
 	. "gopkg.in/check.v1"
@@ -58,16 +59,16 @@ func (t *AuthorizationTest) TestConversionToPb(c *C) {
 	pbAuthorization, err := authorization.toPb()
 	c.Assert(err, IsNil)
 
-	t.AssertEquals(c, authorization, pbAuthorization)
+	assertEqualAuthorizationRepresentation(c, authorization, pbAuthorization)
 }
 
 func (t *AuthorizationTest) TestConversionFromPb(c *C) {
 	pbAuthorization := t.getPbAuthorization()
 	authorization := newAuthorizationFromPb(pbAuthorization)
-	t.AssertEquals(c, authorization, pbAuthorization)
+	assertEqualAuthorizationRepresentation(c, authorization, pbAuthorization)
 }
 
-func (t *AuthorizationTest) AssertEquals(
+func assertEqualAuthorizationRepresentation(
 	c *C,
 	authorization *Authorization,
 	pbAuthorization *odf.Authorization,
@@ -87,4 +88,55 @@ func (t *AuthorizationTest) AssertEquals(
 		DeepEquals,
 		pbAuthorization.GetHashingKey(),
 	)
+}
+
+func assertEqualAuthorizations(
+	c *C,
+	authorization *Authorization,
+	otherAuthorization *Authorization,
+) {
+	c.Assert(
+		authorization.SigningKey,
+		DeepEquals,
+		otherAuthorization.SigningKey,
+	)
+
+	c.Assert(
+		authorization.EncryptionKey,
+		DeepEquals,
+		otherAuthorization.EncryptionKey,
+	)
+
+	c.Assert(
+		authorization.HashingKey,
+		DeepEquals,
+		otherAuthorization.HashingKey,
+	)
+}
+
+func (t *AuthorizationTest) TestReadFrom(c *C) {
+	authorization := t.getAuthorization()
+	buffer := &bytes.Buffer{}
+	_, err := authorization.WriteTo(buffer)
+	c.Assert(err, IsNil)
+
+	otherAuth := &Authorization{}
+	_, err = otherAuth.ReadFrom(buffer)
+	c.Assert(err, IsNil)
+
+	assertEqualAuthorizations(c, authorization, otherAuth)
+}
+
+func (t *AuthorizationTest) TestReadFromError(c *C) {
+	authorization := t.getAuthorization()
+	buffer := &bytes.Buffer{}
+	_, err := authorization.WriteTo(buffer)
+	c.Assert(err, IsNil)
+
+	data := buffer.Bytes()
+	copy(data, make([]byte, len(data)))
+
+	otherAuth := &Authorization{}
+	_, err = otherAuth.ReadFrom(buffer)
+	c.Assert(err, NotNil)
 }

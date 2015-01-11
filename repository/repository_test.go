@@ -108,6 +108,27 @@ func (t *RepositoryTests) TestPathToNIBID(c *C) {
 	c.Assert(id2, Equals, id)
 }
 
+func (t *RepositoryTests) TestGetFileChunkIDs(c *C) {
+	r := New(t.dir)
+	err := r.CreateManagementDir()
+	c.Assert(err, IsNil)
+
+	err = r.keys.CreateHashingKey()
+	c.Assert(err, IsNil)
+
+	path := filepath.Join(t.dir, "foo.txt")
+	err = ioutil.WriteFile(path, []byte("test"), 0600)
+	c.Assert(err, IsNil)
+
+	ids, err := r.getFileChunkIDs(path)
+	c.Assert(err, IsNil)
+	c.Assert(len(ids), Equals, 1)
+
+	ids2, err := r.getFileChunkIDs(path)
+	c.Assert(err, IsNil)
+	c.Assert(ids2, DeepEquals, ids)
+}
+
 func numFilesInDir(path string) (int, error) {
 	entries, err := ioutil.ReadDir(path)
 	if err != nil {

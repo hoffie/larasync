@@ -607,6 +607,13 @@ func (r *Repository) writeFileToChunks(path string) ([]string, error) {
 	return r.splitFileToChunks(path, r.writeCryptoContainerObject)
 }
 
+// getFileChunkIDs analyzes the given file and returns its content ids.
+// This function does not write anything to disk.
+func (r *Repository) getFileChunkIDs(path string) ([]string, error) {
+	//return r.splitFileToChunks(path, func(string, []byte) error { return nil })
+	return nil, nil
+}
+
 // splitFileToChunks takes a file path and splits its contents into chunks
 // identified by their content ids.
 func (r *Repository) splitFileToChunks(path string, handler func(string, []byte) error) ([]string, error) {

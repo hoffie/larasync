@@ -73,6 +73,11 @@ func (s *Server) setupRoutes() {
 		),
 	).Methods("PUT")
 
+	s.router.HandleFunc("/repositories/{repository}/authorizations/{authPublicKey}",
+		s.authorizationGet).Methods("GET")
+	s.router.HandleFunc("/repositories/{repository}/authorizations/{authPublicKey}",
+		s.requireRepositoryAuth(s.authorizationPut)).Methods("PUT")
+
 	s.router.HandleFunc("/", func(rw http.ResponseWriter, req *http.Request) {
 		rw.Write([]byte("larasync\n"))
 	})

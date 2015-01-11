@@ -46,7 +46,7 @@ func (t *BaseTests) SetUpTest(c *C) {
 			t.repositoryName,
 		)
 	}
-	t.req = t.requestWithBytes(c, nil)
+	t.req = t.requestEmptyBody(c)
 	t.urlParams = url.Values{}
 }
 

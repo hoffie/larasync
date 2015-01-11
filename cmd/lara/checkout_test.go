@@ -10,17 +10,27 @@ import (
 )
 
 type CheckoutTests struct {
-	dir string
-	out *bytes.Buffer
-	d   *Dispatcher
+	dir   string
+	oldWd string
+	out   *bytes.Buffer
+	d     *Dispatcher
 }
 
 var _ = Suite(&CheckoutTests{})
 
 func (t *CheckoutTests) SetUpTest(c *C) {
 	t.dir = c.MkDir()
+	wd, err := os.Getwd()
+	c.Assert(err, IsNil)
+	t.oldWd = wd
+	err = os.Chdir(t.dir)
+	c.Assert(err, IsNil)
 	t.out = new(bytes.Buffer)
 	t.d = &Dispatcher{stderr: t.out}
+}
+
+func (t *CheckoutTests) TearDownTest(c *C) {
+	os.Chdir(t.oldWd)
 }
 
 // TestAddAndCheckout adds a file, removes the real file, runs checkout
@@ -113,4 +123,29 @@ func (t *CheckoutTests) TestAddAndCheckoutNoChange(c *C) {
 	content, err := ioutil.ReadFile(path)
 	c.Assert(err, IsNil)
 	c.Assert(content, DeepEquals, expContent)
+}
+
+// TestCheckoutAll tests lara checkout without arguments.
+func (t *CheckoutTests) TestCheckoutAll(c *C) {
+	repoDir := "repo"
+	c.Assert(t.d.run([]string{"init", repoDir}), Equals, 0)
+	err := os.Chdir(repoDir)
+	c.Assert(err, IsNil)
+
+	expData := map[string][]byte{
+		"foo1": []byte("content of file foo1"),
+		"foo2": []byte("content of file foo2"),
+	}
+	for path, content := range expData {
+		err := ioutil.WriteFile(path, content, 0600)
+		c.Assert(err, IsNil)
+		c.Assert(t.d.run([]string{"add", path}), Equals, 0)
+	}
+
+	c.Assert(t.d.run([]string{"checkout"}), Equals, 0)
+	for path, expContent := range expData {
+		content, err := ioutil.ReadFile(path)
+		c.Assert(err, IsNil)
+		c.Assert(content, DeepEquals, expContent)
+	}
 }

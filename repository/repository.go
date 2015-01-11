@@ -250,25 +250,26 @@ func (r *Repository) CheckoutPath(absPath string) error {
 		return err
 	}
 
+	return r.checkoutNIB(nib)
+}
+
+// checkoutNIB checks out the provided NIB's latest revision into the working directory.
+func (r *Repository) checkoutNIB(nib *NIB) error {
 	rev, err := nib.LatestRevision()
 	if err != nil {
 		return err
 	}
 
-	rawMetadata, err := r.readEncryptedObject(rev.MetadataID)
+	metadata, err := r.metadataByID(rev.MetadataID)
 	if err != nil {
 		return err
 	}
 
-	metadata := &Metadata{}
-	_, err = metadata.ReadFrom(bytes.NewReader(rawMetadata))
-	if err != nil {
-		return err
+	relPath := metadata.RepoRelativePath
+	if relPath == "" {
+		return errors.New("metadata lacks path")
 	}
-
-	if metadata.RepoRelativePath != relPath {
-		return errors.New("metadata name mismatch")
-	}
+	absPath := filepath.Join(r.Path, relPath)
 
 	targetDir := filepath.Dir(absPath)
 	baseName := filepath.Base(absPath)
@@ -315,6 +316,41 @@ func (r *Repository) CheckoutPath(absPath string) error {
 		return err
 	}
 	removeTempfile = false
+	return nil
+}
+
+// metadataByID returns the metadata object identified by the given object id.
+func (r *Repository) metadataByID(id string) (*Metadata, error) {
+	rawMetadata, err := r.readEncryptedObject(id)
+	if err != nil {
+		return nil, err
+	}
+
+	metadata := &Metadata{}
+	_, err = metadata.ReadFrom(bytes.NewReader(rawMetadata))
+	if err != nil {
+		return nil, err
+	}
+
+	return metadata, nil
+}
+
+// CheckoutAllPaths checks out all tracked paths.
+func (r *Repository) CheckoutAllPaths() error {
+	nibStore, err := r.getNIBStore()
+	if err != nil {
+		return err
+	}
+	nibs, err := nibStore.GetAll()
+	if err != nil {
+		return err
+	}
+	for nib := range nibs {
+		err = r.checkoutNIB(nib)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

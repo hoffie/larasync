@@ -123,6 +123,7 @@ func (t *RepositoryTests) TestGetFileChunkIDs(c *C) {
 	ids, err := r.getFileChunkIDs(path)
 	c.Assert(err, IsNil)
 	c.Assert(len(ids), Equals, 1)
+	c.Assert(len(ids[0]), Not(Equals), 0)
 
 	ids2, err := r.getFileChunkIDs(path)
 	c.Assert(err, IsNil)

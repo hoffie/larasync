@@ -610,8 +610,7 @@ func (r *Repository) writeFileToChunks(path string) ([]string, error) {
 // getFileChunkIDs analyzes the given file and returns its content ids.
 // This function does not write anything to disk.
 func (r *Repository) getFileChunkIDs(path string) ([]string, error) {
-	//return r.splitFileToChunks(path, func(string, []byte) error { return nil })
-	return nil, nil
+	return r.splitFileToChunks(path, func(string, []byte) error { return nil })
 }
 
 // splitFileToChunks takes a file path and splits its contents into chunks

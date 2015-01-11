@@ -19,11 +19,14 @@ const (
 	encryptedContentMinSize = 2*(nonceSize+secretbox.Overhead) + EncryptionKeySize
 )
 
-// Encryptor encapsulates de and Encr
+// Box encapsulates the encryption and decryption of files with a given
+// Encryption key.
 type Box struct {
 	privateKey [EncryptionKeySize]byte
 }
 
+// NewBox initializes a Box with the passed encryption key, which can be used
+// to encrypt and decrypt data.
 func NewBox(privateKey [EncryptionKeySize]byte) *Box {
 	return &Box{
 		privateKey: privateKey,

@@ -85,6 +85,32 @@ func (t *AuthorizationManagerTests) TestGetNotFound(c *C) {
 	c.Assert(os.IsNotExist(err), Equals, true)
 }
 
+func (t *AuthorizationManagerTests) TestGetReaderString(c *C) {
+	auth := t.testAuthorization()
+	t.addAuthorization(c, auth)
+
+	_, err := t.am.GetReaderString(t.signaturePublicKeyString())
+	c.Assert(err, IsNil)
+}
+
+func (t *AuthorizationManagerTests) TestGetReaderDecodeError(c *C) {
+	auth := t.testAuthorization()
+	t.addAuthorization(c, auth)
+
+	_, err := t.am.GetReaderString("äöü")
+	c.Assert(err, NotNil)
+}
+
+func (t *AuthorizationManagerTests) TestGetReaderLengthError(c *C) {
+	auth := t.testAuthorization()
+	t.addAuthorization(c, auth)
+
+	pubKey := t.signaturePublicKeyString()
+
+	_, err := t.am.GetReaderString(pubKey[:len(pubKey)-2])
+	c.Assert(err, NotNil)
+}
+
 func (t *AuthorizationManagerTests) TestExistsNegative(c *C) {
 	c.Assert(t.am.Exists(t.signaturePublicKey()), Equals, false)
 }

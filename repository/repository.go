@@ -2,9 +2,6 @@ package repository
 
 import (
 	"bytes"
-	"crypto/hmac"
-	"crypto/sha512"
-	"encoding/hex"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -27,14 +24,6 @@ const (
 
 	// default chunk splitting size
 	defaultChunkSize = 1 * 1024 * 1024
-
-	// EncryptionKeySize represents the size of the key used for
-	// encrypting.
-	EncryptionKeySize = crypto.EncryptionKeySize
-
-	// HashingKeySize represents the size of the key used for
-	// generating content hashes (HMAC).
-	HashingKeySize = 32
 )
 
 // Repository represents an on-disk repository and provides methods to
@@ -88,7 +77,7 @@ func (r *Repository) getObjectStorage() (ContentStorage, error) {
 // transaction manager for the repository.
 func (r *Repository) getTransactionManager() (*TransactionManager, error) {
 	if r.transactionManager == nil {
-		transactionStorage := FileContentStorage{
+		transactionStorage := &FileContentStorage{
 			StoragePath: filepath.Join(
 				r.GetManagementDir(),
 				transactionsDirName,
@@ -110,7 +99,7 @@ func (r *Repository) getTransactionManager() (*TransactionManager, error) {
 // for the repository.
 func (r *Repository) getNIBStore() (*NIBStore, error) {
 	if r.nibStore == nil {
-		nibStorage := FileContentStorage{
+		nibStorage := &FileContentStorage{
 			StoragePath: filepath.Join(
 				r.GetManagementDir(),
 				nibsDirName)}
@@ -533,11 +522,8 @@ func (r *Repository) hashChunk(chunk []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	hasher := hmac.New(sha512.New, key[:])
-	hasher.Write(chunk)
-	hash := hasher.Sum(nil)
-	hexHash := hex.EncodeToString(hash)
-	return hexHash, nil
+	hasher := crypto.NewHasher(key)
+	return hasher.StringHash(chunk), nil
 }
 
 // writeFileToChunks takes a file path and saves its contents to the

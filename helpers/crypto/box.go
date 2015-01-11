@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	// EncryptionKeySize is the keySize which is used to encrypt data.
 	EncryptionKeySize = 32
 
 	// secretbox nonceSize

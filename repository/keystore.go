@@ -14,8 +14,18 @@ import (
 
 const (
 	// Key Sizes
+
+	// PrivateKeySize is the keySize which is used for signatures in the
+	// system.
 	PrivateKeySize = crypto.PrivateKeySize
-	PublicKeySize  = crypto.PublicKeySize
+	// PublicKeySize is the keySize for public signature keys.
+	PublicKeySize = crypto.PublicKeySize
+	// EncryptionKeySize represents the size of the key used for
+	// encrypting.
+	EncryptionKeySize = crypto.EncryptionKeySize
+	// HashingKeySize represents the size of the key used for
+	// generating content hashes (HMAC).
+	HashingKeySize = crypto.HashingKeySize
 
 	// paths to our key files
 	encryptionKeyFileName     = "encryption.key"

@@ -99,7 +99,7 @@ func (t *FileContentStorageTests) TestDelete(c *C) {
 	c.Assert(t.storage.Exists(t.blobID()), Equals, false)
 }
 
-func (t *FileContentStorage) TestDeleteError(c *C) {
+func (t *FileContentStorageTests) TestDeleteError(c *C) {
 	err := t.storage.Delete(t.blobID())
 	c.Assert(err, NotNil)
 }

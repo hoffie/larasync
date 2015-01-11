@@ -53,6 +53,11 @@ func (t *Transaction) IDString() string {
 	return strconv.FormatInt(t.ID, 10)
 }
 
+// PreviousIDString returns the Previous transaction id as a string
+func (t *Transaction) PreviousIDString() string {
+	return strconv.FormatInt(t.PreviousID, 10)
+}
+
 // nibUUIDsFromTransactions returns all uuids from a list of transactions.
 func nibUUIDsFromTransactions(transactions []*Transaction) <-chan string {
 	nibUUIDChannel := make(chan string, 100)

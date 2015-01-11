@@ -270,20 +270,41 @@ func (r *Repository) CheckoutPath(absPath string) error {
 		return errors.New("metadata name mismatch")
 	}
 
-	//FIXME make atomic (rename) / write to tempfile
-	out, err := os.OpenFile(absPath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0600)
+	targetDir := filepath.Dir(absPath)
+	baseName := filepath.Base(absPath)
+	tempfile, err := ioutil.TempFile(targetDir, ".lara.checkout."+baseName)
 	if err != nil {
 		return err
 	}
-	defer out.Close()
+	defer tempfile.Close()
+
+	removeTempfile := true
+	defer func() {
+		if !removeTempfile {
+			return
+		}
+		_ = os.Remove(tempfile.Name())
+	}()
+
+	err = tempfile.Chmod(0600)
+	if err != nil {
+		return err
+	}
 
 	for _, contentID := range rev.ContentIDs {
 		content, err := r.readEncryptedObject(contentID)
-		_, err = out.Write(content)
+		_, err = tempfile.Write(content)
 		if err != nil {
 			return err
 		}
 	}
+
+	//FIXME: check if overwriting is ok
+	err = os.Rename(tempfile.Name(), absPath)
+	if err != nil {
+		return err
+	}
+	removeTempfile = false
 	return nil
 }
 

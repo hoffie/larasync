@@ -231,25 +231,26 @@ func (r *Repository) CheckoutPath(absPath string) error {
 		return err
 	}
 
+	return r.checkoutNIB(nib)
+}
+
+// checkoutNIB checks out the provided NIB's latest revision into the working directory.
+func (r *Repository) checkoutNIB(nib *NIB) error {
 	rev, err := nib.LatestRevision()
 	if err != nil {
 		return err
 	}
 
-	rawMetadata, err := r.readEncryptedObject(rev.MetadataID)
+	metadata, err := r.metadataByID(rev.MetadataID)
 	if err != nil {
 		return err
 	}
 
-	metadata := &Metadata{}
-	_, err = metadata.ReadFrom(bytes.NewReader(rawMetadata))
-	if err != nil {
-		return err
+	relPath := metadata.RepoRelativePath
+	if relPath == "" {
+		return errors.New("metadata lacks path")
 	}
-
-	if metadata.RepoRelativePath != relPath {
-		return errors.New("metadata name mismatch")
-	}
+	absPath := filepath.Join(r.Path, relPath)
 
 	targetDir := filepath.Dir(absPath)
 	baseName := filepath.Base(absPath)
@@ -280,13 +281,73 @@ func (r *Repository) CheckoutPath(absPath string) error {
 		}
 	}
 
-	//FIXME: check if overwriting is ok
+	hasChanges, err := r.pathHasConflictingChanges(nib, absPath)
+	if err != nil {
+		return err
+	}
+	if hasChanges {
+		return errors.New("workdir conflict")
+	}
+
+	// now we know it's fine to (over)write the file;
+	// sadly, there is a TOCTU race here, which seems kind of unavoidable
+	// (our check is already done, yet the actual rename operation happens just now)
 	err = os.Rename(tempfile.Name(), absPath)
 	if err != nil {
 		return err
 	}
 	removeTempfile = false
 	return nil
+}
+
+// metadataByID returns the metadata object identified by the given object id.
+func (r *Repository) metadataByID(id string) (*Metadata, error) {
+	rawMetadata, err := r.readEncryptedObject(id)
+	if err != nil {
+		return nil, err
+	}
+
+	metadata := &Metadata{}
+	_, err = metadata.ReadFrom(bytes.NewReader(rawMetadata))
+	if err != nil {
+		return nil, err
+	}
+
+	return metadata, nil
+}
+
+// CheckoutAllPaths checks out all tracked paths.
+func (r *Repository) CheckoutAllPaths() error {
+	nibStore, err := r.getNIBStore()
+	if err != nil {
+		return err
+	}
+	nibs, err := nibStore.GetAll()
+	if err != nil {
+		return err
+	}
+	for nib := range nibs {
+		err = r.checkoutNIB(nib)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// pathHasConflictingChanges checks whether the item pointed to by absPath has any
+// changes not resolvable to a revision in the given NIB.
+func (r *Repository) pathHasConflictingChanges(nib *NIB, absPath string) (bool, error) {
+	workdirContentIDs, err := r.getFileChunkIDs(absPath)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+
+	_, err = nib.LatestRevisionWithContent(workdirContentIDs)
+	return err != nil, nil
 }
 
 // readEncryptedObject reads the object with the given id and returns its
@@ -459,37 +520,38 @@ func (r *Repository) writeMetadata(absPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	//PERFORMANCE: avoid re-writing pre-existing metadata files by checking for
-	// existance first.
-	cid, err := r.writeContentAddressedCryptoContainer(raw.Bytes())
+
+	rawBytes := raw.Bytes()
+
+	hexHash, err := r.hashChunk(rawBytes)
 	if err != nil {
 		return "", err
 	}
-	return cid, nil
+
+	err = r.writeCryptoContainerObject(hexHash, rawBytes)
+	if err != nil {
+		return "", err
+	}
+	return hexHash, nil
 }
 
-// writeContentAddressedCryptoContainer takes a piece of raw data and
-// streams it to disk in one content-addressed chunk while encrypting the
-// data in the process.
-func (r *Repository) writeContentAddressedCryptoContainer(data []byte) (string, error) {
-	// hash for content-addressing
-	hexHash, err := r.hashChunk(data)
-	if err != nil {
-		return "", err
-	}
-
+// writeCryptoContainerObject takes a piece of raw data and
+// writes it to the object store in encrypted form.
+func (r *Repository) writeCryptoContainerObject(id string, data []byte) error {
+	// PERFORMANCE: avoid re-writing pre-existing metadata files by checking for
+	// existance first.
 	var enc []byte
-	enc, err = r.encryptWithRandomKey(data)
+	enc, err := r.encryptWithRandomKey(data)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	err = r.AddObject(hexHash, bytes.NewReader(enc))
+	err = r.AddObject(id, bytes.NewReader(enc))
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return hexHash, nil
+	return nil
 }
 
 // encryptWithRandomKey takes a piece of data, encrypts it with a random
@@ -529,6 +591,18 @@ func (r *Repository) hashChunk(chunk []byte) (string, error) {
 // writeFileToChunks takes a file path and saves its contents to the
 // storage in encrypted form with a content-addressing id.
 func (r *Repository) writeFileToChunks(path string) ([]string, error) {
+	return r.splitFileToChunks(path, r.writeCryptoContainerObject)
+}
+
+// getFileChunkIDs analyzes the given file and returns its content ids.
+// This function does not write anything to disk.
+func (r *Repository) getFileChunkIDs(path string) ([]string, error) {
+	return r.splitFileToChunks(path, func(string, []byte) error { return nil })
+}
+
+// splitFileToChunks takes a file path and splits its contents into chunks
+// identified by their content ids.
+func (r *Repository) splitFileToChunks(path string, handler func(string, []byte) error) ([]string, error) {
 	chunker, err := NewChunker(path, defaultChunkSize)
 	if err != nil {
 		return nil, err
@@ -540,11 +614,19 @@ func (r *Repository) writeFileToChunks(path string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		id, err := r.writeContentAddressedCryptoContainer(chunk)
+
+		// hash for content-addressing
+		hexHash, err := r.hashChunk(chunk)
 		if err != nil {
 			return nil, err
 		}
-		ids = append(ids, id)
+
+		ids = append(ids, hexHash)
+
+		err = handler(hexHash, chunk)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return ids, nil
 }

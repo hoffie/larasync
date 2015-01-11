@@ -99,12 +99,35 @@ func (t *RepositoryTests) TestPathToNIBID(c *C) {
 	c.Assert(err, IsNil)
 
 	path := "foo/bar.txt"
-	for i := 0; i < 2; i++ { // loop checks determinism
-		id, err := r.pathToNIBID(path)
-		c.Assert(err, IsNil)
-		c.Assert(id, Not(Equals), "")
-	}
+	id, err := r.pathToNIBID(path)
+	c.Assert(err, IsNil)
+	c.Assert(id, Not(Equals), "")
 
+	id2, err := r.pathToNIBID(path)
+	c.Assert(err, IsNil)
+	c.Assert(id2, Equals, id)
+}
+
+func (t *RepositoryTests) TestGetFileChunkIDs(c *C) {
+	r := New(t.dir)
+	err := r.CreateManagementDir()
+	c.Assert(err, IsNil)
+
+	err = r.keys.CreateHashingKey()
+	c.Assert(err, IsNil)
+
+	path := filepath.Join(t.dir, "foo.txt")
+	err = ioutil.WriteFile(path, []byte("test"), 0600)
+	c.Assert(err, IsNil)
+
+	ids, err := r.getFileChunkIDs(path)
+	c.Assert(err, IsNil)
+	c.Assert(len(ids), Equals, 1)
+	c.Assert(len(ids[0]), Not(Equals), 0)
+
+	ids2, err := r.getFileChunkIDs(path)
+	c.Assert(err, IsNil)
+	c.Assert(ids2, DeepEquals, ids)
 }
 
 func numFilesInDir(path string) (int, error) {

@@ -13,10 +13,11 @@ import (
 
 const (
 	// internal directory names
-	managementDirName   = ".lara"
-	objectsDirName      = "objects"
-	nibsDirName         = "nibs"
-	transactionsDirName = "transaction"
+	managementDirName     = ".lara"
+	objectsDirName        = "objects"
+	nibsDirName           = "nibs"
+	transactionsDirName   = "transactions"
+	authorizationsDirName = "authorizations"
 
 	// default permissions
 	defaultFilePerms = 0600
@@ -29,21 +30,44 @@ const (
 // Repository represents an on-disk repository and provides methods to
 // access its sub-items.
 type Repository struct {
-	Path               string
-	keys               *KeyStore
-	objectStorage      ContentStorage
-	nibStore           *NIBStore
-	transactionManager *TransactionManager
-	managementDirPath  string
-	objectsPath        string
-	nibsPath           string
+	Path                 string
+	keys                 *KeyStore
+	objectStorage        ContentStorage
+	nibStore             *NIBStore
+	transactionManager   *TransactionManager
+	authorizationManager *AuthorizationManager
+	managementDirPath    string
+}
+
+// repositorySubPathFor returns a subpath of the given entry and
+// returns the full path.
+func repositorySubPathFor(r *Repository, name string) string {
+	return filepath.Join(r.GetManagementDir(), name)
 }
 
 // New returns a new repository instance with the given base path
 func New(path string) *Repository {
 	r := &Repository{Path: path}
+	subPath := repositorySubPathFor
 	r.setupPaths()
+
+	r.objectStorage = newFileContentStorage(subPath(r, objectsDirName))
+
+	r.transactionManager = newTransactionManager(
+		newFileContentStorage(subPath(r, transactionsDirName)),
+		r.GetManagementDir(),
+	)
+	r.authorizationManager = newAuthorizationManager(
+		newFileContentStorage(subPath(r, authorizationsDirName)),
+	)
+
 	r.keys = NewKeyStore(r.managementDirPath)
+	r.nibStore = newNIBStore(
+		newFileContentStorage(subPath(r, nibsDirName)),
+		r.keys,
+		r.transactionManager,
+	)
+
 	return r
 }
 
@@ -52,72 +76,6 @@ func New(path string) *Repository {
 func (r *Repository) setupPaths() {
 	base := filepath.Join(r.Path, managementDirName)
 	r.managementDirPath = base
-	r.objectsPath = filepath.Join(base, objectsDirName)
-	r.nibsPath = filepath.Join(base, nibsDirName)
-}
-
-// getObjectStorage returns the currently configured content storage backend
-// for the repository.
-func (r *Repository) getObjectStorage() (ContentStorage, error) {
-	if r.objectStorage == nil {
-		storage := FileContentStorage{
-			StoragePath: filepath.Join(
-				r.GetManagementDir(),
-				objectsDirName)}
-		err := storage.CreateDir()
-		if err != nil {
-			return nil, err
-		}
-		r.objectStorage = &storage
-	}
-	return r.objectStorage, nil
-}
-
-// getTransactionManager returns the currently configured
-// transaction manager for the repository.
-func (r *Repository) getTransactionManager() (*TransactionManager, error) {
-	if r.transactionManager == nil {
-		transactionStorage := &FileContentStorage{
-			StoragePath: filepath.Join(
-				r.GetManagementDir(),
-				transactionsDirName,
-			)}
-		err := transactionStorage.CreateDir()
-		if err != nil {
-			return nil, err
-		}
-
-		r.transactionManager = newTransactionManager(
-			transactionStorage,
-			r.GetManagementDir(),
-		)
-	}
-	return r.transactionManager, nil
-}
-
-// getNIBStore returns the currently configured nib store
-// for the repository.
-func (r *Repository) getNIBStore() (*NIBStore, error) {
-	if r.nibStore == nil {
-		nibStorage := &FileContentStorage{
-			StoragePath: filepath.Join(
-				r.GetManagementDir(),
-				nibsDirName)}
-		err := nibStorage.CreateDir()
-		if err != nil {
-			return nil, err
-		}
-
-		transactionManager, err := r.getTransactionManager()
-		if err != nil {
-			return nil, err
-		}
-
-		storage := ContentStorage(nibStorage)
-
-		r.nibStore = newNIBStore(storage, r.keys, transactionManager)
-	}
-	return r.nibStore, nil
 }
 
 // CreateManagementDir ensures that this repository's management
@@ -127,14 +85,20 @@ func (r *Repository) CreateManagementDir() error {
 	if err != nil && !os.IsExist(err) {
 		return err
 	}
-	path := r.nibsPath
-	err = os.Mkdir(path, defaultDirPerms)
-	if err != nil && !os.IsExist(err) {
-		return err
+
+	path := repositorySubPathFor
+	storages := []*FileContentStorage{
+		newFileContentStorage(path(r, authorizationsDirName)),
+		newFileContentStorage(path(r, nibsDirName)),
+		newFileContentStorage(path(r, transactionsDirName)),
+		newFileContentStorage(path(r, objectsDirName)),
 	}
-	_, err = r.getObjectStorage()
-	if err != nil {
-		return err
+
+	for _, fileStorage := range storages {
+		err = fileStorage.CreateDir()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -152,6 +116,10 @@ func (r *Repository) Create() error {
 		return err
 	}
 	err = r.CreateManagementDir()
+	if err != nil {
+		return err
+	}
+
 	return err
 }
 
@@ -176,10 +144,7 @@ func (r *Repository) AddItem(absPath string) error {
 		return err
 	}
 
-	nibStore, err := r.getNIBStore()
-	if err != nil {
-		return err
-	}
+	nibStore := r.nibStore
 
 	nib := &NIB{ID: nibID}
 	if nibStore.Exists(nibID) {
@@ -220,10 +185,7 @@ func (r *Repository) CheckoutPath(absPath string) error {
 		return err
 	}
 
-	nibStore, err := r.getNIBStore()
-	if err != nil {
-		return err
-	}
+	nibStore := r.nibStore
 
 	// nibStore.Get also handles signature verification
 	nib, err := nibStore.Get(id)
@@ -318,10 +280,7 @@ func (r *Repository) metadataByID(id string) (*Metadata, error) {
 
 // CheckoutAllPaths checks out all tracked paths.
 func (r *Repository) CheckoutAllPaths() error {
-	nibStore, err := r.getNIBStore()
-	if err != nil {
-		return err
-	}
+	nibStore := r.nibStore
 	nibs, err := nibStore.GetAll()
 	if err != nil {
 		return err
@@ -353,12 +312,7 @@ func (r *Repository) pathHasConflictingChanges(nib *NIB, absPath string) (bool, 
 // readEncryptedObject reads the object with the given id and returns its
 // authenticated, unencrypted content.
 func (r *Repository) readEncryptedObject(id string) ([]byte, error) {
-	objectStorage, err := r.getObjectStorage()
-	if err != nil {
-		return nil, err
-	}
-
-	reader, err := objectStorage.Get(id)
+	reader, err := r.objectStorage.Get(id)
 	if err != nil {
 		return nil, err
 	}
@@ -377,19 +331,12 @@ func (r *Repository) pathToNIBID(relPath string) (string, error) {
 // AddObject adds an object into the storage with the given
 // id and adds the data in the reader to it.
 func (r *Repository) AddObject(objectID string, data io.Reader) error {
-	storage, err := r.getObjectStorage()
-	if err != nil {
-		return err
-	}
-	return storage.Set(objectID, data)
+	return r.objectStorage.Set(objectID, data)
 }
 
 // AddNIBContent adds NIBData to the repository after verifying it.
 func (r *Repository) AddNIBContent(nibID string, nibReader io.Reader) error {
-	nibStore, err := r.getNIBStore()
-	if err != nil {
-		return err
-	}
+	nibStore := r.nibStore
 
 	data, err := ioutil.ReadAll(nibReader)
 	if err != nil {
@@ -406,92 +353,52 @@ func (r *Repository) AddNIBContent(nibID string, nibReader io.Reader) error {
 
 // GetNIB returns a NIB for the given ID in this repository.
 func (r *Repository) GetNIB(id string) (*NIB, error) {
-	store, err := r.getNIBStore()
-	if err != nil {
-		return nil, err
-	}
-
-	return store.Get(id)
+	return r.nibStore.Get(id)
 }
 
 // GetNIBReader returns the NIB with the given id in this repository.
 func (r *Repository) GetNIBReader(id string) (io.ReadCloser, error) {
-	store, err := r.getNIBStore()
-	if err != nil {
-		return nil, err
-	}
-
-	return store.getReader(id)
+	return r.nibStore.getReader(id)
 }
 
 // GetNIBBytesFrom returns the signed byte structure for NIBs from the given
 // transaction id
 func (r *Repository) GetNIBBytesFrom(fromTransactionID int64) (<-chan []byte, error) {
-	store, err := r.getNIBStore()
-	if err != nil {
-		return nil, err
-	}
-
-	return store.GetBytesFrom(fromTransactionID)
+	return r.nibStore.GetBytesFrom(fromTransactionID)
 }
 
 // GetNIBsFrom returns nibs added since the passed transaction ID.
 func (r *Repository) GetNIBsFrom(fromTransactionID int64) (<-chan *NIB, error) {
-	store, err := r.getNIBStore()
-	if err != nil {
-		return nil, err
-	}
-	return store.GetFrom(fromTransactionID)
+	return r.nibStore.GetFrom(fromTransactionID)
 }
 
 // GetAllNIBBytes returns all NIBs signed byte representations in this repository.
 func (r *Repository) GetAllNIBBytes() (<-chan []byte, error) {
-	store, err := r.getNIBStore()
-	if err != nil {
-		return nil, err
-	}
-
-	return store.GetAllBytes()
+	return r.nibStore.GetAllBytes()
 }
 
 // GetAllNibs returns all the nibs which are stored in this repository.
 // Those will be returned with the oldest one first and the newest added
 // last.
 func (r *Repository) GetAllNibs() (<-chan *NIB, error) {
-	store, err := r.getNIBStore()
-	if err != nil {
-		return nil, err
-	}
-	return store.GetAll()
+	return r.nibStore.GetAll()
 }
 
 // HasNIB checks if a NIB with the given ID exists in the repository.
 func (r *Repository) HasNIB(id string) bool {
-	store, err := r.getNIBStore()
-	if err != nil {
-		return false
-	}
-	return store.Exists(id)
+	return r.nibStore.Exists(id)
 }
 
 // CurrentTransaction returns the currently newest Transaction for this
 // repository.
 func (r *Repository) CurrentTransaction() (*Transaction, error) {
-	tm, err := r.getTransactionManager()
-	if err != nil {
-		return nil, err
-	}
-	return tm.CurrentTransaction()
+	return r.transactionManager.CurrentTransaction()
 }
 
 // GetObjectData returns the data stored for the given objectID in this
 // repository.
 func (r *Repository) GetObjectData(objectID string) (io.ReadCloser, error) {
-	storage, err := r.getObjectStorage()
-	if err != nil {
-		return nil, err
-	}
-	return storage.Get(objectID)
+	return r.objectStorage.Get(objectID)
 }
 
 // getRepoRelativePath turns the given path into a path relative to the

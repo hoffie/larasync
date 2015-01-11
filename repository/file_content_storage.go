@@ -13,6 +13,14 @@ type FileContentStorage struct {
 	StoragePath string
 }
 
+// newFileContentStorage generates a file content storage with the
+// given path.
+func newFileContentStorage(path string) *FileContentStorage {
+	return &FileContentStorage{
+		StoragePath: path,
+	}
+}
+
 // CreateDir ensures that the file blob storage directory exists.
 func (f *FileContentStorage) CreateDir() error {
 	err := os.Mkdir(f.StoragePath, defaultDirPerms)

@@ -141,8 +141,8 @@ func (t *NIBListTest) TestGetFromTransactionId(c *C) {
 	transaction, err := rep.CurrentTransaction()
 	c.Assert(err, IsNil)
 
-	fromTransactionId := strconv.FormatInt(transaction.PreviousID, 10)
-	t.urlParams.Add("from-transaction-id", fromTransactionId)
+	fromTransactionID := strconv.FormatInt(transaction.PreviousID, 10)
+	t.urlParams.Add("from-transaction-id", fromTransactionID)
 	t.req = t.requestEmptyBody(c)
 	t.signRequest()
 	resp := t.getResponse(t.req)

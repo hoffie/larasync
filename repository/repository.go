@@ -299,13 +299,38 @@ func (r *Repository) CheckoutPath(absPath string) error {
 		}
 	}
 
-	//FIXME: check if overwriting is ok
+	hasChanges, err := r.pathHasConflictingChanges(nib, absPath)
+	if err != nil {
+		return err
+	}
+	if hasChanges {
+		return errors.New("workdir conflict")
+	}
+
+	// now we know it's fine to (over)write the file;
+	// sadly, there is a TOCTU race here, which seems kind of unavoidable
+	// (our check is already done, yet the actual rename operation happens just now)
 	err = os.Rename(tempfile.Name(), absPath)
 	if err != nil {
 		return err
 	}
 	removeTempfile = false
 	return nil
+}
+
+// pathHasConflictingChanges checks whether the item pointed to by absPath has any
+// changes not resolvable to a revision in the given NIB.
+func (r *Repository) pathHasConflictingChanges(nib *NIB, absPath string) (bool, error) {
+	workdirContentIDs, err := r.getFileChunkIDs(absPath)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+
+	_, err = nib.LatestRevisionWithContent(workdirContentIDs)
+	return err != nil, nil
 }
 
 // readEncryptedObject reads the object with the given id and returns its

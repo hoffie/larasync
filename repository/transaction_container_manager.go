@@ -45,6 +45,7 @@ func (tcm TransactionContainerManager) Get(transactionContainerUUID string) (*Tr
 	if err != nil {
 		return nil, err
 	}
+	_ = reader.Close()
 
 	protoTransactionContainer := &odf.TransactionContainer{}
 	err = proto.Unmarshal(

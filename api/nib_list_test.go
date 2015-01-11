@@ -10,6 +10,7 @@ import (
 	. "gopkg.in/check.v1"
 
 	"github.com/hoffie/larasync/helpers/bincontainer"
+	"github.com/hoffie/larasync/helpers/crypto"
 	"github.com/hoffie/larasync/repository"
 )
 
@@ -94,7 +95,7 @@ func AssertNibSetsEqual(
 }
 
 func (t *NIBListTest) nibFromContainer(c *C, data []byte) *repository.NIB {
-	reader, err := repository.NewVerifyingReader(t.pubKey, bytes.NewReader(data))
+	reader, err := crypto.NewVerifyingReader(t.pubKey, bytes.NewReader(data))
 	c.Assert(err, IsNil)
 
 	nib := repository.NIB{}

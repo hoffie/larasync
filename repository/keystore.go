@@ -8,10 +8,15 @@ import (
 	"path/filepath"
 
 	"github.com/agl/ed25519"
+	"github.com/hoffie/larasync/helpers/crypto"
 	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
 )
 
 const (
+	// Key Sizes
+	PrivateKeySize = crypto.PrivateKeySize
+	PublicKeySize  = crypto.PublicKeySize
+
 	// paths to our key files
 	encryptionKeyFileName     = "encryption.key"
 	hashingKeyFileName        = "hashing.key"

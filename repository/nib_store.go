@@ -5,6 +5,8 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+
+	"github.com/hoffie/larasync/helpers/crypto"
 )
 
 var (
@@ -51,7 +53,7 @@ func (s *NIBStore) Get(id string) (*NIB, error) {
 	}
 
 	buffer := bytes.NewReader(data)
-	signatureReader, err := NewVerifyingReader(
+	signatureReader, err := crypto.NewVerifyingReader(
 		pubKey,
 		buffer,
 	)
@@ -191,7 +193,7 @@ func (s *NIBStore) writeBytes(id string, data []byte) error {
 
 	buf := &bytes.Buffer{}
 
-	sw := NewSigningWriter(key, buf)
+	sw := crypto.NewSigningWriter(key, buf)
 	_, err = sw.Write(data)
 	if err != nil {
 		return err
@@ -237,7 +239,7 @@ func (s *NIBStore) VerifyContent(data []byte) error {
 		return err
 	}
 
-	signatureReader, err := NewVerifyingReader(
+	signatureReader, err := crypto.NewVerifyingReader(
 		pubKey,
 		bytes.NewReader(data),
 	)

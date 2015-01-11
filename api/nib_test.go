@@ -11,6 +11,7 @@ import (
 
 	. "gopkg.in/check.v1"
 
+	"github.com/hoffie/larasync/helpers/crypto"
 	"github.com/hoffie/larasync/repository"
 )
 
@@ -84,7 +85,7 @@ func (t *NIBTest) addTestNIB(c *C) *repository.NIB {
 
 func (t *NIBTest) signNIBBytes(c *C, nibBytes []byte) []byte {
 	wr := &bytes.Buffer{}
-	signingWriter := repository.NewSigningWriter(t.privateKey, wr)
+	signingWriter := crypto.NewSigningWriter(t.privateKey, wr)
 	_, err := signingWriter.Write(nibBytes)
 	c.Assert(err, IsNil)
 	err = signingWriter.Finalize()
@@ -104,7 +105,7 @@ func (t *NIBTest) addNIB(c *C, nib *repository.NIB) *repository.NIB {
 func (t *NIBTest) extractNIB(c *C, resp *httptest.ResponseRecorder) *repository.NIB {
 	body, err := ioutil.ReadAll(resp.Body)
 	c.Assert(err, IsNil)
-	reader, err := repository.NewVerifyingReader(
+	reader, err := crypto.NewVerifyingReader(
 		t.pubKey,
 		bytes.NewReader(body),
 	)
@@ -118,7 +119,7 @@ func (t *NIBTest) extractNIB(c *C, resp *httptest.ResponseRecorder) *repository.
 func (t *NIBTest) verifyNIBSignature(c *C, resp *httptest.ResponseRecorder) bool {
 	body, err := ioutil.ReadAll(resp.Body)
 	c.Assert(err, IsNil)
-	reader, err := repository.NewVerifyingReader(
+	reader, err := crypto.NewVerifyingReader(
 		t.pubKey,
 		bytes.NewReader(body),
 	)

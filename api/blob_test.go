@@ -61,5 +61,7 @@ func (t *BlobTests) expectStoredData(c *C, expectedData []byte) {
 	c.Assert(err, IsNil)
 	retrievedData, err := ioutil.ReadAll(reader)
 	c.Assert(err, IsNil)
+	err = reader.Close()
+	c.Assert(err, IsNil)
 	c.Assert(retrievedData, DeepEquals, expectedData)
 }

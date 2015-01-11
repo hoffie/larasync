@@ -84,6 +84,9 @@ func (t *RepositoryTests) TestGetObject(c *C) {
 
 	data, err := ioutil.ReadAll(reader)
 
+	err = reader.Close()
+	c.Assert(err, IsNil)
+
 	c.Assert(objectData, DeepEquals, data)
 }
 

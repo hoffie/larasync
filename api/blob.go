@@ -36,6 +36,7 @@ func (s *Server) blobGet(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Content-Type", "application/octet-stream")
 	rw.WriteHeader(http.StatusOK)
 	io.Copy(rw, reader)
+	_ = reader.Close()
 }
 
 // blobPut is the handler to set the content of a blob for a specific

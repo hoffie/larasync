@@ -37,7 +37,11 @@ func (t *NIBPutTest) TestRepositoryNotExisting(c *C) {
 func (t *NIBPutTest) TestPutMalformedSignature(c *C) {
 	data := t.getTestNIBBytes()
 	data = t.signNIBBytes(c, data)
-	data[len(data)-1] = 0
+
+	// destroy signature:
+	for x := 0; x < SignatureSize; x++ {
+		data[len(data)-1-x] = 0
+	}
 	t.req = t.requestWithBytes(c, data)
 	t.signRequest()
 

@@ -36,18 +36,7 @@ func (am *AuthorizationManager) Set(
 	encryptionKey [EncryptionKeySize]byte,
 	authorization *Authorization,
 ) error {
-	publicKeyString := hex.EncodeToString(signaturePubKey[:])
 
-	return am.setWithString(publicKeyString, encryptionKey, authorization)
-}
-
-// setWithString is a helper function which stores the data for the
-// given signaturePubKeyString.
-func (am *AuthorizationManager) setWithString(
-	signaturePubKeyString string,
-	encryptionKey [EncryptionKeySize]byte,
-	authorization *Authorization,
-) error {
 	data := &bytes.Buffer{}
 	_, err := authorization.WriteTo(data)
 	if err != nil {
@@ -60,7 +49,17 @@ func (am *AuthorizationManager) setWithString(
 		return err
 	}
 
-	return am.storage.Set(signaturePubKeyString, bytes.NewBuffer(enc))
+	return am.SetData(signaturePubKey, bytes.NewReader(enc))
+}
+
+// SetData adds for the already encrypted byte data and the given public key
+// to the storage backend.
+func (am *AuthorizationManager) SetData(
+	pubKey [PublicKeySize]byte,
+	reader io.Reader,
+) error {
+	pubKeyString := hex.EncodeToString(pubKey[:])
+	return am.storage.Set(pubKeyString, reader)
 }
 
 // GetReaderString returns the reader for the given publicKey string representation.

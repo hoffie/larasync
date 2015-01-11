@@ -395,6 +395,17 @@ func (r *Repository) CurrentTransaction() (*Transaction, error) {
 	return r.transactionManager.CurrentTransaction()
 }
 
+// GetAuthorizationReader returns the authorization configuration for the
+// passed PublicKey.
+func (r *Repository) GetAuthorizationReader(publicKey [PublicKeySize]byte) (io.ReadCloser, error) {
+	return r.authorizationManager.GetReader(publicKey)
+}
+
+// SetAuthorizationData adds for the given publicKey the authorization structure
+func (r *Repository) SetAuthorizationData(publicKey [PublicKeySize]byte, authData io.Reader) error {
+	return r.authorizationManager.SetData(publicKey, authData)
+}
+
 // GetObjectData returns the data stored for the given objectID in this
 // repository.
 func (r *Repository) GetObjectData(objectID string) (io.ReadCloser, error) {

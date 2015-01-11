@@ -35,6 +35,7 @@ func (t *ChunkerTests) TestNormal(c *C) {
 
 	ch, err := NewChunker(path, 16)
 	c.Assert(err, IsNil)
+	defer ch.Close()
 	c.Assert(ch.HasNext(), Equals, true)
 	chunk, err := ch.Next()
 	c.Assert(err, IsNil)

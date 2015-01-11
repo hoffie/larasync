@@ -75,16 +75,17 @@ func (s *NIBStore) Get(id string) (*NIB, error) {
 // GetBytes returns the Byte representation of the
 // given NIB ID.
 func (s *NIBStore) GetBytes(id string) ([]byte, error) {
-	reader, err := s.GetReader(id)
+	reader, err := s.getReader(id)
 	if err != nil {
 		return []byte{}, err
 	}
+	defer reader.Close()
 	return ioutil.ReadAll(reader)
 }
 
 // GetReader returns the Reader which stores the bytes
 // of the given NIB ID.
-func (s *NIBStore) GetReader(id string) (io.Reader, error) {
+func (s *NIBStore) getReader(id string) (io.ReadCloser, error) {
 	return s.storage.Get(id)
 }
 

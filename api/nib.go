@@ -38,6 +38,8 @@ func (s *Server) nibGet(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	defer reader.Close()
+
 	rw.Header().Set("Content-Type", "application/octet-stream")
 	attachCurrentTransactionHeader(repository, rw)
 	rw.WriteHeader(http.StatusOK)

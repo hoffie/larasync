@@ -58,3 +58,10 @@ func (c *Chunker) Next() ([]byte, error) {
 	}
 	return buf[:numBytes], nil
 }
+
+// Close cleans up the chunker after usage.
+//
+// Use the c := NewChunker(); defer c.Close() pattern
+func (c *Chunker) Close() {
+	c.file.Close()
+}

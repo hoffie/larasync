@@ -352,13 +352,13 @@ func (r *Repository) GetNIB(id string) (*NIB, error) {
 }
 
 // GetNIBReader returns the NIB with the given id in this repository.
-func (r *Repository) GetNIBReader(id string) (io.Reader, error) {
+func (r *Repository) GetNIBReader(id string) (io.ReadCloser, error) {
 	store, err := r.getNIBStore()
 	if err != nil {
 		return nil, err
 	}
 
-	return store.GetReader(id)
+	return store.getReader(id)
 }
 
 // GetNIBBytesFrom returns the signed byte structure for NIBs from the given
@@ -586,6 +586,7 @@ func (r *Repository) writeFileToChunks(path string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer chunker.Close()
 	var ids []string
 	for chunker.HasNext() {
 		chunk, err := chunker.Next()

@@ -31,7 +31,7 @@ func (f *FileContentStorage) storagePathFor(contentID string) string {
 // Get returns the file handle for the given contentID.
 // If there is no data stored for the Id it should return a
 // os.ErrNotExists error.
-func (f FileContentStorage) Get(contentID string) (io.Reader, error) {
+func (f FileContentStorage) Get(contentID string) (io.ReadCloser, error) {
 	if f.Exists(contentID) {
 		return os.Open(f.storagePathFor(contentID))
 	}

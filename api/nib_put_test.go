@@ -78,6 +78,32 @@ func (t *NIBPutTest) TestPutNewStore(c *C) {
 	c.Assert(nib.ID, Equals, t.nibID)
 }
 
+func (t *NIBPutTest) TestPutNewPrecondition(c *C) {
+	t.addTestNIB(c)
+	header := t.req.Header
+	rep := t.getRepository(c)
+	transaction, err := rep.CurrentTransaction()
+	c.Assert(err, IsNil)
+	header.Set("If-Match", transaction.IDString())
+	t.signRequest()
+
+	resp := t.getResponse(t.req)
+	c.Assert(resp.Code, Equals, http.StatusOK)
+}
+
+func (t *NIBPutTest) TestPutNewPreconditionFailed(c *C) {
+	t.addTestNIB(c)
+	header := t.req.Header
+	rep := t.getRepository(c)
+	transaction, err := rep.CurrentTransaction()
+	c.Assert(err, IsNil)
+	header.Set("If-Match", transaction.PreviousIDString())
+	t.signRequest()
+
+	resp := t.getResponse(t.req)
+	c.Assert(resp.Code, Equals, http.StatusPreconditionFailed)
+}
+
 func (t *NIBPutTest) changeNIBForPut(c *C, nib *repository.NIB) *repository.NIB {
 	revision := generateTestRevision()
 	revision.MetadataID = "other-metadata"

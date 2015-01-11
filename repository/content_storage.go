@@ -15,4 +15,6 @@ type ContentStorage interface {
 	Set(contentID string, reader io.Reader) error
 	// Exists checks if the given entry is stored in the database.
 	Exists(contentID string) bool
+	// Delete removes the data with the given contentID from the store.
+	Delete(contentID string) error
 }

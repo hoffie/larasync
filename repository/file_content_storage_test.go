@@ -91,3 +91,15 @@ func (t *FileContentStorageTests) TestSetError(c *C) {
 		t.testReader())
 	c.Assert(err, NotNil)
 }
+
+func (t *FileContentStorageTests) TestDelete(c *C) {
+	t.setData()
+	err := t.storage.Delete(t.blobID())
+	c.Assert(err, IsNil)
+	c.Assert(t.storage.Exists(t.blobID()), Equals, false)
+}
+
+func (t *FileContentStorage) TestDeleteError(c *C) {
+	err := t.storage.Delete(t.blobID())
+	c.Assert(err, NotNil)
+}

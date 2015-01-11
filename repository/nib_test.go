@@ -51,6 +51,29 @@ func (t *NIBTests) TestLatestRevisionFailure(c *C) {
 	c.Assert(err, NotNil)
 }
 
+func (t *NIBTests) TestLatestRevisionWithContent(c *C) {
+	n := &NIB{}
+	wanted := []string{"a", "b"}
+	n.AppendRevision(&Revision{MetadataID: "foo", ContentIDs: []string{"x", "y"}})
+	n.AppendRevision(&Revision{MetadataID: "foo", ContentIDs: wanted})
+	n.AppendRevision(&Revision{MetadataID: "foo", ContentIDs: []string{"c", "d"}})
+	n.AppendRevision(&Revision{MetadataID: "foo", ContentIDs: []string{"a", "b", "c"}})
+	rev, err := n.LatestRevisionWithContent(wanted)
+	c.Assert(err, IsNil)
+	c.Assert(rev.ContentIDs, DeepEquals, wanted)
+}
+
+func (t *NIBTests) TestLatestRevisionWithContentFail(c *C) {
+	n := &NIB{}
+	wanted := []string{"a", "b"}
+	n.AppendRevision(&Revision{MetadataID: "foo", ContentIDs: []string{"x", "y"}})
+	n.AppendRevision(&Revision{MetadataID: "foo", ContentIDs: []string{"c", "d"}})
+	n.AppendRevision(&Revision{MetadataID: "foo", ContentIDs: []string{"a", "b", "c"}})
+	rev, err := n.LatestRevisionWithContent(wanted)
+	c.Assert(err, Equals, ErrNoRevision)
+	c.Assert(rev, IsNil)
+}
+
 func (t *NIBTests) TestRevisionsTotalSimple(c *C) {
 	n := NIB{}
 	n.AppendRevision(&Revision{})

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"reflect"
 
 	"github.com/golang/protobuf/proto"
 
@@ -78,6 +79,18 @@ func (n *NIB) LatestRevision() (*Revision, error) {
 		return nil, ErrNoRevision
 	}
 	return n.Revisions[l-1], nil
+}
+
+// LatestRevisionWithContent returns the most-recent revision whose content matches
+// the requested content ids.
+func (n *NIB) LatestRevisionWithContent(contentIDs []string) (*Revision, error) {
+	for i := len(n.Revisions) - 1; i >= 0; i-- {
+		rev := n.Revisions[i]
+		if reflect.DeepEqual(rev.ContentIDs, contentIDs) {
+			return rev, nil
+		}
+	}
+	return nil, ErrNoRevision
 }
 
 // RevisionsTotal returns the total length of all revisions.

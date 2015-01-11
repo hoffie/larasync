@@ -34,3 +34,9 @@ message Metadata {
 		required NodeType Type = 1;
 		required string RepoRelativePath = 2;
 }
+
+message Authorization {
+		required bytes SigningKey = 1;
+		required bytes EncryptionKey = 2;
+		required bytes HashingKey = 3;
+}

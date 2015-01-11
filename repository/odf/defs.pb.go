@@ -14,6 +14,7 @@ It has these top-level messages:
 	NIB
 	Revision
 	Metadata
+	Authorization
 */
 package odf
 
@@ -215,6 +216,38 @@ func (m *Metadata) GetRepoRelativePath() string {
 		return *m.RepoRelativePath
 	}
 	return ""
+}
+
+type Authorization struct {
+	SigningKey       []byte `protobuf:"bytes,1,req" json:"SigningKey,omitempty"`
+	EncryptionKey    []byte `protobuf:"bytes,2,req" json:"EncryptionKey,omitempty"`
+	HashingKey       []byte `protobuf:"bytes,3,req" json:"HashingKey,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (m *Authorization) Reset()         { *m = Authorization{} }
+func (m *Authorization) String() string { return proto.CompactTextString(m) }
+func (*Authorization) ProtoMessage()    {}
+
+func (m *Authorization) GetSigningKey() []byte {
+	if m != nil {
+		return m.SigningKey
+	}
+	return nil
+}
+
+func (m *Authorization) GetEncryptionKey() []byte {
+	if m != nil {
+		return m.EncryptionKey
+	}
+	return nil
+}
+
+func (m *Authorization) GetHashingKey() []byte {
+	if m != nil {
+		return m.HashingKey
+	}
+	return nil
 }
 
 func init() {

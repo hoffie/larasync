@@ -35,7 +35,7 @@ func (t *NIBStoreTest) SetUpTest(c *C) {
 	signingPubKey, err := t.repository.keys.SigningPublicKey()
 	c.Assert(*pubKey, DeepEquals, signingPubKey)
 
-	fileStorage := FileContentStorage{
+	fileStorage := &FileContentStorage{
 		StoragePath: filepath.Join(t.dir, "nibs"),
 	}
 	err = fileStorage.CreateDir()
@@ -43,7 +43,7 @@ func (t *NIBStoreTest) SetUpTest(c *C) {
 
 	t.storage = fileStorage
 
-	transactionStorage := FileContentStorage{
+	transactionStorage := &FileContentStorage{
 		StoragePath: filepath.Join(t.dir, "transactions"),
 	}
 	err = transactionStorage.CreateDir()

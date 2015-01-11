@@ -444,7 +444,7 @@ func (r *Repository) CurrentTransaction() (*Transaction, error) {
 
 // GetObjectData returns the data stored for the given objectID in this
 // repository.
-func (r *Repository) GetObjectData(objectID string) (io.Reader, error) {
+func (r *Repository) GetObjectData(objectID string) (io.ReadCloser, error) {
 	storage, err := r.getObjectStorage()
 	if err != nil {
 		return nil, err

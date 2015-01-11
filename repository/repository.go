@@ -478,37 +478,38 @@ func (r *Repository) writeMetadata(absPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	//PERFORMANCE: avoid re-writing pre-existing metadata files by checking for
-	// existance first.
-	cid, err := r.writeContentAddressedCryptoContainer(raw.Bytes())
+
+	rawBytes := raw.Bytes()
+
+	hexHash, err := r.hashChunk(rawBytes)
 	if err != nil {
 		return "", err
 	}
-	return cid, nil
+
+	err = r.writeCryptoContainerObject(hexHash, rawBytes)
+	if err != nil {
+		return "", err
+	}
+	return hexHash, nil
 }
 
-// writeContentAddressedCryptoContainer takes a piece of raw data and
-// streams it to disk in one content-addressed chunk while encrypting the
-// data in the process.
-func (r *Repository) writeContentAddressedCryptoContainer(data []byte) (string, error) {
-	// hash for content-addressing
-	hexHash, err := r.hashChunk(data)
-	if err != nil {
-		return "", err
-	}
-
+// writeCryptoContainerObject takes a piece of raw data and
+// writes it to the object store in encrypted form.
+func (r *Repository) writeCryptoContainerObject(id string, data []byte) error {
+	// PERFORMANCE: avoid re-writing pre-existing metadata files by checking for
+	// existance first.
 	var enc []byte
-	enc, err = r.encryptWithRandomKey(data)
+	enc, err := r.encryptWithRandomKey(data)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	err = r.AddObject(hexHash, bytes.NewReader(enc))
+	err = r.AddObject(id, bytes.NewReader(enc))
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return hexHash, nil
+	return nil
 }
 
 // encryptWithRandomKey takes a piece of data, encrypts it with a random
@@ -603,6 +604,12 @@ func (r *Repository) hashChunk(chunk []byte) (string, error) {
 // writeFileToChunks takes a file path and saves its contents to the
 // storage in encrypted form with a content-addressing id.
 func (r *Repository) writeFileToChunks(path string) ([]string, error) {
+	return r.splitFileToChunks(path, r.writeCryptoContainerObject)
+}
+
+// splitFileToChunks takes a file path and splits its contents into chunks
+// identified by their content ids.
+func (r *Repository) splitFileToChunks(path string, handler func(string, []byte) error) ([]string, error) {
 	chunker, err := NewChunker(path, defaultChunkSize)
 	if err != nil {
 		return nil, err
@@ -614,11 +621,19 @@ func (r *Repository) writeFileToChunks(path string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		id, err := r.writeContentAddressedCryptoContainer(chunk)
+
+		// hash for content-addressing
+		hexHash, err := r.hashChunk(chunk)
 		if err != nil {
 			return nil, err
 		}
-		ids = append(ids, id)
+
+		ids = append(ids, hexHash)
+
+		err = handler(hexHash, chunk)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return ids, nil
 }

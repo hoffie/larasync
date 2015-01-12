@@ -35,7 +35,6 @@ func (d *Dispatcher) registerAction() int {
 
 	client := api.NewClient(netloc, repoName)
 	client.SetAdminSecret(adminSecret)
-	fmt.Printf("register: using adminSecret=%s\n", adminSecret)
 	err = client.Register(pubKey)
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: unable to register (%s)\n", err)

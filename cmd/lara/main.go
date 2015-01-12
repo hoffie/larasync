@@ -48,6 +48,8 @@ func (d *Dispatcher) run(args []string) int {
 		cmd = d.helpAction
 	case "init":
 		cmd = d.initAction
+	case "register":
+		cmd = d.registerAction
 	case "server":
 		cmd = d.serverAction
 	}
@@ -73,26 +75,6 @@ func (d *Dispatcher) helpAction() int {
 	fmt.Fprint(d.stderr, "\tinit     initialize a new repository\n")
 	fmt.Fprint(d.stderr, "\tserver   run in server mode\n")
 	return 0
-}
-
-// serverAction starts the server process.
-func (d *Dispatcher) serverAction() int {
-	d.setupLogging()
-	cfg, err := getServerConfig()
-	if err != nil {
-		log.Error("unable to parse configuration", log15.Ctx{"error": err})
-		return 1
-	}
-	rm, err := repository.NewManager(cfg.Repository.BasePath)
-	if err != nil {
-		log.Error("repository.Manager creation failure", log15.Ctx{"error": err})
-		return 1
-	}
-	s := api.New(*cfg.Signatures.AdminPubkeyBinary,
-		cfg.Signatures.MaxAge, rm)
-	log.Info("Listening", log15.Ctx{"address": cfg.Server.Listen})
-	log.Error("Error", log15.Ctx{"code": s.ListenAndServe()})
-	return 1
 }
 
 // defaultAction is invoked for all unknown actions.

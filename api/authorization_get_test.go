@@ -3,6 +3,7 @@ package api
 import (
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	. "gopkg.in/check.v1"
 )
@@ -69,6 +70,16 @@ func (t *AuthorizationGetTests) TestGetBody(c *C) {
 	c.Assert(err, IsNil)
 
 	c.Assert(len(data) > 0, Equals, true)
+}
+
+func (t *AuthorizationGetTests) TestRemove(c *C) {
+	t.setUpWithExist(c)
+
+	t.getResponse(t.req)
+
+	repo := t.getRepository(c)
+	_, err := repo.GetAuthorizationReader(t.authPublicKey)
+	c.Assert(os.IsNotExist(err), Equals, true)
 }
 
 func (t *AuthorizationGetTests) signRequestWithAuthKey() {

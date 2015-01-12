@@ -422,6 +422,11 @@ func (r *Repository) SetAuthorization(
 	return r.authorizationManager.Set(publicKey, encKey, authorization)
 }
 
+// DeleteAuthorization removes the authorization with the given publicKey.
+func (r *Repository) DeleteAuthorization(publicKey [PublicKeySize]byte) error {
+	return r.authorizationManager.Delete(publicKey)
+}
+
 // GetObjectData returns the data stored for the given objectID in this
 // repository.
 func (r *Repository) GetObjectData(objectID string) (io.ReadCloser, error) {

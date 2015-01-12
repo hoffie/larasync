@@ -40,14 +40,16 @@ func (c *concatenator) URL() {
 	c.w.Write([]byte(url.String()))
 }
 
+// ignoreHeaders is a list of all headers which are not part of the
+// resulting output.
 var ignoreHeaders = map[string]bool{
 	"Authorization":   true,
 	"User-Agent":      true,
 	"Accept-Encoding": true,
 	// Content-Length doesn't matter as the content is signed
 	"Content-Length": true,
-	// Host header does not need to be signed as the parsed host header
-	// is part of the signature (see URL())
+	// Host header does not need to be included as the parsed host header
+	// is included as part of the URL (see URL())
 	"Host": true,
 }
 

@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"time"
@@ -205,4 +206,10 @@ func attachCurrentTransactionHeader(r *repository.Repository, rw http.ResponseWr
 // ListenAndServe starts serving requests on the default port.
 func (s *Server) ListenAndServe() error {
 	return s.http.ListenAndServe()
+}
+
+// Serve proxies net/http.Server.Serve; exposue of this function is required
+// for test server setup
+func (s *Server) Serve(l net.Listener) error {
+	return s.http.Serve(l)
 }

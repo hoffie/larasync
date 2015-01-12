@@ -46,6 +46,8 @@ func (d *Dispatcher) run(args []string) int {
 	switch action {
 	case "add":
 		cmd = d.addAction
+	case "admin-secret":
+		cmd = d.adminSecretAction
 	case "checkout":
 		cmd = d.checkoutAction
 	case "help":
@@ -73,12 +75,13 @@ func (d *Dispatcher) setupLogging() {
 func (d *Dispatcher) helpAction() int {
 	fmt.Fprint(d.stderr, "Syntax: lara ACTION\n\n")
 	fmt.Fprint(d.stderr, "Possible actions:\n")
-	fmt.Fprint(d.stderr, "\tadd      adds the current state of the given file or directory\n")
-	fmt.Fprint(d.stderr, "\tcheckout (over)writes the given path with the repository's state\n")
-	fmt.Fprint(d.stderr, "\thelp     this information\n")
-	fmt.Fprint(d.stderr, "\tinit     initialize a new repository\n")
-	fmt.Fprint(d.stderr, "\tregister register this repository with a server\n")
-	fmt.Fprint(d.stderr, "\tserver   run in server mode\n")
+	fmt.Fprint(d.stderr, "  add          adds the current state of the given file or directory\n")
+	fmt.Fprint(d.stderr, "  admin-secret asks for an admin secret outputs its hash\n")
+	fmt.Fprint(d.stderr, "  checkout     (over)writes the given path with the repository's state\n")
+	fmt.Fprint(d.stderr, "  help         this information\n")
+	fmt.Fprint(d.stderr, "  init         initialize a new repository\n")
+	fmt.Fprint(d.stderr, "  register     register this repository with a server\n")
+	fmt.Fprint(d.stderr, "  server       run in server mode\n")
 	return 0
 }
 

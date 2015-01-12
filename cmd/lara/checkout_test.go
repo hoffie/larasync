@@ -56,6 +56,36 @@ func (t *CheckoutTests) TestAddAndCheckout(c *C) {
 	c.Assert(content, DeepEquals, expContent)
 }
 
+// TestAddAndCheckout adds a file in a subdir, removes the subdir,
+// runs checkout on it and verifies that the file the subdir is created,
+// and the file restored properly.
+func (t *CheckoutTests) TestAddAndCheckoutSubdir(c *C) {
+	expContent := []byte("test123")
+	repoDir := filepath.Join(t.dir, "repo")
+	c.Assert(t.d.run([]string{"init", repoDir}), Equals, 0)
+
+	subdir := filepath.Join(repoDir, "subdir")
+	err := os.Mkdir(subdir, 0700)
+	c.Assert(err, IsNil)
+
+	path := filepath.Join(subdir, "foo")
+	err = ioutil.WriteFile(path, expContent, 0600)
+	c.Assert(err, IsNil)
+	c.Assert(t.d.run([]string{"add", path}), Equals, 0)
+
+	err = os.Remove(path)
+	c.Assert(err, IsNil)
+	err = os.Remove(subdir)
+	c.Assert(err, IsNil)
+	_, err = ioutil.ReadFile(path)
+	c.Assert(err, NotNil)
+
+	c.Assert(t.d.run([]string{"checkout", path}), Equals, 0)
+	content, err := ioutil.ReadFile(path)
+	c.Assert(err, IsNil)
+	c.Assert(content, DeepEquals, expContent)
+}
+
 // TestAddAndCheckoutSkipRev adds two revisions of a file, changes the content
 // back to the first revision and checks if checking out still works.
 func (t *CheckoutTests) TestAddAndCheckoutSkipRev(c *C) {

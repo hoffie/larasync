@@ -216,6 +216,12 @@ func (r *Repository) checkoutNIB(nib *NIB) error {
 
 	targetDir := filepath.Dir(absPath)
 	baseName := filepath.Base(absPath)
+
+	err = os.Mkdir(targetDir, defaultDirPerms)
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
 	tempfile, err := ioutil.TempFile(targetDir, ".lara.checkout."+baseName)
 	if err != nil {
 		return err

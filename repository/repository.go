@@ -23,8 +23,8 @@ const (
 	defaultFilePerms = 0600
 	defaultDirPerms  = 0700
 
-	// default chunk splitting size
-	defaultChunkSize = 1 * 1024 * 1024
+	// chunk splitting size
+	chunkSize = 1 * 1024 * 1024
 )
 
 // Repository represents an on-disk repository and provides methods to
@@ -542,7 +542,7 @@ func (r *Repository) getFileChunkIDs(path string) ([]string, error) {
 // splitFileToChunks takes a file path and splits its contents into chunks
 // identified by their content ids.
 func (r *Repository) splitFileToChunks(path string, handler func(string, []byte) error) ([]string, error) {
-	chunker, err := NewChunker(path, defaultChunkSize)
+	chunker, err := NewChunker(path, chunkSize)
 	if err != nil {
 		return nil, err
 	}

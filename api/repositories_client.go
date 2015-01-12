@@ -26,13 +26,17 @@ type Client struct {
 	adminSecret []byte
 }
 
+// NetlocToURL returns the URL matching the given netloc
+func NetlocToURL(netloc, repoName string) string {
+	// IMPROVEMENT: use mux router to generate URLs
+	return "http://" + netloc + "/repositories/" + repoName
+}
+
 // NewClient returns a new Client instance.
-func NewClient(netloc, repoName string) *Client {
+func NewClient(url string) *Client {
 	return &Client{
-		http: &http.Client{},
-		// IMPROVEMENT: use mux router to generate URLs
-		netloc:  netloc,
-		BaseURL: "http://" + netloc + "/repositories/" + repoName,
+		http:    &http.Client{},
+		BaseURL: url,
 	}
 }
 
@@ -57,7 +61,6 @@ func (c *Client) registerRequest(pubKey [PublicKeySize]byte) (*http.Request, err
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Host", c.netloc)
 	SignWithPassphrase(req, c.adminSecret)
 	return req, nil
 }

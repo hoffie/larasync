@@ -33,7 +33,8 @@ func (d *Dispatcher) registerAction() int {
 		return 1
 	}
 
-	client := api.NewClient(netloc, repoName)
+	url := api.NetlocToURL(netloc, repoName)
+	client := api.NewClient(url)
 	client.SetAdminSecret(adminSecret)
 	err = client.Register(pubKey)
 	if err != nil {
@@ -45,7 +46,7 @@ func (d *Dispatcher) registerAction() int {
 		fmt.Fprintf(d.stderr, "Error: unable to load repo state (%s)", err)
 		return 1
 	}
-	sc.DefaultServer = client.BaseURL
+	sc.DefaultServer = url
 	err = sc.Save()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: unable to save repo state (%s)", err)

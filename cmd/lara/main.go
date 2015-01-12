@@ -54,6 +54,8 @@ func (d *Dispatcher) run(args []string) int {
 		cmd = d.helpAction
 	case "init":
 		cmd = d.initAction
+	case "push":
+		cmd = d.pushAction
 	case "register":
 		cmd = d.registerAction
 	case "server":
@@ -80,6 +82,7 @@ func (d *Dispatcher) helpAction() int {
 	fmt.Fprint(d.stderr, "  checkout     (over)writes the given path with the repository's state\n")
 	fmt.Fprint(d.stderr, "  help         this information\n")
 	fmt.Fprint(d.stderr, "  init         initialize a new repository\n")
+	fmt.Fprint(d.stderr, "  push         uploads the current state to the server\n")
 	fmt.Fprint(d.stderr, "  register     register this repository with a server\n")
 	fmt.Fprint(d.stderr, "  server       run in server mode\n")
 	return 0

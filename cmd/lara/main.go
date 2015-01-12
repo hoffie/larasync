@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/inconshreveable/log15"
+	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/hoffie/larasync/api"
 	"github.com/hoffie/larasync/repository"
@@ -76,6 +77,7 @@ func (d *Dispatcher) helpAction() int {
 	fmt.Fprint(d.stderr, "\tcheckout (over)writes the given path with the repository's state\n")
 	fmt.Fprint(d.stderr, "\thelp     this information\n")
 	fmt.Fprint(d.stderr, "\tinit     initialize a new repository\n")
+	fmt.Fprint(d.stderr, "\tregister register this repository with a server\n")
 	fmt.Fprint(d.stderr, "\tserver   run in server mode\n")
 	return 0
 }
@@ -126,6 +128,29 @@ func (d *Dispatcher) getRootFromWd() (string, error) {
 // on the input stream.
 func (d *Dispatcher) prompt(prompt string) ([]byte, error) {
 	d.stdout.Write([]byte(prompt))
+	switch d.stdin.(type) {
+	case *os.File:
+		return d.promptGetpass()
+	}
+	return d.promptUnsafe()
+}
+
+// promptGetpass reads a password from our input,
+// attempting to hide the input if possible.
+func (d *Dispatcher) promptGetpass() ([]byte, error) {
+	file := d.stdin.(*os.File)
+	fd := int(file.Fd())
+	if !terminal.IsTerminal(fd) {
+		return d.promptUnsafe()
+	}
+	defer d.stdout.Write([]byte("\n"))
+	return terminal.ReadPassword(fd)
+}
+
+// promptUnsafe reads a password from our input in the standard way.
+// It cannot hide the input; it's our fallback if no terminal
+// is attached to the input stream.
+func (d *Dispatcher) promptUnsafe() ([]byte, error) {
 	r := bufio.NewReader(d.stdin)
 	line, err := r.ReadBytes('\n')
 	if err != nil {

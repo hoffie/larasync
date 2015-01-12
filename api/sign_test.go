@@ -41,6 +41,18 @@ func (t *SignTests) TestAdminSigningIgnoreUserAgent(c *C) {
 	c.Assert(t.adminSigned(), Equals, true)
 }
 
+// TestSigningAvoidHeaderMixup verifies that different parts
+// of the request may not be confused with other parts by the
+// signature algorithm.
+func (t *SignTests) TestSigningAvoidHeaderMixup(c *C) {
+	t.req.Header.Set("Header", "value")
+	SignWithPassphrase(t.req, adminSecret)
+	c.Assert(t.adminSigned(), Equals, true)
+	t.req.Header.Del("Header")
+	t.req.Header.Set("Headerval", "ue")
+	c.Assert(t.adminSigned(), Equals, false)
+}
+
 func (t *SignTests) TestAdminSigningIgnoreHost(c *C) {
 	// we ignore the Host header as it breaks signing due to
 	// differences in client-side and server-side requests;

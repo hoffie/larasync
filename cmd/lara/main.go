@@ -48,6 +48,8 @@ func (d *Dispatcher) run(args []string) int {
 		cmd = d.helpAction
 	case "init":
 		cmd = d.initAction
+	case "register":
+		cmd = d.registerAction
 	case "server":
 		cmd = d.serverAction
 	}

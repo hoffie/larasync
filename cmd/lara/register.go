@@ -43,15 +43,15 @@ func (d *Dispatcher) registerAction() int {
 	}
 	sc, err := r.StateConfig()
 	if err != nil {
-		fmt.Fprintf(d.stderr, "Error: unable to load repo state (%s)", err)
+		fmt.Fprintf(d.stderr, "Error: unable to load repo state (%s)\n", err)
 		return 1
 	}
 	sc.DefaultServer = url
 	err = sc.Save()
 	if err != nil {
-		fmt.Fprintf(d.stderr, "Error: unable to save repo state (%s)", err)
+		fmt.Fprintf(d.stderr, "Error: unable to save repo state (%s)\n", err)
 		return 1
 	}
-	fmt.Fprintf(d.stdout, "Successfully registered")
+	fmt.Fprintf(d.stdout, "Successfully registered\n")
 	return 0
 }

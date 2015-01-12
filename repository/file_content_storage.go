@@ -1,10 +1,12 @@
 package repository
 
 import (
+	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
+
+	"github.com/hoffie/larasync/helpers/atomic"
 )
 
 // FileContentStorage is the basic implementation of the ContentStorage
@@ -36,6 +38,13 @@ func (f *FileContentStorage) storagePathFor(contentID string) string {
 	return path.Join(f.StoragePath, contentID)
 }
 
+// tempStoragePathFor returns the storage path which should be used to buffer
+// data before it should be finalized.
+func (f *FileContentStorage) tempStoragePathFor(contentID string) string {
+	storagePath := f.storagePathFor(contentID)
+	return fmt.Sprintf("%s.tmp", storagePath)
+}
+
 // Get returns the file handle for the given contentID.
 // If there is no data stored for the Id it should return a
 // os.ErrNotExists error.
@@ -49,12 +58,16 @@ func (f *FileContentStorage) Get(contentID string) (io.ReadCloser, error) {
 // Set sets the data of the given contentID in the blob storage.
 func (f *FileContentStorage) Set(contentID string, reader io.Reader) error {
 	blobStoragePath := f.storagePathFor(contentID)
-	data, err := ioutil.ReadAll(reader)
+
+	writer, err := atomic.NewStandardWriter(blobStoragePath, defaultFilePerms)
+
+	_, err = io.Copy(writer, reader)
 	if err != nil {
+		writer.Close()
 		return err
 	}
 
-	err = ioutil.WriteFile(blobStoragePath, data, defaultFilePerms)
+	err = writer.Close()
 	if err != nil {
 		return err
 	}

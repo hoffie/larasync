@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/hoffie/larasync/helpers/atomic"
 	"github.com/hoffie/larasync/helpers/crypto"
 )
 
@@ -215,35 +216,21 @@ func (r *Repository) checkoutNIB(nib *NIB) error {
 	absPath := filepath.Join(r.Path, relPath)
 
 	targetDir := filepath.Dir(absPath)
-	baseName := filepath.Base(absPath)
 
 	err = os.Mkdir(targetDir, defaultDirPerms)
 	if err != nil && !os.IsExist(err) {
 		return err
 	}
 
-	tempfile, err := ioutil.TempFile(targetDir, ".lara.checkout."+baseName)
+	writer, err := atomic.NewWriter(absPath, ".lara.checkout.", defaultFilePerms)
 	if err != nil {
-		return err
-	}
-	defer tempfile.Close()
-
-	removeTempfile := true
-	defer func() {
-		if !removeTempfile {
-			return
-		}
-		_ = os.Remove(tempfile.Name())
-	}()
-
-	err = tempfile.Chmod(0600)
-	if err != nil {
+		writer.Close()
 		return err
 	}
 
 	for _, contentID := range rev.ContentIDs {
 		content, err := r.readEncryptedObject(contentID)
-		_, err = tempfile.Write(content)
+		_, err = writer.Write(content)
 		if err != nil {
 			return err
 		}
@@ -257,14 +244,10 @@ func (r *Repository) checkoutNIB(nib *NIB) error {
 		return errors.New("workdir conflict")
 	}
 
-	// now we know it's fine to (over)write the file;
-	// sadly, there is a TOCTU race here, which seems kind of unavoidable
-	// (our check is already done, yet the actual rename operation happens just now)
-	err = os.Rename(tempfile.Name(), absPath)
+	err = writer.Close()
 	if err != nil {
 		return err
 	}
-	removeTempfile = false
 	return nil
 }
 

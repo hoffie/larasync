@@ -18,6 +18,7 @@ const (
 	nibsDirName           = "nibs"
 	transactionsDirName   = "transactions"
 	authorizationsDirName = "authorizations"
+	stateConfigFileName   = "state.json"
 
 	// default permissions
 	defaultFilePerms = 0600
@@ -36,6 +37,7 @@ type Repository struct {
 	nibStore             *NIBStore
 	transactionManager   *TransactionManager
 	authorizationManager *AuthorizationManager
+	stateConfig          *StateConfig
 	managementDirPath    string
 }
 
@@ -594,4 +596,19 @@ func (r *Repository) CreateKeys() error {
 	}
 
 	return nil
+}
+
+// StateConfig returns this repository's state config; it is currently used
+// in client repositories only and stores things like the default server.
+func (r *Repository) StateConfig() (*StateConfig, error) {
+	if r.stateConfig != nil {
+		return r.stateConfig, nil
+	}
+	path := repositorySubPathFor(r, stateConfigFileName)
+	r.stateConfig = &StateConfig{Path: path}
+	err := r.stateConfig.Load()
+	if err != nil && !os.IsNotExist(err) {
+		return nil, err
+	}
+	return r.stateConfig, nil
 }

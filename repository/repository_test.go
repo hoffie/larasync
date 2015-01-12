@@ -130,6 +130,24 @@ func (t *RepositoryTests) TestGetFileChunkIDs(c *C) {
 	c.Assert(ids2, DeepEquals, ids)
 }
 
+func (t *RepositoryTests) TestStateConfig(c *C) {
+	exp := "example.org:14124"
+
+	r := New(t.dir)
+	err := r.CreateManagementDir()
+	c.Assert(err, IsNil)
+
+	sc, err := r.StateConfig()
+	c.Assert(err, IsNil)
+	sc.DefaultServer = exp
+	sc.Save()
+
+	r2 := New(t.dir)
+	sc2, err := r2.StateConfig()
+	c.Assert(err, IsNil)
+	c.Assert(sc2.DefaultServer, Equals, exp)
+}
+
 func numFilesInDir(path string) (int, error) {
 	entries, err := ioutil.ReadDir(path)
 	if err != nil {

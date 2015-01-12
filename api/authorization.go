@@ -33,7 +33,10 @@ func (s *Server) authorizationGet(rw http.ResponseWriter, req *http.Request) {
 
 	var readerErr error
 	var reader io.ReadCloser
+
 	if err == nil {
+		// FIXME: This is a possible timing attack which exposes if the repository
+		// does exist or not. At the moment there is no fix for this.
 		reader, readerErr = repository.GetAuthorizationReader(publicKey)
 	}
 

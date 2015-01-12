@@ -47,6 +47,8 @@ func (s *Server) authorizationGet(rw http.ResponseWriter, req *http.Request) {
 
 	io.Copy(rw, reader)
 	_ = reader.Close()
+
+	repository.DeleteAuthorization(publicKey)
 }
 
 // authorizationPut adds a new authorization object to the repository.

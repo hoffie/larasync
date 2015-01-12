@@ -21,7 +21,7 @@ var (
 // over HTTP.
 type Client struct {
 	http        *http.Client
-	baseURL     string
+	BaseURL     string
 	netloc      string
 	adminSecret []byte
 }
@@ -32,7 +32,7 @@ func NewClient(netloc, repoName string) *Client {
 		http: &http.Client{},
 		// IMPROVEMENT: use mux router to generate URLs
 		netloc:  netloc,
-		baseURL: "http://" + netloc + "/repositories/" + repoName,
+		BaseURL: "http://" + netloc + "/repositories/" + repoName,
 	}
 }
 
@@ -52,7 +52,7 @@ func (c *Client) registerRequest(pubKey [PublicKeySize]byte) (*http.Request, err
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest("PUT", c.baseURL, bytes.NewReader(body))
+	req, err := http.NewRequest("PUT", c.BaseURL, bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}

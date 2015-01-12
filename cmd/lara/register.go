@@ -40,6 +40,17 @@ func (d *Dispatcher) registerAction() int {
 		fmt.Fprintf(d.stderr, "Error: unable to register (%s)\n", err)
 		return 1
 	}
+	sc, err := r.StateConfig()
+	if err != nil {
+		fmt.Fprintf(d.stderr, "Error: unable to load repo state (%s)", err)
+		return 1
+	}
+	sc.DefaultServer = client.BaseURL
+	err = sc.Save()
+	if err != nil {
+		fmt.Fprintf(d.stderr, "Error: unable to save repo state (%s)", err)
+		return 1
+	}
 	fmt.Fprintf(d.stdout, "Successfully registered")
 	return 0
 }

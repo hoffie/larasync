@@ -11,7 +11,8 @@ import (
 func (d *Dispatcher) registerAction() int {
 	if len(d.flags.Args()) != 2 {
 		fmt.Fprint(d.stderr,
-			"Error: please specify the remote host and a name\n")
+			"Error: please specify the remote host and a name\n"+
+				"\te.g. lara register example.org:14124 foo\n")
 		return 1
 	}
 	root, err := d.getRootFromWd()

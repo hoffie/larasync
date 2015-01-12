@@ -76,6 +76,7 @@ func (d *Dispatcher) helpAction() int {
 	fmt.Fprint(d.stderr, "\tcheckout (over)writes the given path with the repository's state\n")
 	fmt.Fprint(d.stderr, "\thelp     this information\n")
 	fmt.Fprint(d.stderr, "\tinit     initialize a new repository\n")
+	fmt.Fprint(d.stderr, "\tregister register this repository with a server\n")
 	fmt.Fprint(d.stderr, "\tserver   run in server mode\n")
 	return 0
 }

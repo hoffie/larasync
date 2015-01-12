@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
 	"time"
@@ -32,6 +33,30 @@ func (t *SignTests) TestAuthorizationHeader(c *C) {
 }
 
 func (t *SignTests) TestAdminSigningCorrectSignature(c *C) {
+	c.Assert(t.adminSigned(), Equals, true)
+}
+
+func (t *SignTests) TestAdminSigningIgnoreUserAgent(c *C) {
+	t.req.Header.Set("User-Agent", "foo")
+	c.Assert(t.adminSigned(), Equals, true)
+}
+
+func (t *SignTests) TestAdminSigningIgnoreHost(c *C) {
+	// we ignore the Host header as it breaks signing due to
+	// differences in client-side and server-side requests;
+	// the actual host name is still signed as part of the URL
+	t.req.Header.Set("Host", "foo")
+	c.Assert(t.adminSigned(), Equals, true)
+}
+
+func (t *SignTests) TestAdminSigningIgnoreAcceptEncoding(c *C) {
+	t.req.Header.Set("Accept-Encoding", "foo")
+	c.Assert(t.adminSigned(), Equals, true)
+}
+
+func (t *SignTests) TestAdminSigningNormalizeURL(c *C) {
+	t.req.URL.Host = ""
+	t.req.Host = "example.org"
 	c.Assert(t.adminSigned(), Equals, true)
 }
 
@@ -111,4 +136,41 @@ func (t *SignTests) TestAdminSigningBodyTextRead(c *C) {
 func (t *SignTests) TestYoungerThanBadHeader(c *C) {
 	t.req.Header.Set("Date", "123")
 	c.Assert(youngerThan(t.req, time.Minute), Equals, false)
+}
+
+// TestRealRoundTrip uses the full Go http client/server stack to execute
+// a real HTTP roundtrip.
+// This ensures that this process does not mangle the request in a way
+// which would break signatures.
+func (t *SignTests) TestRealRoundTrip(c *C) {
+	// passing port :0 to Listen lets it choose a random port
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	c.Assert(err, IsNil)
+	defer listener.Close()
+	hostAndPort := listener.Addr().String()
+
+	adminSecret := []byte("test")
+	pubKey, err := GetAdminSecretPubkey(adminSecret)
+	c.Assert(err, IsNil)
+
+	server := &http.Server{
+		Handler: http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			if !ValidateRequest(req, pubKey, 5*time.Second) {
+				rw.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			rw.Header().Set("X-Lara-Validated", "1")
+		}),
+	}
+	go server.Serve(listener)
+
+	body := bytes.NewReader([]byte("test"))
+	req, err := http.NewRequest("GET", "http://"+hostAndPort+"/foo.txt?x=1", body)
+	c.Assert(err, IsNil)
+	SignWithPassphrase(req, adminSecret)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	c.Assert(err, IsNil)
+	c.Assert(resp.StatusCode, Equals, 200)
+	c.Assert(resp.Header.Get("X-Lara-Validated"), Equals, "1")
 }

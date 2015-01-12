@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"sort"
 )
 
@@ -20,15 +21,34 @@ func concatenateTo(req *http.Request, w io.Writer) {
 		req: req,
 		w:   w,
 	}
-	c.Basics()
+	c.w.Write([]byte(c.req.Method))
+	c.URL()
 	c.Headers()
 	c.Body()
 }
 
-// Basics concatenates method and URL.
-func (c *concatenator) Basics() {
-	c.w.Write([]byte(c.req.Method))
-	c.w.Write([]byte(c.req.URL.String()))
+// URL (re)constructs the URL and appends it
+func (c *concatenator) URL() {
+	var url url.URL
+	url = *c.req.URL
+	// we do not know the scheme for all cases, so ignore it:
+	url.Scheme = ""
+	if url.Host == "" {
+		url.Host = c.req.Host
+	}
+
+	c.w.Write([]byte(url.String()))
+}
+
+var ignoreHeaders = map[string]bool{
+	"Authorization":   true,
+	"User-Agent":      true,
+	"Accept-Encoding": true,
+	// Content-Length doesn't matter as the content is signed
+	"Content-Length": true,
+	// Host header does not need to be signed as the parsed host header
+	// is part of the signature (see URL())
+	"Host": true,
 }
 
 // Headers concatenate the headers.
@@ -41,7 +61,8 @@ func (c *concatenator) Headers() {
 	}
 	sort.Strings(headers)
 	for _, header := range headers {
-		if header == "Authorization" {
+		_, isIgnored := ignoreHeaders[header]
+		if isIgnored {
 			continue
 		}
 		c.w.Write([]byte(header))

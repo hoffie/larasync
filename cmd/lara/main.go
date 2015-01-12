@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"flag"
 	"fmt"
@@ -18,13 +19,15 @@ var log = log15.New("module", "main")
 
 // main is our service dispatcher.
 func main() {
-	d := &Dispatcher{stderr: os.Stderr}
+	d := &Dispatcher{stdin: os.Stdin, stdout: os.Stdout, stderr: os.Stderr}
 	os.Exit(d.run(os.Args[1:]))
 }
 
 // Dispatcher is the environment for our command dispatcher and keeps
 // references to the relevant external interfaces.
 type Dispatcher struct {
+	stdin  io.Reader
+	stdout io.Writer
 	stderr io.Writer
 	flags  *flag.FlagSet
 }
@@ -100,4 +103,33 @@ func (d *Dispatcher) parseFirstPathArg() (string, string, error) {
 		return "", "", errors.New("unable to find the repository root")
 	}
 	return absPath, root, nil
+}
+
+// getRootFromWd tries to find a repository root starting in the current
+// working directory.
+// Errors out, if none can be found.
+func (d *Dispatcher) getRootFromWd() (string, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(d.stderr, "Error: unable to get current working directory")
+		return "", errors.New("unable to get cwd")
+	}
+	root, err := repository.GetRoot(wd)
+	if err != nil {
+		fmt.Fprintf(d.stderr, "Error: unable to find a repository here")
+		return "", errors.New("unable to find a repository here")
+	}
+	return root, nil
+}
+
+// prompt outputs the given prompt text and waits for a value to be entered
+// on the input stream.
+func (d *Dispatcher) prompt(prompt string) ([]byte, error) {
+	d.stdout.Write([]byte(prompt))
+	r := bufio.NewReader(d.stdin)
+	line, err := r.ReadBytes('\n')
+	if err != nil {
+		return nil, err
+	}
+	return line[:len(line)-1], nil
 }

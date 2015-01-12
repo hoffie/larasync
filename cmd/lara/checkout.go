@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/hoffie/larasync/repository"
 )
@@ -40,17 +39,10 @@ func (d *Dispatcher) checkoutPathAction() int {
 
 // checkoutAllPathsAction handles "lara checkout" without any arguments.
 func (d *Dispatcher) checkoutAllPathsAction() int {
-	wd, err := os.Getwd()
+	root, err := d.getRootFromWd()
 	if err != nil {
-		fmt.Fprintf(d.stderr, "Error: unable to get current working directory")
 		return 1
 	}
-	root, err := repository.GetRoot(wd)
-	if err != nil {
-		fmt.Fprintf(d.stderr, "Error: unable to find a repository here")
-		return 1
-	}
-
 	r := repository.New(root)
 	err = r.CheckoutAllPaths()
 	if err != nil {

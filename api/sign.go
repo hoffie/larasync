@@ -106,6 +106,9 @@ func youngerThan(req *http.Request, maxAge time.Duration) bool {
 func getSignature(req *http.Request, key [PrivateKeySize]byte) []byte {
 	mac := sha512.New()
 	concatenateTo(req, mac)
+	buf := &bytes.Buffer{}
+	concatenateTo(req, buf)
+	fmt.Println(buf.String())
 	hash := mac.Sum(nil)
 	sig := ed25519.Sign(&key, hash)
 	slSig := make([]byte, len(sig))
@@ -118,6 +121,9 @@ func getSignature(req *http.Request, key [PrivateKeySize]byte) []byte {
 func verifySig(req *http.Request, pubkey [PublicKeySize]byte, sig [SignatureSize]byte) bool {
 	mac := sha512.New()
 	concatenateTo(req, mac)
+	buf := &bytes.Buffer{}
+	concatenateTo(req, buf)
+	fmt.Println(buf.String())
 	hash := mac.Sum(nil)
 	return ed25519.Verify(&pubkey, hash, &sig)
 }

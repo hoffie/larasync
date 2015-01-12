@@ -9,6 +9,10 @@ import (
 	"sort"
 )
 
+// concatenatorDelimiter is the character which is put between different
+// parts of the request so that these parts cannot be mixed up.
+const concatenatorDelimiter = byte(0)
+
 type concatenator struct {
 	req *http.Request
 	w   io.Writer
@@ -21,9 +25,11 @@ func concatenateTo(req *http.Request, w io.Writer) {
 		req: req,
 		w:   w,
 	}
-	c.w.Write([]byte(c.req.Method))
+	c.writeDelimitedString(c.req.Method)
 	c.URL()
 	c.Headers()
+	// Body() must be last, as it does not use the length-limited bincontainer;
+	// instead, it writes its data verbatim
 	c.Body()
 }
 
@@ -37,14 +43,17 @@ func (c *concatenator) URL() {
 		url.Host = c.req.Host
 	}
 
-	c.w.Write([]byte(url.String()))
+	c.writeDelimitedString(url.String())
 }
 
 // ignoreHeaders is a list of all headers which are not part of the
 // resulting output.
 var ignoreHeaders = map[string]bool{
-	"Authorization":   true,
-	"User-Agent":      true,
+	// Authorization is our header; we can't sign our own signature
+	"Authorization": true,
+	// User-Agent is allowed to vary
+	"User-Agent": true,
+	// Accept-Encoding will also be mangled by the client
 	"Accept-Encoding": true,
 	// Content-Length doesn't matter as the content is signed
 	"Content-Length": true,
@@ -67,19 +76,44 @@ func (c *concatenator) Headers() {
 		if isIgnored {
 			continue
 		}
-		c.w.Write([]byte(header))
+		c.writeDelimitedString(header)
 		for _, value := range c.req.Header[header] {
-			c.w.Write([]byte(value))
+			c.writeDelimitedString(value)
 		}
 	}
 }
 
 // Body concatenates the body.
-func (c *concatenator) Body() {
+func (c *concatenator) Body() error {
 	if c.req.Body == nil {
-		return
+		return nil
 	}
 	bodyCopy := &bytes.Buffer{}
-	io.Copy(io.MultiWriter(bodyCopy, c.w), c.req.Body)
+	// we write directly to the writer here and do not use
+	// bincontainer.Encoder; the reason for this is that doing
+	// that would require buffering all the body content to
+	// calculate its length beforehand.
+	// for this to be safe, no other data may be written afterwards.
+	_, err := io.Copy(io.MultiWriter(bodyCopy, c.w), c.req.Body)
+	if err != nil {
+		return err
+	}
 	c.req.Body = ioutil.NopCloser(bodyCopy)
+	return c.writeDelimiter()
+}
+
+// writeDelimitedString writes the given string to the writer and
+// appends the delimiter.
+func (c *concatenator) writeDelimitedString(s string) error {
+	_, err := c.w.Write([]byte(s))
+	if err != nil {
+		return err
+	}
+	return c.writeDelimiter()
+}
+
+// writeDelimiter outputs the delimiter to the writer.
+func (c *concatenator) writeDelimiter() error {
+	_, err := c.w.Write([]byte{concatenatorDelimiter})
+	return err
 }

@@ -42,36 +42,34 @@ type Repository struct {
 	managementDirPath    string
 }
 
-// repositorySubPathFor returns a subpath of the given entry and
-// returns the full path.
-func repositorySubPathFor(r *Repository, name string) string {
-	return filepath.Join(r.GetManagementDir(), name)
-}
-
 // New returns a new repository instance with the given base path
 func New(path string) *Repository {
 	r := &Repository{Path: path}
-	subPath := repositorySubPathFor
 	r.setupPaths()
 
-	r.objectStorage = newFileContentStorage(subPath(r, objectsDirName))
+	r.objectStorage = newFileContentStorage(r.subPathFor(objectsDirName))
 
 	r.transactionManager = newTransactionManager(
-		newFileContentStorage(subPath(r, transactionsDirName)),
+		newFileContentStorage(r.subPathFor(transactionsDirName)),
 		r.GetManagementDir(),
 	)
 	r.authorizationManager = newAuthorizationManager(
-		newFileContentStorage(subPath(r, authorizationsDirName)),
+		newFileContentStorage(r.subPathFor(authorizationsDirName)),
 	)
 
 	r.keys = NewKeyStore(r.managementDirPath)
 	r.nibStore = newNIBStore(
-		newFileContentStorage(subPath(r, nibsDirName)),
+		newFileContentStorage(r.subPathFor(nibsDirName)),
 		r.keys,
 		r.transactionManager,
 	)
 
 	return r
+}
+
+// subPathFor returns the full path for the given entry.
+func (r *Repository) subPathFor(name string) string {
+	return filepath.Join(r.GetManagementDir(), name)
 }
 
 // setupPaths initializes several attributes referring to internal repository paths
@@ -89,12 +87,11 @@ func (r *Repository) CreateManagementDir() error {
 		return err
 	}
 
-	path := repositorySubPathFor
 	storages := []*FileContentStorage{
-		newFileContentStorage(path(r, authorizationsDirName)),
-		newFileContentStorage(path(r, nibsDirName)),
-		newFileContentStorage(path(r, transactionsDirName)),
-		newFileContentStorage(path(r, objectsDirName)),
+		newFileContentStorage(r.subPathFor(authorizationsDirName)),
+		newFileContentStorage(r.subPathFor(nibsDirName)),
+		newFileContentStorage(r.subPathFor(transactionsDirName)),
+		newFileContentStorage(r.subPathFor(objectsDirName)),
 	}
 
 	for _, fileStorage := range storages {
@@ -587,7 +584,7 @@ func (r *Repository) StateConfig() (*StateConfig, error) {
 	if r.stateConfig != nil {
 		return r.stateConfig, nil
 	}
-	path := repositorySubPathFor(r, stateConfigFileName)
+	path := r.subPathFor(stateConfigFileName)
 	r.stateConfig = &StateConfig{Path: path}
 	err := r.stateConfig.Load()
 	if err != nil && !os.IsNotExist(err) {

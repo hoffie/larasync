@@ -106,6 +106,7 @@ func (am *AuthorizationManager) Get(
 	if err != nil {
 		return nil, err
 	}
+	defer reader.Close()
 
 	enc, err := ioutil.ReadAll(reader)
 	if err != nil {

@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -150,11 +151,19 @@ func (t *SignTests) TestYoungerThanBadHeader(c *C) {
 	c.Assert(youngerThan(t.req, time.Minute), Equals, false)
 }
 
+func (t *SignTests) TestRealRoundTripWithBody(c *C) {
+	t.runRealRoundTrip(c, bytes.NewBufferString("test"))
+}
+
+func (t *SignTests) TestRealRoundTripWithEmptyBody(c *C) {
+	t.runRealRoundTrip(c, nil)
+}
+
 // TestRealRoundTrip uses the full Go http client/server stack to execute
 // a real HTTP roundtrip.
 // This ensures that this process does not mangle the request in a way
 // which would break signatures.
-func (t *SignTests) TestRealRoundTrip(c *C) {
+func (t *SignTests) runRealRoundTrip(c *C, body io.Reader) {
 	// passing port :0 to Listen lets it choose a random port
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	c.Assert(err, IsNil)
@@ -176,8 +185,8 @@ func (t *SignTests) TestRealRoundTrip(c *C) {
 	}
 	go server.Serve(listener)
 
-	body := bytes.NewReader([]byte("test"))
-	req, err := http.NewRequest("GET", "http://"+hostAndPort+"/foo.txt?x=1", body)
+	req, err := http.NewRequest("GET", "http://"+hostAndPort+"/foo.txt?x=1",
+		body)
 	c.Assert(err, IsNil)
 	SignWithPassphrase(req, adminSecret)
 	client := &http.Client{}

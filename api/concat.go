@@ -86,7 +86,7 @@ func (c *concatenator) Headers() {
 // Body concatenates the body.
 func (c *concatenator) Body() error {
 	if c.req.Body == nil {
-		return nil
+		return c.writeDelimiter()
 	}
 	bodyCopy := &bytes.Buffer{}
 	// we write directly to the writer here and do not use

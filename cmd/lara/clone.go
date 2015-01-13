@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"path"
 
 	"github.com/hoffie/larasync/api"
 	"github.com/hoffie/larasync/helpers/crypto"
@@ -42,7 +43,7 @@ func (d *Dispatcher) cloneAction() int {
 		fmt.Fprintf(d.stderr, "unable to load state config (%s)\n", err)
 		return 1
 	}
-	sc.DefaultServer = u.Host
+	sc.DefaultServer = "http://" + u.Host + path.Dir(path.Dir(u.Path))
 	err = sc.Save()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "unable to save state config (%s)\n", err)
@@ -104,5 +105,5 @@ func (d *Dispatcher) cloneAction() int {
 		return 1
 	}
 
-	return 0
+	return d.checkoutAllPathsAction()
 }

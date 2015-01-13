@@ -89,6 +89,7 @@ func (d *Dispatcher) helpAction() int {
 	fmt.Fprintln(d.stderr, "  admin-secret          asks for an admin secret outputs its hash")
 	fmt.Fprintln(d.stderr, "  authorize-new-client  initializes a new authorization variable for a new client.")
 	fmt.Fprintln(d.stderr, "  checkout              (over)writes the given path with the repository's state")
+	fmt.Fprintln(d.stderr, "  clone                 downloads an already initialized repository")
 	fmt.Fprintln(d.stderr, "  help                  this information")
 	fmt.Fprintln(d.stderr, "  init                  initialize a new repository")
 	fmt.Fprintln(d.stderr, "  pull                  downlodas the current state from the server\n")

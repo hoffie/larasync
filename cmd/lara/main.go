@@ -52,6 +52,8 @@ func (d *Dispatcher) run(args []string) int {
 		cmd = d.authorizeNewClient
 	case "checkout":
 		cmd = d.checkoutAction
+	case "clone":
+		cmd = d.cloneAction
 	case "help":
 		cmd = d.helpAction
 	case "init":

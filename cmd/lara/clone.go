@@ -9,6 +9,7 @@ import (
 
 	"github.com/hoffie/larasync/helpers/crypto"
 	"github.com/hoffie/larasync/repository"
+	"github.com/hoffie/larasync/api"
 )
 
 // syncAction implements the "lara clone" command.
@@ -30,17 +31,25 @@ func (d *Dispatcher) cloneAction() int {
 	}
 
 	urlString := args[1]
-	client, err := clientFor(repo)
-	if err != nil {
-		fmt.Fprintf(d.stderr, "Internal error. (%s)\n", err)
-		return 1
-	}
-
 	u, err := url.Parse(urlString)
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: Could not parse url. (%s)\n", err)
 		return 1
 	}
+
+	sc, err := repo.StateConfig()
+	if err != nil {
+		fmt.Fprintf(d.stderr, "unable to load state config (%s)\n", err)
+		return 1
+	}
+	sc.DefaultServer = u.Host
+	err = sc.Save()
+	if err != nil {
+		fmt.Fprintf(d.stderr, "unable to save state config (%s)\n", err)
+		return 1
+	}
+
+	client := api.NewClient(sc.DefaultServer)
 
 	authURL, err := parseAuthURL(u)
 	if err != nil {
@@ -79,6 +88,14 @@ func (d *Dispatcher) cloneAction() int {
 		fmt.Fprintf(d.stderr, "Error: Failed to store key data for the repository. (%s)\n", err)
 		return 1
 	}
+
+	privKey, err := repo.GetSigningPrivateKey()
+	if err != nil {
+		fmt.Fprintf(d.stderr, "unable to get signing private key (%s)\n", err)
+		return 1
+	}
+	client.SetSigningPrivateKey(privKey)
+	fmt.Println("key is", privKey)
 
 	dl := &downloader{client: client, r: repo}
 	err = dl.getAll()

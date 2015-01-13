@@ -51,7 +51,7 @@ func (t *ConfigSanitizeTests) TestMissingBasePath(c *C) {
 func (t *ConfigSanitizeTests) TestBadBasePath(c *C) {
 	sc := &ServerConfig{}
 	sc.Signatures.AdminPubkey = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	sc.Repository.BasePath = "/dev/null"
+	sc.Repository.BasePath = "/dev/null/"
 	err := sc.Sanitize()
 	c.Assert(err, Equals, ErrBadBasePath)
 }

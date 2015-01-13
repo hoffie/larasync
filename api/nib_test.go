@@ -95,8 +95,8 @@ func (t *NIBTest) signNIBBytes(c *C, nibBytes []byte) []byte {
 
 func (t *NIBTest) addNIB(c *C, nib *repository.NIB) *repository.NIB {
 	repo := t.createRepository(c)
-	err := repo.AddNIBContent(
-		nib.ID, bytes.NewBuffer(t.signNIBBytes(c, t.nibToBytes(nib))),
+	err := repo.AddNIBContent(bytes.NewBuffer(
+		t.signNIBBytes(c, t.nibToBytes(nib))),
 	)
 	c.Assert(err, IsNil)
 	return nib

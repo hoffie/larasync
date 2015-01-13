@@ -50,9 +50,9 @@ func (a *Authorization) toPb() (*odf.Authorization, error) {
 	encryptionKey := make([]byte, EncryptionKeySize)
 	hashingKey := make([]byte, HashingKeySize)
 
-	copy(signingKey[:], a.SigningKey[0:PrivateKeySize])
-	copy(encryptionKey[:], a.EncryptionKey[0:EncryptionKeySize])
-	copy(hashingKey[:], a.HashingKey[0:HashingKeySize])
+	copy(signingKey[:], a.SigningKey[:PrivateKeySize])
+	copy(encryptionKey[:], a.EncryptionKey[:EncryptionKeySize])
+	copy(hashingKey[:], a.HashingKey[:HashingKeySize])
 
 	protoAuthorization := &odf.Authorization{
 		SigningKey:    signingKey,

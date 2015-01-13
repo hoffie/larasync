@@ -23,7 +23,7 @@ func authorizationUrlFor(c *api.Client, signingPrivKey *[PrivateKeySize]byte, en
 // authorizeNewClient is the command line handler for a specific
 // repository to put a signed authorization signature to the server.
 func (d *Dispatcher) authorizeNewClient() int {
-	_, root, err := d.parseFirstPathArg()
+	root, err := d.getRootFromWd()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: %s\n", err)
 		return 1
@@ -45,6 +45,7 @@ func (d *Dispatcher) authorizeNewClient() int {
 	auth, err := r.CurrentAuthorization()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: Could not fetch current authorization from repository: %s\n", err)
+		return 1
 	}
 
 	authorizationBytes, err := r.SerializeAuthorization(encryptionKey, auth)
@@ -66,7 +67,7 @@ func (d *Dispatcher) authorizeNewClient() int {
 		return 1
 	}
 
-	fmt.Println("New authorization request completed")
-	fmt.Println(authorizationUrlFor(client, signingPrivKey, &encryptionKey))
+	fmt.Fprintln(d.stdout, "New authorization request completed")
+	fmt.Fprintln(d.stdout, authorizationUrlFor(client, signingPrivKey, &encryptionKey))
 	return 0
 }

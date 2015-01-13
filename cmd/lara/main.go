@@ -48,6 +48,8 @@ func (d *Dispatcher) run(args []string) int {
 		cmd = d.addAction
 	case "admin-secret":
 		cmd = d.adminSecretAction
+	case "authorize-new-client":
+		cmd = d.authorizeNewClient
 	case "checkout":
 		cmd = d.checkoutAction
 	case "help":
@@ -77,17 +79,18 @@ func (d *Dispatcher) setupLogging() {
 
 // helpAction outputs usage information.
 func (d *Dispatcher) helpAction() int {
-	fmt.Fprint(d.stderr, "Syntax: lara ACTION\n\n")
-	fmt.Fprint(d.stderr, "Possible actions:\n")
-	fmt.Fprint(d.stderr, "  add          adds the current state of the given file or directory\n")
-	fmt.Fprint(d.stderr, "  admin-secret asks for an admin secret outputs its hash\n")
-	fmt.Fprint(d.stderr, "  checkout     (over)writes the given path with the repository's state\n")
-	fmt.Fprint(d.stderr, "  help         this information\n")
-	fmt.Fprint(d.stderr, "  init         initialize a new repository\n")
-	fmt.Fprint(d.stderr, "  pull         downlodas the current state from the server\n")
-	fmt.Fprint(d.stderr, "  push         uploads the current state to the server\n")
-	fmt.Fprint(d.stderr, "  register     register this repository with a server\n")
-	fmt.Fprint(d.stderr, "  server       run in server mode\n")
+	fmt.Fprintln(d.stderr, "Syntax: lara ACTION\n")
+	fmt.Fprintln(d.stderr, "Possible actions:")
+	fmt.Fprintln(d.stderr, "  add                   adds the current state of the given file or directory")
+	fmt.Fprintln(d.stderr, "  admin-secret          asks for an admin secret outputs its hash")
+	fmt.Fprintln(d.stderr, "  authorize-new-client  initializes a new authorization variable for a new client.")
+	fmt.Fprintln(d.stderr, "  checkout              (over)writes the given path with the repository's state")
+	fmt.Fprintln(d.stderr, "  help                  this information")
+	fmt.Fprintln(d.stderr, "  init                  initialize a new repository")
+	fmt.Fprintln(d.stderr, "  pull                  downlodas the current state from the server\n")
+	fmt.Fprintln(d.stderr, "  push                  uploads the current state to the server")
+	fmt.Fprintln(d.stderr, "  register              register this repository with a server")
+	fmt.Fprintln(d.stderr, "  server                run in server mode")
 	return 0
 }
 

@@ -37,5 +37,5 @@ func (d *Dispatcher) syncAction() int {
 		return 1
 	}
 
-	return 0
+	return d.checkoutAllPathsAction()
 }

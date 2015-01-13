@@ -75,11 +75,11 @@ func (t *AuthorizationURLTests) TestGenerateUrl(c *C) {
 
 func (t *AuthorizationURLTests) TestNoEncKey(c *C) {
 	u, err := url.Parse(
-	fmt.Sprintf(
-		"%s#AuthSignKey=%s",
-		t.getTestRequestURLString(),
-		hex.EncodeToString(t.signKey[:]),
-	),
+		fmt.Sprintf(
+			"%s#AuthSignKey=%s",
+			t.getTestRequestURLString(),
+			hex.EncodeToString(t.signKey[:]),
+		),
 	)
 	c.Assert(err, IsNil)
 	_, err = parseAuthURL(u)
@@ -88,11 +88,11 @@ func (t *AuthorizationURLTests) TestNoEncKey(c *C) {
 
 func (t *AuthorizationURLTests) TestNoSignKey(c *C) {
 	u, err := url.Parse(
-	fmt.Sprintf(
-		"%s#AuthSignKey=%s",
-		t.getTestRequestURLString(),
-		hex.EncodeToString(t.encKey[:]),
-	),
+		fmt.Sprintf(
+			"%s#AuthSignKey=%s",
+			t.getTestRequestURLString(),
+			hex.EncodeToString(t.encKey[:]),
+		),
 	)
 	c.Assert(err, IsNil)
 	_, err = parseAuthURL(u)
@@ -102,12 +102,12 @@ func (t *AuthorizationURLTests) TestNoSignKey(c *C) {
 func (t *AuthorizationURLTests) TestToShortSignKey(c *C) {
 	signKeyString := hex.EncodeToString(t.signKey[:])
 	u, err := url.Parse(
-	fmt.Sprintf(
-		"%s#AuthEncKey=%s&AuthSignKey=%s",
-		t.getTestRequestURLString(),
-		hex.EncodeToString(t.encKey[:]),
-		signKeyString[:len(signKeyString)-2],
-	),
+		fmt.Sprintf(
+			"%s#AuthEncKey=%s&AuthSignKey=%s",
+			t.getTestRequestURLString(),
+			hex.EncodeToString(t.encKey[:]),
+			signKeyString[:len(signKeyString)-2],
+		),
 	)
 	c.Assert(err, IsNil)
 	_, err = parseAuthURL(u)
@@ -117,12 +117,12 @@ func (t *AuthorizationURLTests) TestToShortSignKey(c *C) {
 func (t *AuthorizationURLTests) TestToShortSignKeyEncodingError(c *C) {
 	signKeyString := hex.EncodeToString(t.signKey[:])
 	u, err := url.Parse(
-	fmt.Sprintf(
-		"%s#AuthEncKey=%s&AuthSignKey=%s",
-		t.getTestRequestURLString(),
-		hex.EncodeToString(t.encKey[:]),
-		signKeyString[:len(signKeyString)-1],
-	),
+		fmt.Sprintf(
+			"%s#AuthEncKey=%s&AuthSignKey=%s",
+			t.getTestRequestURLString(),
+			hex.EncodeToString(t.encKey[:]),
+			signKeyString[:len(signKeyString)-1],
+		),
 	)
 	c.Assert(err, IsNil)
 	_, err = parseAuthURL(u)
@@ -133,12 +133,12 @@ func (t *AuthorizationURLTests) TestToShortEncryptionKey(c *C) {
 	signKeyString := hex.EncodeToString(t.signKey[:])
 	encKeyString := hex.EncodeToString(t.encKey[:])
 	u, err := url.Parse(
-	fmt.Sprintf(
-		"%s#AuthEncKey=%s&AuthSignKey=%s",
-		t.getTestRequestURLString(),
-		encKeyString[:len(encKeyString)-2],
-		signKeyString,
-	),
+		fmt.Sprintf(
+			"%s#AuthEncKey=%s&AuthSignKey=%s",
+			t.getTestRequestURLString(),
+			encKeyString[:len(encKeyString)-2],
+			signKeyString,
+		),
 	)
 	c.Assert(err, IsNil)
 	_, err = parseAuthURL(u)
@@ -149,12 +149,12 @@ func (t *AuthorizationURLTests) TestToShortEncryptionKeyEncodingError(c *C) {
 	signKeyString := hex.EncodeToString(t.signKey[:])
 	encKeyString := hex.EncodeToString(t.encKey[:])
 	u, err := url.Parse(
-	fmt.Sprintf(
-		"%s#AuthEncKey=%s&AuthSignKey=%s",
-		t.getTestRequestURLString(),
-		encKeyString[:len(encKeyString)-1],
-		signKeyString,
-	),
+		fmt.Sprintf(
+			"%s#AuthEncKey=%s&AuthSignKey=%s",
+			t.getTestRequestURLString(),
+			encKeyString[:len(encKeyString)-1],
+			signKeyString,
+		),
 	)
 	c.Assert(err, IsNil)
 	_, err = parseAuthURL(u)

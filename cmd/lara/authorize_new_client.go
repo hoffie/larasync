@@ -3,22 +3,11 @@ package main
 import (
 	"bytes"
 	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 
-	"github.com/hoffie/larasync/api"
 	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
 	"github.com/hoffie/larasync/repository"
 )
-
-func authorizationURLFor(c *api.Client, signingPrivKey *[PrivateKeySize]byte, encryptionKey *[EncryptionKeySize]byte) string {
-	signingPrivKeyString := hex.EncodeToString(signingPrivKey[:])
-	encryptionKeyString := hex.EncodeToString(encryptionKey[:])
-	pubKey := edhelpers.GetPublicKeyFromPrivate(*signingPrivKey)
-	pubKeyString := hex.EncodeToString(pubKey[:])
-	return fmt.Sprintf("%s/authorizations/%s#AuthEncKey=%s&AuthSignKey=%s",
-		c.BaseURL, pubKeyString, encryptionKeyString, signingPrivKeyString)
-}
 
 // authorizeNewClient is the command line handler for a specific
 // repository to put a signed authorization signature to the server.
@@ -61,6 +50,11 @@ func (d *Dispatcher) authorizeNewClient() int {
 		return 1
 	}
 
+	authURL, err := newAuthURL(client.BaseURL, signingPrivKey, &encryptionKey)
+	if err != nil {
+		fmt.Fprintln(d.stderr, "Error: authorization url could not be generated.")
+	}
+
 	err = client.PutAuthorization(signingPubKey, bytes.NewBuffer(authorizationBytes))
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: Server communication failed (%s)\n", err)
@@ -68,6 +62,6 @@ func (d *Dispatcher) authorizeNewClient() int {
 	}
 
 	fmt.Fprintln(d.stdout, "New authorization request completed")
-	fmt.Fprintln(d.stdout, authorizationURLFor(client, signingPrivKey, &encryptionKey))
+	fmt.Fprintln(d.stdout, authURL.String())
 	return 0
 }

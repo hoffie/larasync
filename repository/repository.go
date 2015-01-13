@@ -558,6 +558,12 @@ func (r *Repository) GetSigningPublicKey() ([PublicKeySize]byte, error) {
 	return r.keys.SigningPublicKey()
 }
 
+// GetSigningPrivateKey exposes the signing private key as it is required
+// in foreign packages such as api.
+func (r *Repository) GetSigningPrivateKey() ([PrivateKeySize]byte, error) {
+	return r.keys.SigningPrivateKey()
+}
+
 // CreateKeys handles creation of all required cryptographic keys.
 func (r *Repository) CreateKeys() error {
 	err := r.keys.CreateEncryptionKey()

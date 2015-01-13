@@ -46,7 +46,7 @@ func (c *Client) PutAuthorization(
 // getAuthorizationRequest generates a request to request a authorization
 // from the server.
 func (c *Client) getAuthorizationRequest(authorizationURL string,
-	authPrivKey [PrivateKeySize]byte,) (*http.Request, error) {
+	authPrivKey [PrivateKeySize]byte) (*http.Request, error) {
 	req, err := http.NewRequest(
 		"GET",
 		authorizationURL,
@@ -61,7 +61,7 @@ func (c *Client) getAuthorizationRequest(authorizationURL string,
 }
 
 func (c *Client) GetAuthorization(authorizationURL string,
-	authPrivKey [PrivateKeySize]byte,) (io.Reader, error) {
+	authPrivKey [PrivateKeySize]byte) (io.Reader, error) {
 	req, err := c.getAuthorizationRequest(authorizationURL, authPrivKey)
 	if err != nil {
 		return nil, err

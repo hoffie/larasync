@@ -7,9 +7,9 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/hoffie/larasync/api"
 	"github.com/hoffie/larasync/helpers/crypto"
 	"github.com/hoffie/larasync/repository"
-	"github.com/hoffie/larasync/api"
 )
 
 // syncAction implements the "lara clone" command.

@@ -231,9 +231,9 @@ func (s *NIBStore) Exists(id string) bool {
 	return s.storage.Exists(id)
 }
 
-// VerifyContent verifies the correctness of the given
-// data in the reader.
-func (s *NIBStore) VerifyContent(data []byte) (*NIB, error) {
+// VerifyAndParseBytes verifies the correctness of the given
+// data in the reader and returns the parsed nib.
+func (s *NIBStore) VerifyAndParseBytes(data []byte) (*NIB, error) {
 	pubKey, err := s.keys.SigningPublicKey()
 	if err != nil {
 		return nil, err

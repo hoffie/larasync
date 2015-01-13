@@ -135,7 +135,7 @@ func (t *NIBStoreTest) TestNibVerificationSignatureError(c *C) {
 	c.Assert(err, IsNil)
 	data[len(data)-1] = 50
 
-	_, err = t.nibStore.VerifyContent(data)
+	_, err = t.nibStore.VerifyAndParseBytes(data)
 	c.Assert(err, Equals, ErrSignatureVerification)
 }
 
@@ -158,7 +158,7 @@ func (t *NIBStoreTest) TestNibVerificationMarshallingError(c *C) {
 	err = sw.Finalize()
 	c.Assert(err, IsNil)
 
-	_, err = t.nibStore.VerifyContent(output.Bytes())
+	_, err = t.nibStore.VerifyAndParseBytes(output.Bytes())
 	c.Assert(err, Equals, ErrUnMarshalling)
 }
 
@@ -170,7 +170,7 @@ func (t *NIBStoreTest) TestNibVerification(c *C) {
 	data, err := ioutil.ReadAll(reader)
 	c.Assert(err, IsNil)
 
-	_, err = t.nibStore.VerifyContent(data)
+	_, err = t.nibStore.VerifyAndParseBytes(data)
 	c.Assert(err, IsNil)
 }
 

@@ -331,7 +331,7 @@ func (r *Repository) AddNIBContent(nibReader io.Reader) error {
 		return err
 	}
 
-	nib, err := nibStore.VerifyContent(data)
+	nib, err := nibStore.VerifyAndParseBytes(data)
 	if err != nil {
 		return err
 	}

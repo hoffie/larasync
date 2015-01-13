@@ -322,6 +322,12 @@ func (r *Repository) AddObject(objectID string, data io.Reader) error {
 	return r.objectStorage.Set(objectID, data)
 }
 
+// HasObject returns whether the given object id exists in the object
+// store.
+func (r *Repository) HasObject(objectID string) bool {
+	return r.objectStorage.Exists(objectID)
+}
+
 // AddNIBContent adds NIBData to the repository after verifying it.
 func (r *Repository) AddNIBContent(nibReader io.Reader) error {
 	nibStore := r.nibStore

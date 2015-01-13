@@ -3,6 +3,8 @@ package api
 import (
 	"io"
 	"net/http"
+
+	"github.com/hoffie/larasync/helpers/bincontainer"
 )
 
 // putNIBRequest builds a request for uploading NIB
@@ -25,4 +27,43 @@ func (c *Client) PutNIB(nibID string, nibReader io.ReadCloser) error {
 	}
 	_, err = c.doRequest(req, http.StatusCreated, http.StatusOK)
 	return err
+}
+
+// getNIBsRequest builds a request for getting a NIB list
+func (c *Client) getNIBsRequest() (*http.Request, error) {
+	req, err := http.NewRequest("GET", c.BaseURL+"/nibs", nil)
+	if err != nil {
+		return nil, err
+	}
+	SignWithKey(req, c.signingPrivateKey)
+	return req, nil
+}
+
+// GetNIBs returns the list of all nibs
+func (c *Client) GetNIBs() (<-chan []byte, error) {
+	req, err := c.getNIBsRequest()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := c.doRequest(req, http.StatusOK)
+	if err != nil {
+		return nil, err
+	}
+	bin := bincontainer.NewDecoder(resp.Body)
+	res := make(chan []byte, 100)
+	go func() {
+		for {
+			chunk, err := bin.ReadChunk()
+			if err == io.EOF {
+				close(res)
+				return
+			}
+			if err != nil {
+				break
+			}
+			res <- chunk
+		}
+		close(res)
+	}()
+	return res, nil
 }

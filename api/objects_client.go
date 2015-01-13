@@ -26,3 +26,23 @@ func (c *Client) PutObject(objectID string, content io.ReadCloser) error {
 	_, err = c.doRequest(req, http.StatusCreated, http.StatusOK)
 	return err
 }
+
+// getObjectRequest builds a request for downloading an object
+func (c *Client) getObjectRequest(objectID string) (*http.Request, error) {
+	req, err := http.NewRequest("GET", c.BaseURL+"/blobs/"+objectID, nil)
+	if err != nil {
+		return nil, err
+	}
+	SignWithKey(req, c.signingPrivateKey)
+	return req, nil
+}
+
+// GetObject downloads an object from the server
+func (c *Client) GetObject(objectID string) (io.Reader, error) {
+	req, err := c.getObjectRequest(objectID)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := c.doRequest(req, http.StatusCreated, http.StatusOK)
+	return resp.Body, err
+}

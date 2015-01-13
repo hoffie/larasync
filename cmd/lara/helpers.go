@@ -7,6 +7,15 @@ import (
 	"github.com/hoffie/larasync/repository"
 )
 
+const (
+	// PrivateKeySize is the size of the key used for signing.
+	PrivateKeySize = repository.PrivateKeySize
+	// PublicKeySize ist the size of the key used to verify the signature.
+	PublicKeySize = repository.PublicKeySize
+	// EncryptionKeySize is the key size used for encryption purposes.
+	EncryptionKeySize = repository.EncryptionKeySize
+)
+
 // clientFor returns the Client which is configured to communicate
 // with the given server repository.
 func clientFor(r *repository.Repository) (*api.Client, error) {

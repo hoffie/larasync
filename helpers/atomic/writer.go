@@ -9,7 +9,7 @@ import (
 
 // AtomicWriter implements the writer interface and is used to store
 // data to the file system in an atomic manner.
-type AtomicWriter struct {
+type Writer struct {
 	path      string
 	tmpPrefix string
 	filePerms os.FileMode
@@ -18,13 +18,13 @@ type AtomicWriter struct {
 
 // NewStandardWriter initializes and returns a new AtomicWriter with a default
 // prefix for temporary files.
-func NewStandardWriter(path string, perm os.FileMode) (*AtomicWriter, error) {
+func NewStandardWriter(path string, perm os.FileMode) (*Writer, error) {
 	return NewWriter(path, ".lara.", perm)
 }
 
 // NewWriter initializes and returns a new AtomicWriter.
-func NewWriter(path, tmpPrefix string, perm os.FileMode) (*AtomicWriter, error) {
-	writer := &AtomicWriter{
+func NewWriter(path, tmpPrefix string, perm os.FileMode) (*Writer, error) {
+	writer := &Writer{
 		path:      path,
 		tmpPrefix: tmpPrefix,
 		filePerms: perm,
@@ -35,24 +35,24 @@ func NewWriter(path, tmpPrefix string, perm os.FileMode) (*AtomicWriter, error) 
 
 // getDirFileName splits the directory and the filename
 // and returns the data entry.
-func (aw *AtomicWriter) getDirFileName() (string, string) {
+func (aw *Writer) getDirFileName() (string, string) {
 	return path.Split(aw.path)
 }
 
 // tmpFileNamePrefix returns the prefix which should be passed when
 // creating a temporary file.
-func (aw *AtomicWriter) tmpFileNamePrefix() string {
+func (aw *Writer) tmpFileNamePrefix() string {
 	_, fileName := aw.getDirFileName()
 	return fmt.Sprintf("%s%s", aw.tmpPrefix, fileName)
 }
 
 // tmpPath returns the file path to the temporary created file.
-func (aw *AtomicWriter) tmpPath() string {
+func (aw *Writer) tmpPath() string {
 	return aw.tmpFile.Name()
 }
 
 // init initializes the AtomicWriter and creates the underlying temporary file.
-func (aw *AtomicWriter) init() error {
+func (aw *Writer) init() error {
 	dirName, _ := aw.getDirFileName()
 
 	f, err := ioutil.TempFile(dirName, aw.tmpFileNamePrefix())
@@ -68,13 +68,13 @@ func (aw *AtomicWriter) init() error {
 
 // Write implements the Write method of the Writer interface and adds the data
 // to the underlying temporary file.
-func (aw *AtomicWriter) Write(p []byte) (n int, err error) {
+func (aw *Writer) Write(p []byte) (n int, err error) {
 	return aw.tmpFile.Write(p)
 }
 
 // Close implements the Close Method of the Closer. It finalizes the file stream
 // and copies it to the final location.
-func (aw *AtomicWriter) Close() error {
+func (aw *Writer) Close() error {
 	err := aw.tmpFile.Close()
 	if err != nil {
 		return err

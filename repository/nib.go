@@ -99,3 +99,23 @@ func (n *NIB) LatestRevisionWithContent(contentIDs []string) (*Revision, error) 
 func (n *NIB) RevisionsTotal() int64 {
 	return int64(len(n.Revisions)) + n.HistoryOffset
 }
+
+// AllObjectIDs returns a list of all unique ids which this NIB refers to
+func (n *NIB) AllObjectIDs() []string {
+	res := []string{}
+	lookup := make(map[string]bool)
+	appendID := func(id string) {
+		if _, exists := lookup[id]; exists {
+			return
+		}
+		lookup[id] = true
+		res = append(res, id)
+	}
+	for _, rev := range n.Revisions {
+		appendID(rev.MetadataID)
+		for _, contentID := range rev.ContentIDs {
+			appendID(contentID)
+		}
+	}
+	return res
+}

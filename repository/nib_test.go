@@ -89,3 +89,13 @@ func (t *NIBTests) TestRevisionsTotalhWithOffset(c *C) {
 	n.AppendRevision(&Revision{})
 	c.Assert(n.RevisionsTotal(), Equals, int64(1097+2))
 }
+
+func (t *NIBTests) TestAllObjectIDs(c *C) {
+	n := &NIB{}
+	n.AppendRevision(&Revision{MetadataID: "meta1",
+		ContentIDs: []string{"content1", "content2"}})
+	n.AppendRevision(&Revision{MetadataID: "meta2",
+		ContentIDs: []string{"content3", "content3"}})
+	c.Assert(n.AllObjectIDs(), DeepEquals,
+		[]string{"meta1", "content1", "content2", "meta2", "content3"})
+}

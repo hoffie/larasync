@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/agl/ed25519"
 	"github.com/hoffie/larasync/helpers/crypto"
 	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
 )
@@ -155,7 +154,7 @@ func (ks *KeyStore) CreateEncryptionKey() error {
 
 // CreateSigningKey generates a random signing key.
 func (ks *KeyStore) CreateSigningKey() error {
-	_, privKey, err := ed25519.GenerateKey(rand.Reader)
+	_, privKey, err := edhelpers.GenerateKey()
 	if err != nil {
 		return err
 	}

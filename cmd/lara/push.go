@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/hoffie/larasync/api"
 	"github.com/hoffie/larasync/repository"
 )
 
@@ -18,23 +17,13 @@ func (d *Dispatcher) pushAction() int {
 		return 1
 	}
 	r := repository.New(root)
-	sc, err := r.StateConfig()
+
+	client, err := clientFor(r)
 	if err != nil {
-		fmt.Fprintf(d.stderr, "Error: unable to load state config (%s)\n", err)
-		return 1
-	}
-	if sc.DefaultServer == "" {
-		fmt.Fprintf(d.stderr, "Error: no default server configured (state)\n")
-		return 1
-	}
-	privKey, err := r.GetSigningPrivateKey()
-	if err != nil {
-		fmt.Fprintf(d.stderr, "Error: unable to get signing private key (%s)\n",
+		fmt.Fprintf(d.stderr, "Error: %s\n",
 			err)
-		return 1
 	}
-	client := api.NewClient(sc.DefaultServer)
-	client.SetSigningPrivateKey(privKey)
+
 	//FIXME:
 	nibs, err := r.GetAllNibs()
 	if err != nil {

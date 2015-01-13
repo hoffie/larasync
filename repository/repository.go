@@ -409,6 +409,43 @@ func (r *Repository) DeleteAuthorization(publicKey [PublicKeySize]byte) error {
 	return r.authorizationManager.Delete(publicKey)
 }
 
+// SerializeAuthorization returns the encrypted and authorization which can be passed
+// safely to the server.
+func (r *Repository) SerializeAuthorization(encryptionKey [EncryptionKeySize]byte,
+	authorization *Authorization) ([]byte, error) {
+	return r.authorizationManager.Serialize(encryptionKey, authorization)
+}
+
+// CurrentAuthorization returns the currently valid Authorization object
+// for this repository. If the privateKeys necessary for this are not
+// stored in the keyStore (common case if this is a server) an error is
+// returned.
+func (r *Repository) CurrentAuthorization() (*Authorization, error) {
+	keys := r.keys
+	encryptionKey, err := keys.EncryptionKey()
+	if err != nil {
+		return nil, errors.New("Could not load encryption key.")
+	}
+
+	hashingKey, err := keys.HashingKey()
+	if err != nil {
+		return nil, errors.New("Could not load hashing key.")
+	}
+
+	signatureKey, err := keys.SigningPrivateKey()
+	if err != nil {
+		return nil, errors.New("Could not load private signing key.")
+	}
+
+	auth := &Authorization{
+		EncryptionKey: encryptionKey,
+		HashingKey:    hashingKey,
+		SigningKey:    signatureKey,
+	}
+
+	return auth, nil
+}
+
 // GetObjectData returns the data stored for the given objectID in this
 // repository.
 func (r *Repository) GetObjectData(objectID string) (io.ReadCloser, error) {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -12,40 +11,10 @@ import (
 )
 
 type PushTests struct {
-	dir   string
-	oldWd string
-	err   *bytes.Buffer
-	out   *bytes.Buffer
-	in    *bytes.Buffer
-	d     *Dispatcher
-	ts    *TestServer
+	BaseTests
 }
 
-var _ = Suite(&PushTests{})
-
-func (t *PushTests) SetUpTest(c *C) {
-	t.dir = c.MkDir()
-	wd, err := os.Getwd()
-	c.Assert(err, IsNil)
-	t.oldWd = wd
-
-	err = os.Chdir(t.dir)
-	c.Assert(err, IsNil)
-
-	t.err = new(bytes.Buffer)
-	t.out = new(bytes.Buffer)
-	t.in = new(bytes.Buffer)
-	t.d = &Dispatcher{stderr: t.err, stdout: t.out, stdin: t.in}
-
-	ts, err := NewTestServer()
-	c.Assert(err, IsNil)
-	t.ts = ts
-}
-
-func (t *PushTests) TearDownTest(c *C) {
-	t.ts.Close()
-	os.Chdir(t.oldWd)
-}
+var _ = Suite(&PushTests{BaseTests{}})
 
 func (t *PushTests) TestTooManyArgs(c *C) {
 	c.Assert(t.d.run([]string{"push", "foo"}), Equals, 1)

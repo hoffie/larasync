@@ -1,4 +1,4 @@
-package lara
+package main
 
 import (
 	"crypto/rand"

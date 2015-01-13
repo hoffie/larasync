@@ -233,10 +233,10 @@ func (s *NIBStore) Exists(id string) bool {
 
 // VerifyContent verifies the correctness of the given
 // data in the reader.
-func (s *NIBStore) VerifyContent(data []byte) error {
+func (s *NIBStore) VerifyContent(data []byte) (*NIB, error) {
 	pubKey, err := s.keys.SigningPublicKey()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	signatureReader, err := crypto.NewVerifyingReader(
@@ -244,18 +244,27 @@ func (s *NIBStore) VerifyContent(data []byte) error {
 		bytes.NewReader(data),
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	nib := &NIB{}
-	_, err = nib.ReadFrom(signatureReader)
+	// reading into a temporary buffer first requires memory,
+	// but this way we avoid parsing NIBs before actually verifying
+	// their signature; do not change this without further
+	// consideration.
+	buf, err := ioutil.ReadAll(signatureReader)
 	if err != nil {
-		return ErrUnMarshalling
+		return nil, err
 	}
 
 	if !signatureReader.VerifyAfterRead() {
-		return ErrSignatureVerification
+		return nil, ErrSignatureVerification
 	}
 
-	return nil
+	nib := &NIB{}
+	_, err = nib.ReadFrom(bytes.NewReader(buf))
+	if err != nil {
+		return nil, ErrUnMarshalling
+	}
+
+	return nib, nil
 }

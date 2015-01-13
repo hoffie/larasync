@@ -64,7 +64,7 @@ func (s *Server) nibPut(rw http.ResponseWriter, req *http.Request) {
 		successReturnStatus = http.StatusCreated
 	}
 
-	err = repository.AddNIBContent(nibID, req.Body)
+	err = repository.AddNIBContent(req.Body)
 
 	if err != nil {
 		if err == repositoryModule.ErrSignatureVerification {

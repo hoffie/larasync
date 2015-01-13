@@ -147,11 +147,3 @@ func (t *RepositoryTests) TestStateConfig(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(sc2.DefaultServer, Equals, exp)
 }
-
-func numFilesInDir(path string) (int, error) {
-	entries, err := ioutil.ReadDir(path)
-	if err != nil {
-		return 0, err
-	}
-	return len(entries), nil
-}

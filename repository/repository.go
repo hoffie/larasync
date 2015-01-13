@@ -322,8 +322,14 @@ func (r *Repository) AddObject(objectID string, data io.Reader) error {
 	return r.objectStorage.Set(objectID, data)
 }
 
+// HasObject returns whether the given object id exists in the object
+// store.
+func (r *Repository) HasObject(objectID string) bool {
+	return r.objectStorage.Exists(objectID)
+}
+
 // AddNIBContent adds NIBData to the repository after verifying it.
-func (r *Repository) AddNIBContent(nibID string, nibReader io.Reader) error {
+func (r *Repository) AddNIBContent(nibReader io.Reader) error {
 	nibStore := r.nibStore
 
 	data, err := ioutil.ReadAll(nibReader)
@@ -331,12 +337,12 @@ func (r *Repository) AddNIBContent(nibID string, nibReader io.Reader) error {
 		return err
 	}
 
-	err = nibStore.VerifyContent(data)
+	nib, err := nibStore.VerifyAndParseBytes(data)
 	if err != nil {
 		return err
 	}
 
-	return nibStore.AddContent(nibID, bytes.NewReader(data))
+	return nibStore.AddContent(nib.ID, bytes.NewReader(data))
 }
 
 // GetNIB returns a NIB for the given ID in this repository.
@@ -407,6 +413,43 @@ func (r *Repository) SetAuthorization(
 // DeleteAuthorization removes the authorization with the given publicKey.
 func (r *Repository) DeleteAuthorization(publicKey [PublicKeySize]byte) error {
 	return r.authorizationManager.Delete(publicKey)
+}
+
+// SerializeAuthorization returns the encrypted and authorization which can be passed
+// safely to the server.
+func (r *Repository) SerializeAuthorization(encryptionKey [EncryptionKeySize]byte,
+	authorization *Authorization) ([]byte, error) {
+	return r.authorizationManager.Serialize(encryptionKey, authorization)
+}
+
+// CurrentAuthorization returns the currently valid Authorization object
+// for this repository. If the privateKeys necessary for this are not
+// stored in the keyStore (common case if this is a server) an error is
+// returned.
+func (r *Repository) CurrentAuthorization() (*Authorization, error) {
+	keys := r.keys
+	encryptionKey, err := keys.EncryptionKey()
+	if err != nil {
+		return nil, errors.New("Could not load encryption key.")
+	}
+
+	hashingKey, err := keys.HashingKey()
+	if err != nil {
+		return nil, errors.New("Could not load hashing key.")
+	}
+
+	signatureKey, err := keys.SigningPrivateKey()
+	if err != nil {
+		return nil, errors.New("Could not load private signing key.")
+	}
+
+	auth := &Authorization{
+		EncryptionKey: encryptionKey,
+		HashingKey:    hashingKey,
+		SigningKey:    signatureKey,
+	}
+
+	return auth, nil
 }
 
 // GetObjectData returns the data stored for the given objectID in this
@@ -556,6 +599,12 @@ func (r *Repository) splitFileToChunks(path string, handler func(string, []byte)
 // in foreign packages such as api.
 func (r *Repository) GetSigningPublicKey() ([PublicKeySize]byte, error) {
 	return r.keys.SigningPublicKey()
+}
+
+// GetSigningPrivateKey exposes the signing private key as it is required
+// in foreign packages such as api.
+func (r *Repository) GetSigningPrivateKey() ([PrivateKeySize]byte, error) {
+	return r.keys.SigningPrivateKey()
 }
 
 // CreateKeys handles creation of all required cryptographic keys.

@@ -42,7 +42,7 @@ func (e *Decoder) readData(length uint32) ([]byte, error) {
 	if uint32(read) != length {
 		return nil, ErrIncomplete
 	}
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return nil, err
 	}
 	return chunk, nil
@@ -59,7 +59,7 @@ func (e *Decoder) readLength() (uint32, error) {
 	if read != lengthSpecSize {
 		return 0, ErrIncomplete
 	}
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return 0, err
 	}
 

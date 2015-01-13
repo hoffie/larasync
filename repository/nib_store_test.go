@@ -8,6 +8,8 @@ import (
 
 	"github.com/agl/ed25519"
 
+	"github.com/hoffie/larasync/helpers/crypto"
+
 	. "gopkg.in/check.v1"
 )
 
@@ -133,21 +135,31 @@ func (t *NIBStoreTest) TestNibVerificationSignatureError(c *C) {
 	c.Assert(err, IsNil)
 	data[len(data)-1] = 50
 
-	c.Assert(
-		t.nibStore.VerifyContent(data), Equals, ErrSignatureVerification,
-	)
+	_, err = t.nibStore.VerifyAndParseBytes(data)
+	c.Assert(err, Equals, ErrSignatureVerification)
 }
 
 func (t *NIBStoreTest) TestNibVerificationMarshallingError(c *C) {
-	testNib := t.addTestNIB(c)
-	reader, err := t.storage.Get(testNib.ID)
-	data, err := ioutil.ReadAll(reader)
+	nib := t.getTestNIB()
+	rawNIB := &bytes.Buffer{}
+	_, err := nib.WriteTo(rawNIB)
 	c.Assert(err, IsNil)
-	data[0] = 50
+	// corrupt the NIB
+	nibBytes := rawNIB.Bytes()
+	nibBytes[0] = 50
 
-	c.Assert(
-		t.nibStore.VerifyContent(data), Equals, ErrUnMarshalling,
-	)
+	// sign it:
+	key, err := t.repository.keys.SigningPrivateKey()
+	c.Assert(err, IsNil)
+	output := &bytes.Buffer{}
+	sw := crypto.NewSigningWriter(key, output)
+	_, err = sw.Write(nibBytes)
+	c.Assert(err, IsNil)
+	err = sw.Finalize()
+	c.Assert(err, IsNil)
+
+	_, err = t.nibStore.VerifyAndParseBytes(output.Bytes())
+	c.Assert(err, Equals, ErrUnMarshalling)
 }
 
 func (t *NIBStoreTest) TestNibVerification(c *C) {
@@ -158,8 +170,8 @@ func (t *NIBStoreTest) TestNibVerification(c *C) {
 	data, err := ioutil.ReadAll(reader)
 	c.Assert(err, IsNil)
 
-	c.Assert(
-		t.nibStore.VerifyContent(data), IsNil)
+	_, err = t.nibStore.VerifyAndParseBytes(data)
+	c.Assert(err, IsNil)
 }
 
 // It should return all added bytes

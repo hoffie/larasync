@@ -65,3 +65,54 @@ func (t *Tests) TestDecodeTruncatedContent(c *C) {
 	_, err := d.ReadChunk()
 	c.Assert(err, Equals, ErrIncomplete)
 }
+
+type eofReader4ZeroBytes struct {
+	state int
+}
+
+func (r *eofReader4ZeroBytes) Read(buf []byte) (int, error) {
+	r.state++
+	switch r.state {
+	case 1:
+		buf[0] = 0
+		buf[1] = 0
+		buf[2] = 0
+		buf[3] = 0
+		return 4, io.EOF
+	}
+	return 0, io.EOF
+}
+
+type eofReaderLength1Data1 struct {
+	state int
+}
+
+func (r *eofReaderLength1Data1) Read(buf []byte) (int, error) {
+	r.state++
+	switch r.state {
+	case 1:
+		buf[0] = 1
+		buf[1] = 0
+		buf[2] = 0
+		buf[3] = 0
+		return 4, nil
+	}
+	buf[0] = 97
+	return 1, io.EOF
+}
+
+func (t *Tests) TestDecodeLengthWithEOF(c *C) {
+	r := &eofReader4ZeroBytes{}
+	d := NewDecoder(r)
+	chunk, err := d.ReadChunk()
+	c.Assert(err, IsNil)
+	c.Assert(chunk, DeepEquals, []byte{})
+}
+
+func (t *Tests) TestDecodeDataWithEOF(c *C) {
+	r := &eofReaderLength1Data1{}
+	d := NewDecoder(r)
+	chunk, err := d.ReadChunk()
+	c.Assert(err, IsNil)
+	c.Assert(chunk, DeepEquals, []byte{'a'})
+}

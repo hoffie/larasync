@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"os"
+	"path/filepath"
 
 	. "gopkg.in/check.v1"
 )
@@ -39,4 +40,23 @@ func (t *BaseTests) SetUpTest(c *C) {
 func (t *BaseTests) TearDownTest(c *C) {
 	t.ts.Close()
 	os.Chdir(t.oldWd)
+}
+
+func (t *BaseTests) initRepo(c *C) {
+	repoDir := "repo"
+	c.Assert(t.d.run([]string{"init", repoDir}), Equals, 0)
+	err := os.Chdir(repoDir)
+	c.Assert(err, IsNil)
+}
+
+func (t *BaseTests) registerServerInRepo(c *C) {
+	repoName := "example"
+	url := t.ts.hostAndPort
+	t.in.Write(t.ts.adminSecret)
+	t.in.WriteString("\n")
+	c.Assert(t.d.run([]string{"register", url, repoName}), Equals, 0)
+}
+
+func (t *BaseTests) serverRepoPath() string {
+	return filepath.Join(t.ts.basePath, "example", ".lara")
 }

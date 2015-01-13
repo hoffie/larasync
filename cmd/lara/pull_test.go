@@ -71,20 +71,6 @@ func (t *PullTests) TestPull(c *C) {
 	err = os.Remove(testFile)
 	c.Assert(err, IsNil)
 
-	removeFilesInDir := func(dir string) error {
-		files, err := ioutil.ReadDir(dir)
-		if err != nil {
-			return err
-		}
-		for _, file := range files {
-			path := filepath.Join(dir, file.Name())
-			err = os.Remove(path)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	}
 	err = removeFilesInDir(filepath.Join(".lara", "objects"))
 	c.Assert(err, IsNil)
 

@@ -64,6 +64,8 @@ func (d *Dispatcher) run(args []string) int {
 		cmd = d.registerAction
 	case "server":
 		cmd = d.serverAction
+	case "sync":
+		cmd = d.syncAction
 	}
 	return cmd()
 }
@@ -91,6 +93,7 @@ func (d *Dispatcher) helpAction() int {
 	fmt.Fprintln(d.stderr, "  push                  uploads the current state to the server")
 	fmt.Fprintln(d.stderr, "  register              register this repository with a server")
 	fmt.Fprintln(d.stderr, "  server                run in server mode")
+	fmt.Fprintln(d.stderr, "  sync                  uploads and downloads all files from and to the repository.")
 	return 0
 }
 

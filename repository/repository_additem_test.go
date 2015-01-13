@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
+	"github.com/hoffie/larasync/helpers/test"
 	. "gopkg.in/check.v1"
 )
 
@@ -33,12 +34,12 @@ func (t *RepositoryAddItemTests) TestWriteFileToChunks(c *C) {
 	path := filepath.Join(t.dir, "foo.txt")
 	err := ioutil.WriteFile(path, []byte("foo"), 0600)
 	c.Assert(err, IsNil)
-	numFiles, err := numFilesInDir(filepath.Join(t.dir, ".lara", "objects"))
+	numFiles, err := test.NumFilesInDir(filepath.Join(t.dir, ".lara", "objects"))
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 0)
 	err = t.r.AddItem(path)
 	c.Assert(err, IsNil)
-	numFiles, err = numFilesInDir(filepath.Join(t.dir, ".lara", "objects"))
+	numFiles, err = test.NumFilesInDir(filepath.Join(t.dir, ".lara", "objects"))
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 2)
 }
@@ -52,14 +53,14 @@ func (t *RepositoryAddItemTests) TestExistingFileNIBReuse(c *C) {
 	err := ioutil.WriteFile(path, []byte("foo"), 0600)
 	c.Assert(err, IsNil)
 
-	numFiles, err := numFilesInDir(nibsPath)
+	numFiles, err := test.NumFilesInDir(nibsPath)
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 0)
 
 	err = t.r.AddItem(path)
 	c.Assert(err, IsNil)
 
-	numFiles, err = numFilesInDir(nibsPath)
+	numFiles, err = test.NumFilesInDir(nibsPath)
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 1)
 
@@ -69,7 +70,7 @@ func (t *RepositoryAddItemTests) TestExistingFileNIBReuse(c *C) {
 	err = t.r.AddItem(path)
 	c.Assert(err, IsNil)
 
-	numFiles, err = numFilesInDir(nibsPath)
+	numFiles, err = test.NumFilesInDir(nibsPath)
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 1)
 
@@ -89,21 +90,21 @@ func (t *RepositoryAddItemTests) TestExistingFileNoChange(c *C) {
 	err := ioutil.WriteFile(path, []byte("foo"), 0600)
 	c.Assert(err, IsNil)
 
-	numFiles, err := numFilesInDir(nibsPath)
+	numFiles, err := test.NumFilesInDir(nibsPath)
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 0)
 
 	err = t.r.AddItem(path)
 	c.Assert(err, IsNil)
 
-	numFiles, err = numFilesInDir(nibsPath)
+	numFiles, err = test.NumFilesInDir(nibsPath)
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 1)
 
 	err = t.r.AddItem(path)
 	c.Assert(err, IsNil)
 
-	numFiles, err = numFilesInDir(nibsPath)
+	numFiles, err = test.NumFilesInDir(nibsPath)
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 1)
 

@@ -60,6 +60,9 @@ func (f *FileContentStorage) Set(contentID string, reader io.Reader) error {
 	blobStoragePath := f.storagePathFor(contentID)
 
 	writer, err := atomic.NewStandardWriter(blobStoragePath, defaultFilePerms)
+	if err != nil {
+		return err
+	}
 
 	_, err = io.Copy(writer, reader)
 	if err != nil {

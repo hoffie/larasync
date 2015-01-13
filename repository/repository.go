@@ -627,6 +627,25 @@ func (r *Repository) CreateKeys() error {
 	return nil
 }
 
+// SetKeysFromAuth takes the keys passed through the authorization and puts
+// them into the keystore.
+func (r *Repository) SetKeysFromAuth(auth *Authorization) error {
+	keys := r.keys
+	err := keys.SetEncryptionKey(auth.EncryptionKey)
+	if err != nil {
+		return err
+	}
+	err = keys.SetHashingKey(auth.HashingKey)
+	if err != nil {
+		return err
+	}
+	err = keys.SetSigningPrivateKey(auth.SigningKey)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // StateConfig returns this repository's state config; it is currently used
 // in client repositories only and stores things like the default server.
 func (r *Repository) StateConfig() (*StateConfig, error) {

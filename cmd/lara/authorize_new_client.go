@@ -11,7 +11,7 @@ import (
 	"github.com/hoffie/larasync/repository"
 )
 
-func authorizationUrlFor(c *api.Client, signingPrivKey *[PrivateKeySize]byte, encryptionKey *[EncryptionKeySize]byte) string {
+func authorizationURLFor(c *api.Client, signingPrivKey *[PrivateKeySize]byte, encryptionKey *[EncryptionKeySize]byte) string {
 	signingPrivKeyString := hex.EncodeToString(signingPrivKey[:])
 	encryptionKeyString := hex.EncodeToString(encryptionKey[:])
 	pubKey := edhelpers.GetPublicKeyFromPrivate(*signingPrivKey)
@@ -68,6 +68,6 @@ func (d *Dispatcher) authorizeNewClient() int {
 	}
 
 	fmt.Fprintln(d.stdout, "New authorization request completed")
-	fmt.Fprintln(d.stdout, authorizationUrlFor(client, signingPrivKey, &encryptionKey))
+	fmt.Fprintln(d.stdout, authorizationURLFor(client, signingPrivKey, &encryptionKey))
 	return 0
 }

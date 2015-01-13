@@ -1,20 +1,21 @@
 package main
 
 import (
-	"crypto/rand"
-	"fmt"
 	"bytes"
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
 
+	"github.com/hoffie/larasync/api"
 	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
 	"github.com/hoffie/larasync/repository"
-	"github.com/hoffie/larasync/api"
 )
 
-func authorizationUrlFor(c *api.Client, signingPrivKey [PrivateKeySize]byte, encryptionKey [EncryptionKeySize]byte) string {
+func authorizationUrlFor(c *api.Client, signingPrivKey *[PrivateKeySize]byte, encryptionKey *[EncryptionKeySize]byte) string {
 	signingPrivKeyString := hex.EncodeToString(signingPrivKey[:])
 	encryptionKeyString := hex.EncodeToString(encryptionKey[:])
-	pubKey := edhelpers.GetPublicKeyFromPrivate(signingPrivKey)
-	pubKeyString := hex.EncodeToString(pubKey)
+	pubKey := edhelpers.GetPublicKeyFromPrivate(*signingPrivKey)
+	pubKeyString := hex.EncodeToString(pubKey[:])
 	return fmt.Sprintf("%s/authorizations/%s#AuthEncKey=%s&AuthSignKey=%s",
 		c.BaseURL, pubKeyString, encryptionKeyString, signingPrivKeyString)
 }
@@ -29,7 +30,7 @@ func (d *Dispatcher) authorizeNewClient() int {
 	}
 
 	var encryptionKey [EncryptionKeySize]byte
-	_, err := rand.Read(encryptionKey[:])
+	_, err = rand.Read(encryptionKey[:])
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: Encryption key generating error: %s\n", err)
 		return 1
@@ -37,7 +38,7 @@ func (d *Dispatcher) authorizeNewClient() int {
 
 	signingPubKey, signingPrivKey, err := edhelpers.GenerateKey()
 
-	if err != nil || signingPubKey == nil || signingPrivKey == nil {
+	if err != nil || signingPubKey == nil || signingPrivKey == nil {
 		fmt.Fprintf(d.stderr, "Error: Signature key generating error: %s\n", err)
 	}
 	r := repository.New(root)
@@ -59,8 +60,6 @@ func (d *Dispatcher) authorizeNewClient() int {
 		return 1
 	}
 
-
-
 	err = client.PutAuthorization(signingPubKey, bytes.NewBuffer(authorizationBytes))
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: Server communication failed (%s)\n", err)
@@ -68,6 +67,6 @@ func (d *Dispatcher) authorizeNewClient() int {
 	}
 
 	fmt.Println("New authorization request completed")
-	fmt.Println(authorizationUrlFor(client, signingPrivKey, encryptionKey))
+	fmt.Println(authorizationUrlFor(client, signingPrivKey, &encryptionKey))
 	return 0
 }

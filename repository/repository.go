@@ -216,7 +216,7 @@ func (r *Repository) checkoutNIB(nib *NIB) error {
 
 	targetDir := filepath.Dir(absPath)
 
-	err = os.Mkdir(targetDir, defaultDirPerms)
+	err = os.MkdirAll(targetDir, defaultDirPerms)
 	if err != nil && !os.IsExist(err) {
 		return err
 	}

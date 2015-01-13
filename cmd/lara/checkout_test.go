@@ -56,16 +56,25 @@ func (t *CheckoutTests) TestAddAndCheckout(c *C) {
 	c.Assert(content, DeepEquals, expContent)
 }
 
-// TestAddAndCheckout adds a file in a subdir, removes the subdir,
+func (t *CheckoutTests) TestAddAndCheckoutSubdir(c *C) {
+	t.addAndCheckoutSubdir(c, "subdir", "subdir")
+}
+
+func (t *CheckoutTests) TestAddAndCheckoutSubdirNested(c *C) {
+	t.addAndCheckoutSubdir(c, filepath.Join("subdir", "2", "3"), "subdir")
+}
+
+// addAndCheckoutSubdir adds a file in a subdir, removes the subdir,
 // runs checkout on it and verifies that the file the subdir is created,
 // and the file restored properly.
-func (t *CheckoutTests) TestAddAndCheckoutSubdir(c *C) {
+func (t *CheckoutTests) addAndCheckoutSubdir(c *C, subdir, subdirRoot string) {
 	expContent := []byte("test123")
 	repoDir := filepath.Join(t.dir, "repo")
 	c.Assert(t.d.run([]string{"init", repoDir}), Equals, 0)
 
-	subdir := filepath.Join(repoDir, "subdir")
-	err := os.Mkdir(subdir, 0700)
+	subdir = filepath.Join(repoDir, subdir)
+	subdirRoot = filepath.Join(repoDir, subdirRoot)
+	err := os.MkdirAll(subdir, 0700)
 	c.Assert(err, IsNil)
 
 	path := filepath.Join(subdir, "foo")
@@ -75,7 +84,8 @@ func (t *CheckoutTests) TestAddAndCheckoutSubdir(c *C) {
 
 	err = os.Remove(path)
 	c.Assert(err, IsNil)
-	err = os.Remove(subdir)
+
+	err = os.RemoveAll(subdirRoot)
 	c.Assert(err, IsNil)
 	_, err = ioutil.ReadFile(path)
 	c.Assert(err, NotNil)

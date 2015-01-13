@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/hoffie/larasync/api"
 	"github.com/hoffie/larasync/repository"
 )
 

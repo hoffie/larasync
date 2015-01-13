@@ -36,20 +36,32 @@ func (am *AuthorizationManager) Set(
 	encryptionKey [EncryptionKeySize]byte,
 	authorization *Authorization,
 ) error {
-
-	data := &bytes.Buffer{}
-	_, err := authorization.WriteTo(data)
-	if err != nil {
-		return err
-	}
-
-	box := crypto.NewBox(encryptionKey)
-	enc, err := box.EncryptWithRandomKey(data.Bytes())
+	enc, err := am.Serialize(encryptionKey, authorization)
 	if err != nil {
 		return err
 	}
 
 	return am.SetData(signaturePubKey, bytes.NewReader(enc))
+}
+
+// Serialize encrypts the Authorization with the given secret
+// and returns the encrypted result.
+func (am *AuthorizationManager) Serialize(
+	encryptionKey [EncryptionKeySize]byte,
+	authorization *Authorization,
+) ([]byte, error) {
+	data := &bytes.Buffer{}
+	_, err := authorization.WriteTo(data)
+	if err != nil {
+		return nil, err
+	}
+
+	box := crypto.NewBox(encryptionKey)
+	enc, err := box.EncryptWithRandomKey(data.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	return enc, nil
 }
 
 // SetData adds for the already encrypted byte data and the given public key

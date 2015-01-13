@@ -7,7 +7,7 @@ import (
 	"path"
 )
 
-// AtomicWriter implements the writer interface and is used to store
+// Writer implements the writer interface and is used to store
 // data to the file system in an atomic manner.
 type Writer struct {
 	path      string

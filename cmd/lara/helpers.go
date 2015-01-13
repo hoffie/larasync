@@ -21,14 +21,14 @@ const (
 func clientFor(r *repository.Repository) (*api.Client, error) {
 	sc, err := r.StateConfig()
 	if err != nil {
-		return nil, fmt.Errorf("Error: unable to load state config (%s)", err)
+		return nil, fmt.Errorf("unable to load state config (%s)", err)
 	}
 	if sc.DefaultServer == "" {
-		return nil, fmt.Errorf("Error: no default server configured (state)")
+		return nil, fmt.Errorf("no default server configured (state)")
 	}
 	privKey, err := r.GetSigningPrivateKey()
 	if err != nil {
-		return nil, fmt.Errorf("Error: unable to get signing private key (%s)", err)
+		return nil, fmt.Errorf("unable to get signing private key (%s)", err)
 	}
 	client := api.NewClient(sc.DefaultServer)
 	client.SetSigningPrivateKey(privKey)

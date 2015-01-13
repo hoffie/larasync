@@ -53,6 +53,7 @@ func (ul *uploader) uploadNIB(nib *repository.NIB) error {
 	if err != nil {
 		return err
 	}
+	defer nibReader.Close()
 
 	//FIXME We currently assume that the server will prevent us
 	// from overwriting data we are not supposed to be overwriting.

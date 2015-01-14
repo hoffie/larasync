@@ -9,15 +9,6 @@ import (
 	"github.com/hoffie/larasync/helpers/crypto"
 )
 
-var (
-	// ErrSignatureVerification gets returned if a signature of a signed NIB could
-	// not be verified.
-	ErrSignatureVerification = errors.New("Signature verification failed")
-	// ErrUnMarshalling gets returned if a NIB could not be extracted from stored
-	// bytes.
-	ErrUnMarshalling = errors.New("Couldn't extract item from byte stream")
-)
-
 // NIBStore handles the interaction with NIBs in a specific
 // repository.
 type NIBStore struct {

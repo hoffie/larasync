@@ -1,9 +1,7 @@
 package repository
 
 import (
-	"bytes"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 
 	. "gopkg.in/check.v1"

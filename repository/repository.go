@@ -7,10 +7,10 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/hoffie/larasync/helpers/atomic"
 	"github.com/hoffie/larasync/helpers/crypto"
+	"github.com/hoffie/larasync/helpers/path"
 )
 
 const (

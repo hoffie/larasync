@@ -147,3 +147,30 @@ func (t *RepositoryTests) TestStateConfig(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(sc2.DefaultServer, Equals, exp)
 }
+
+// It should throw an error if a content id references in the nib
+// is not existing yet.
+func (t *RepositoryAddItemTests) TestAddNibContentObjectIDsMissing(c *C) {
+	nib := &NIB{
+		ID: "asdf",
+		Revisions: []*Revision{
+			&Revision{
+				MetadataID: "not-existing",
+				ContentIDs: []string{},
+			},
+		},
+	}
+	r := New(t.dir)
+	err := r.CreateManagementDir()
+	c.Assert(err, IsNil)
+
+	err = r.nibStore.Add(nib)
+	c.Assert(err, IsNil)
+	data, err := r.nibStore.GetBytes(nib.ID)
+	c.Assert(err, IsNil)
+
+	buffer := bytes.NewBuffer(data)
+
+	err = r.AddNIBContent(buffer)
+	c.Assert(IsNIBContentMissing(err), Equals, true)
+}

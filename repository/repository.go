@@ -328,6 +328,12 @@ func (r *Repository) HasObject(objectID string) bool {
 	return r.objectStorage.Exists(objectID)
 }
 
+// Verify and Parse NIB checks the signature of the given NIB and
+// deserializes it if the verification is correctly done.
+func (r *Repository) VerifyAndParseNIBBytes(data []byte) (*NIB, error) {
+	return r.nibStore.VerifyAndParseBytes(data)
+}
+
 // AddNIBContent adds NIBData to the repository after verifying it.
 func (r *Repository) AddNIBContent(nibReader io.Reader) error {
 	nibStore := r.nibStore
@@ -337,7 +343,7 @@ func (r *Repository) AddNIBContent(nibReader io.Reader) error {
 		return err
 	}
 
-	nib, err := nibStore.VerifyAndParseBytes(data)
+	nib, err := r.VerifyAndParseNIBBytes(data)
 	if err != nil {
 		return err
 	}

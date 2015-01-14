@@ -159,3 +159,9 @@ func (t *NIBPutTest) TestPutChanged(c *C) {
 
 	c.Assert(revisions[1].DeviceID, Equals, "other-id")
 }
+
+func (t *NIBPutTest) TestPutReferencedContentMissing(c *C) {
+	t.signRequest()
+	resp := t.getResponse(t.req)
+	c.Assert(resp.Code, Equals, http.StatusPreconditionFailed)
+}

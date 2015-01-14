@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -59,4 +60,13 @@ func (t *BaseTests) registerServerInRepo(c *C) {
 
 func (t *BaseTests) serverRepoPath() string {
 	return filepath.Join(t.ts.basePath, "example", ".lara")
+}
+
+func (t *BaseTests) runAndExpectCode(c *C, args []string, expectedReturnCode int) {
+	rCode := t.d.run(args)
+	if rCode != expectedReturnCode {
+		data, _ := ioutil.ReadAll(t.err)
+		c.Error(string(data))
+		c.FailNow()
+	}
 }

@@ -27,8 +27,8 @@ func (t *SyncTests) TestSync(c *C) {
 	uploadedTestFile := "foo2.txt"
 	err := ioutil.WriteFile(uploadedTestFile, []byte("Sync works downwards"), 0600)
 	c.Assert(err, IsNil)
-	c.Assert(t.d.run([]string{"add", uploadedTestFile}), Equals, 0)
-	c.Assert(t.d.run([]string{"push"}), Equals, 0)
+	t.runAndExpectCode(c, []string{"add", uploadedTestFile}, 0)
+	t.runAndExpectCode(c, []string{"push"}, 0)
 
 	err = removeFilesInDir(filepath.Join(".lara", "objects"))
 	c.Assert(err, IsNil)
@@ -40,14 +40,8 @@ func (t *SyncTests) TestSync(c *C) {
 	err = ioutil.WriteFile(testFile, []byte("Sync works upwards"), 0600)
 	c.Assert(err, IsNil)
 
-	c.Assert(t.d.run([]string{"add", testFile}), Equals, 0)
-
-	res := t.d.run([]string{"sync"})
-	if res != 0 {
-		data, _ := ioutil.ReadAll(t.err)
-		c.Errorf(string(data))
-		return
-	}
+	t.runAndExpectCode(c, []string{"add", testFile}, 0)
+	t.runAndExpectCode(c, []string{"sync"}, 0)
 
 	num, err := test.NumFilesInDir(filepath.Join(t.ts.basePath,
 		repoName, ".lara", "nibs"))

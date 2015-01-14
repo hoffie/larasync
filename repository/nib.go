@@ -2,7 +2,6 @@ package repository
 
 import (
 	"bytes"
-	"errors"
 	"io"
 	"reflect"
 
@@ -20,9 +19,6 @@ type NIB struct {
 	Revisions     []*Revision
 	HistoryOffset int64
 }
-
-// ErrNoRevision is returned if no such revision can be found.
-var ErrNoRevision = errors.New("no revision")
 
 // ReadFrom fills this NIB's data with the contents supplied by
 // the binary representation available through the given reader.

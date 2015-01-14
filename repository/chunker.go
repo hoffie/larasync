@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"errors"
 	"io"
 	"os"
 )
@@ -13,9 +12,6 @@ type Chunker struct {
 	finished  bool
 	chunkSize uint64
 }
-
-// ErrBadChunkSize will be thrown if a too little chunk size is requested
-var ErrBadChunkSize = errors.New("bad chunk size (must be >16 bytes)")
 
 // NewChunker returns a new chunker instance for the given file path
 // and the given chunk size.

@@ -1,15 +1,9 @@
 package repository
 
 import (
-	"errors"
 	"sync"
 
 	"github.com/hoffie/larasync/helpers/lock"
-)
-
-var (
-	// ErrTransactionNotExists is thrown if a transaction could not be found.
-	ErrTransactionNotExists = errors.New("Transaction does not exist in repository.")
 )
 
 const transactionsInContainer int = 100

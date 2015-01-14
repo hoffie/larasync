@@ -96,7 +96,6 @@ func (d *Dispatcher) cloneAction() int {
 		return 1
 	}
 	client.SetSigningPrivateKey(privKey)
-	fmt.Println("key is", privKey)
 
 	dl := &downloader{client: client, r: repo}
 	err = dl.getAll()
@@ -105,5 +104,11 @@ func (d *Dispatcher) cloneAction() int {
 		return 1
 	}
 
+	err = os.Chdir(repo.Path)
+	if err != nil {
+		fmt.Fprintf(d.stderr,
+			"Error: Cannot chdir to repository root (%s)\n", err)
+		return 1
+	}
 	return d.checkoutAllPathsAction()
 }

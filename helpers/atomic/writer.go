@@ -2,10 +2,18 @@ package atomic
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
 )
+
+type ReadCloserAbort interface {
+	io.ReadCloser
+	// Abort ensures that the final file does not get
+	// written.
+	Abort()
+}
 
 // Writer implements the writer interface and is used to store
 // data to the file system in an atomic manner.
@@ -14,6 +22,7 @@ type Writer struct {
 	tmpPrefix string
 	filePerms os.FileMode
 	tmpFile   *os.File
+	aborted   bool
 }
 
 // NewStandardWriter initializes and returns a new AtomicWriter with a default
@@ -28,6 +37,7 @@ func NewWriter(path, tmpPrefix string, perm os.FileMode) (*Writer, error) {
 		path:      path,
 		tmpPrefix: tmpPrefix,
 		filePerms: perm,
+		aborted:   false,
 	}
 	err := writer.init()
 	return writer, err
@@ -57,6 +67,12 @@ func (aw *Writer) init() error {
 
 	f, err := ioutil.TempFile(dirName, aw.tmpFileNamePrefix())
 
+	err = f.Chmod(aw.filePerms)
+	if err != nil {
+		f.Close()
+		return err
+	}
+
 	if err != nil {
 		f.Close()
 		return err
@@ -72,6 +88,12 @@ func (aw *Writer) Write(p []byte) (n int, err error) {
 	return aw.tmpFile.Write(p)
 }
 
+// Abort cancels the atomic write. The file will not be written into its
+// final floats.
+func (aw *Writer) Abort() {
+	aw.aborted = true
+}
+
 // Close implements the Close Method of the Closer. It finalizes the file stream
 // and copies it to the final location.
 func (aw *Writer) Close() error {
@@ -79,10 +101,9 @@ func (aw *Writer) Close() error {
 	if err != nil {
 		return err
 	}
-
-	err = os.Chmod(aw.tmpPath(), aw.filePerms)
-	if err != nil {
-		return err
+	if aw.aborted {
+		os.Remove(aw.tmpFile.Name())
+		return nil
 	}
 
 	// now we know it's fine to (over)write the file;

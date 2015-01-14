@@ -81,3 +81,31 @@ func (t *WriterTests) TestFileModeWrite(c *C) {
 
 	c.Assert(stat.Mode(), Equals, fileMode)
 }
+
+func (t *WriterTests) TestAbort(c *C) {
+	testFilePath := filepath.Join(t.dir, "testfile")
+	writer, err := NewStandardWriter(testFilePath, 0770)
+	c.Assert(err, IsNil)
+	writer.Write([]byte("this is a testfile"))
+	writer.Abort()
+	err = writer.Close()
+	c.Assert(err, IsNil)
+
+	_, err = os.Stat(testFilePath)
+	c.Assert(os.IsNotExist(err), Equals, true)
+}
+
+func (t *WriterTests) TestAbortNoOverwrite(c *C) {
+	testFilePath := filepath.Join(t.dir, "testfile")
+	oldFileData := []byte("oldfiledata")
+	err := ioutil.WriteFile(testFilePath, oldFileData, defaultFilePerms)
+	c.Assert(err, IsNil)
+	writer, err := NewStandardWriter(testFilePath, 0770)
+	c.Assert(err, IsNil)
+
+	writer.Write([]byte("newfiledata"))
+	writer.Abort()
+	writer.Close()
+	d, err := ioutil.ReadFile(testFilePath)
+	c.Assert(d, DeepEquals, oldFileData)
+}

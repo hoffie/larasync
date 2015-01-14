@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -42,4 +43,23 @@ func (t *AddTests) TestAdd(c *C) {
 	c.Assert(err, IsNil)
 	fh.Close()
 	c.Assert(t.d.run([]string{"add", file}), Equals, 0)
+}
+
+func (t *AddTests) TestAddDir(c *C) {
+	repoDir := filepath.Join(t.dir, "repo")
+	c.Assert(t.d.run([]string{"init", repoDir}), Equals, 0)
+	dir := filepath.Join(repoDir, "subdir")
+	err := os.Mkdir(dir, 0700)
+	file := filepath.Join(dir, "foo.txt")
+	realContent := []byte("test")
+	err = ioutil.WriteFile(file, realContent, 0600)
+	c.Assert(err, IsNil)
+	c.Assert(t.d.run([]string{"add", dir}), Equals, 0)
+	err = os.Remove(file)
+	c.Assert(err, IsNil)
+	c.Assert(t.d.run([]string{"checkout", file}), Equals, 0)
+
+	content, err := ioutil.ReadFile(file)
+	c.Assert(err, IsNil)
+	c.Assert(content, DeepEquals, realContent)
 }

@@ -67,15 +67,18 @@ func (t *NIBPutTest) TestPutMalformedData(c *C) {
 }
 
 func (t *NIBPutTest) TestPutNew(c *C) {
+	t.fillContentOfDefaultNIB(c)
 	t.signRequest()
 	resp := t.getResponse(t.req)
 	c.Assert(resp.Code, Equals, http.StatusCreated)
 }
 
 func (t *NIBPutTest) TestPutNewStore(c *C) {
+	r := t.getRepository(c)
+	t.fillContentOfDefaultNIB(c)
+
 	t.signRequest()
 	t.getResponse(t.req)
-	r := t.getRepository(c)
 
 	nib, err := r.GetNIB(t.nibID)
 	c.Assert(err, IsNil)
@@ -127,6 +130,9 @@ func (t *NIBPutTest) requestWithNib(c *C, nib *repository.NIB) *http.Request {
 
 func (t *NIBPutTest) TestPutUpdate(c *C) {
 	nib := t.addTestNIB(c)
+	nib = t.changeNIBForPut(c, nib)
+	repo := t.getRepository(c)
+	t.fillNIBContentObjects(c, repo, nib)
 	t.req = t.requestWithNib(c, nib)
 	t.signRequest()
 
@@ -137,11 +143,14 @@ func (t *NIBPutTest) TestPutUpdate(c *C) {
 func (t *NIBPutTest) TestPutChanged(c *C) {
 	nib := t.addTestNIB(c)
 	nib = t.changeNIBForPut(c, nib)
+	repo := t.getRepository(c)
+	t.fillNIBContentObjects(c, repo, nib)
+
 	t.req = t.requestWithNib(c, nib)
 	t.signRequest()
 
-	t.getResponse(t.req)
-	repo := t.getRepository(c)
+	resp := t.getResponse(t.req)
+	c.Assert(resp.Code, Equals, http.StatusOK)
 	repoNib, err := repo.GetNIB(nib.ID)
 	c.Assert(err, IsNil)
 

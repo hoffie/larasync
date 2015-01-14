@@ -93,8 +93,25 @@ func (t *NIBTest) signNIBBytes(c *C, nibBytes []byte) []byte {
 	return wr.Bytes()
 }
 
+func (t *NIBTest) fillNIBContentObjects(c *C, repo *repository.Repository, nib *repository.NIB) {
+	for _, objectID := range nib.AllObjectIDs() {
+		if !repo.HasObject(objectID) {
+			err := repo.AddObject(objectID, bytes.NewBuffer([]byte("ASDF")))
+			c.Assert(err, IsNil)
+		}
+	}
+}
+
+func (t *NIBTest) fillContentOfDefaultNIB(c *C) {
+	repo := t.getRepository(c)
+	testNib := t.getTestNIB()
+	t.fillNIBContentObjects(c, repo, testNib)
+}
+
 func (t *NIBTest) addNIB(c *C, nib *repository.NIB) *repository.NIB {
 	repo := t.createRepository(c)
+	t.fillNIBContentObjects(c, repo, nib)
+
 	err := repo.AddNIBContent(bytes.NewBuffer(
 		t.signNIBBytes(c, t.nibToBytes(nib))),
 	)

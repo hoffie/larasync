@@ -141,6 +141,33 @@ func (t *NIBPutTest) TestPutUpdate(c *C) {
 }
 
 func (t *NIBPutTest) TestPutChanged(c *C) {
+	nib := t.normalPut(c)
+	repo := t.getRepository(c)
+	repoNib, err := repo.GetNIB(nib.ID)
+	c.Assert(err, IsNil)
+
+	revisions := repoNib.Revisions
+	c.Assert(len(revisions), Equals, 2)
+
+	c.Assert(revisions[1].DeviceID, Equals, "other-id")
+}
+
+func (t *NIBPutTest) TestPutConflict(c *C) {
+	nib := t.normalPut(c)
+	latestRev, err := nib.LatestRevision()
+	c.Assert(err, IsNil)
+	latestRev.ContentIDs = []string{"changed"}
+	repo := t.getRepository(c)
+	t.fillNIBContentObjects(c, repo, nib)
+	t.req = t.requestWithNib(c, nib)
+	t.signRequest()
+
+	resp := t.getResponse(t.req)
+	c.Assert(resp.Code, Equals, http.StatusConflict)
+
+}
+
+func (t *NIBPutTest) normalPut(c *C) *repository.NIB {
 	nib := t.addTestNIB(c)
 	nib = t.changeNIBForPut(c, nib)
 	repo := t.getRepository(c)
@@ -151,13 +178,7 @@ func (t *NIBPutTest) TestPutChanged(c *C) {
 
 	resp := t.getResponse(t.req)
 	c.Assert(resp.Code, Equals, http.StatusOK)
-	repoNib, err := repo.GetNIB(nib.ID)
-	c.Assert(err, IsNil)
-
-	revisions := repoNib.Revisions
-	c.Assert(len(revisions), Equals, 2)
-
-	c.Assert(revisions[1].DeviceID, Equals, "other-id")
+	return nib
 }
 
 func (t *NIBPutTest) TestPutReferencedContentMissing(c *C) {

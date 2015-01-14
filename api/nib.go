@@ -71,6 +71,8 @@ func (s *Server) nibPut(rw http.ResponseWriter, req *http.Request) {
 			errorText(rw, "Signature could not be verified", http.StatusUnauthorized)
 		} else if err == repositoryModule.ErrUnMarshalling {
 			errorText(rw, "Could not extract NIB", http.StatusBadRequest)
+		} else if err == repositoryModule.ErrNIBConflict {
+			errorText(rw, "NIB conflict", http.StatusConflict)
 		} else if repositoryModule.IsNIBContentMissing(err) {
 			errorText(rw, err.Error(), http.StatusPreconditionFailed)
 		} else {

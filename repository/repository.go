@@ -354,7 +354,27 @@ func (r *Repository) AddNIBContent(nibReader io.Reader) error {
 		}
 	}
 
+	err = r.ensureConflictFreeNIBImport(nib)
+	if err != nil {
+		return err
+	}
 	return nibStore.AddContent(nib.ID, bytes.NewReader(data))
+}
+
+// ensureConflictFreeNIBImport returns an error if we cannot import
+// the given NIB without conflicts or nil if everything is good.
+func (r *Repository) ensureConflictFreeNIBImport(otherNIB *NIB) error {
+	if !r.HasNIB(otherNIB.ID) {
+		return nil
+	}
+	myNIB, err := r.GetNIB(otherNIB.ID)
+	if err != nil {
+		return err
+	}
+	if myNIB.IsParentOf(otherNIB) {
+		return nil
+	}
+	return ErrNIBConflict
 }
 
 // GetNIB returns a NIB for the given ID in this repository.

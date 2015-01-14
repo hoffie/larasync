@@ -30,7 +30,7 @@ func (d *Dispatcher) authorizeNewClient() int {
 	if err != nil || signingPubKey == nil || signingPrivKey == nil {
 		fmt.Fprintf(d.stderr, "Error: Signature key generating error: %s\n", err)
 	}
-	r := repository.New(root)
+	r := repository.NewClient(root)
 	auth, err := r.CurrentAuthorization()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: Could not fetch current authorization from repository: %s\n", err)

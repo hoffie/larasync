@@ -10,7 +10,7 @@ import (
 // uploader handles uploads from server to client
 type uploader struct {
 	client *api.Client
-	r      *repository.Repository
+	r      *repository.ClientRepository
 }
 
 // pushAll ensures that the remote state is synced with the local state.

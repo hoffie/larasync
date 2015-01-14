@@ -16,7 +16,7 @@ func (d *Dispatcher) pullAction() int {
 	if err != nil {
 		return 1
 	}
-	r := repository.New(root)
+	r := repository.NewClient(root)
 	client, err := clientFor(r)
 	if err != nil {
 		fmt.Fprint(d.stderr, err)

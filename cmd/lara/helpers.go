@@ -18,7 +18,7 @@ const (
 
 // clientFor returns the Client which is configured to communicate
 // with the given server repository.
-func clientFor(r *repository.Repository) (*api.Client, error) {
+func clientFor(r *repository.ClientRepository) (*api.Client, error) {
 	sc, err := r.StateConfig()
 	if err != nil {
 		return nil, fmt.Errorf("unable to load state config (%s)", err)

@@ -10,7 +10,7 @@ import (
 // downloader handles downloads from server to client
 type downloader struct {
 	client *api.Client
-	r      *repository.Repository
+	r      *repository.ClientRepository
 }
 
 // getAll ensures that the local state matches the remote state.

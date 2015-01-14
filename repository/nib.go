@@ -115,3 +115,36 @@ func (n *NIB) AllObjectIDs() []string {
 	}
 	return res
 }
+
+// IsParentOf returns true if this nib is part of the history
+// of the other NIB.
+//
+// This is used when checking whether it is ok to overwrite an old
+// nib with a newer version.
+// The check compares the overall history length and ensures
+// that a common head can be found.
+func (n *NIB) IsParentOf(other *NIB) bool {
+	if n.RevisionsTotal() > other.RevisionsTotal() {
+		// if our history is longer than the other's, there is no
+		// chance that we can reach the same state as the other NIB.
+		return false
+	}
+	if n.RevisionsTotal() == 0 {
+		// when no revisions have been recorded in the lifetime
+		// of this NIB, we can always forward to another NIB
+		// status.
+		return true
+	}
+	// it's safe to ignore err here as we check for the case of 0
+	// revisions before.
+	myLatestRev, _ := n.LatestRevision()
+	for _, otherRev := range other.Revisions {
+		if myLatestRev.HasSameContent(otherRev) {
+			// we found a common ancestor, so we can import
+			// the changes from the other NIB to synchronize.
+			return true
+		}
+	}
+	// no common ancestory => no way to merge this on the NIB level
+	return false
+}

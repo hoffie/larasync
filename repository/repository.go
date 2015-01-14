@@ -328,6 +328,12 @@ func (r *Repository) HasObject(objectID string) bool {
 	return r.objectStorage.Exists(objectID)
 }
 
+// Verify and Parse NIB checks the signature of the given NIB and
+// deserializes it if the verification is correctly done.
+func (r *Repository) VerifyAndParseNIBBytes(data []byte) (*NIB, error) {
+	return r.nibStore.VerifyAndParseBytes(data)
+}
+
 // AddNIBContent adds NIBData to the repository after verifying it.
 func (r *Repository) AddNIBContent(nibReader io.Reader) error {
 	nibStore := r.nibStore
@@ -337,12 +343,38 @@ func (r *Repository) AddNIBContent(nibReader io.Reader) error {
 		return err
 	}
 
-	nib, err := nibStore.VerifyAndParseBytes(data)
+	nib, err := r.VerifyAndParseNIBBytes(data)
 	if err != nil {
 		return err
 	}
 
+	for _, objectID := range nib.AllObjectIDs() {
+		if !r.HasObject(objectID) {
+			return &nibContentMissing{contentID: objectID}
+		}
+	}
+
+	err = r.ensureConflictFreeNIBImport(nib)
+	if err != nil {
+		return err
+	}
 	return nibStore.AddContent(nib.ID, bytes.NewReader(data))
+}
+
+// ensureConflictFreeNIBImport returns an error if we cannot import
+// the given NIB without conflicts or nil if everything is good.
+func (r *Repository) ensureConflictFreeNIBImport(otherNIB *NIB) error {
+	if !r.HasNIB(otherNIB.ID) {
+		return nil
+	}
+	myNIB, err := r.GetNIB(otherNIB.ID)
+	if err != nil {
+		return err
+	}
+	if myNIB.IsParentOf(otherNIB) {
+		return nil
+	}
+	return ErrNIBConflict
 }
 
 // GetNIB returns a NIB for the given ID in this repository.

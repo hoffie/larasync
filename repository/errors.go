@@ -25,6 +25,9 @@ var (
 	// ErrTransactionNotExists is thrown if a transaction could not be found. This is used
 	// by the transaction manager.
 	ErrTransactionNotExists = errors.New("Transaction does not exist in repository.")
+	// ErrNIBConflict is returned when attempting to import a NIB
+	// which may not be fast-forwarded.
+	ErrNIBConflict = errors.New("NIB conflict (cannot fast forward)")
 )
 
 // errorString is a trivial implementation of error.

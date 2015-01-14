@@ -19,10 +19,6 @@ func (dl *downloader) getAll() error {
 	if err != nil {
 		return err
 	}
-	err = dl.getMissingObjects()
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -34,7 +30,16 @@ func (dl *downloader) getNIBs() error {
 	}
 	for nibBytes := range nibBytesIterator {
 		// FIXME: overwrite checking!
-		err := dl.r.AddNIBContent(bytes.NewReader(nibBytes))
+		nib, err := dl.r.VerifyAndParseNIBBytes(nibBytes)
+		if err != nil {
+			return err
+		}
+		err = dl.fetchMissingData(nib)
+		if err != nil {
+			return err
+		}
+
+		err = dl.r.AddNIBContent(bytes.NewReader(nibBytes))
 		if err != nil {
 			return err
 		}
@@ -42,26 +47,18 @@ func (dl *downloader) getNIBs() error {
 	return nil
 }
 
-// getMissingObjects parses all NIBs and retrieves all
-// missing objects.
-func (dl *downloader) getMissingObjects() error {
-	nibs, err := dl.r.GetAllNibs()
-	if err != nil {
-		return err
-	}
-	for nib := range nibs {
-		objectIDs := nib.AllObjectIDs()
-		for _, objectID := range objectIDs {
-			if dl.r.HasObject(objectID) {
-				continue
-			}
-			err = dl.getObject(objectID)
-			if err != nil {
-				return err
-			}
+// fetchMissingData loads missing objects in the passed NIB.
+func (dl *downloader) fetchMissingData(nib *repository.NIB) error {
+	objectIDs := nib.AllObjectIDs()
+	for _, objectID := range objectIDs {
+		if dl.r.HasObject(objectID) {
+			continue
+		}
+		err := dl.getObject(objectID)
+		if err != nil {
+			return err
 		}
 	}
-
 	return nil
 }
 

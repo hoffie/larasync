@@ -19,8 +19,12 @@ type PathTests struct {
 }
 
 func (t *PathTests) SetUpTest(c *C) {
-	t.dir = c.MkDir()
-	err := os.Chdir(t.dir)
+	var err error
+	// Fix for OSX systems. Temporary folder lies in a symlink directory
+	// /var/folders which is actually at /private/var/folders
+	t.dir, err = filepath.EvalSymlinks(c.MkDir())
+	c.Assert(err, IsNil)
+	err = os.Chdir(t.dir)
 	c.Assert(err, IsNil)
 }
 

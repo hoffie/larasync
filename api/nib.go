@@ -75,9 +75,8 @@ func (s *Server) nibPut(rw http.ResponseWriter, req *http.Request) {
 			errorText(rw, "NIB conflict", http.StatusConflict)
 		} else if repositoryModule.IsNIBContentMissing(err) {
 			errorText(rw, err.Error(), http.StatusPreconditionFailed)
-		} else {
-			errorText(rw, "Internal Error", http.StatusInternalServerError)
 		}
+		errorText(rw, "Internal Error", http.StatusInternalServerError)
 		return
 	}
 

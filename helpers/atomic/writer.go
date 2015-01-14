@@ -8,6 +8,9 @@ import (
 	"path"
 )
 
+// ReadCloserAbort provides an additional Abort method to the
+// io.ReadCloser interface which tries to not do any modifications
+// on the original file.
 type ReadCloserAbort interface {
 	io.ReadCloser
 	// Abort ensures that the final file does not get

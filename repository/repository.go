@@ -362,8 +362,8 @@ func (r *Repository) HasObject(objectID string) bool {
 	return r.objectStorage.Exists(objectID)
 }
 
-// Verify and Parse NIB checks the signature of the given NIB and
-// deserializes it if the verification is correctly done.
+// VerifyAndParseNIBBytes checks the signature of the given NIB and
+// deserializes it if the signature could be validated.
 func (r *Repository) VerifyAndParseNIBBytes(data []byte) (*NIB, error) {
 	return r.nibStore.VerifyAndParseBytes(data)
 }

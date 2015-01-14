@@ -38,10 +38,12 @@ type nibContentMissing struct {
 	contentID string
 }
 
+// Error returns the error message which encodes the not found content ID.
 func (e *nibContentMissing) Error() string {
 	return fmt.Sprintf("Content of passed NIB is not stored yet. Missing contentID: %s", e.contentID)
 }
 
+// IsNIBContentMissing checks if the passed error is a nibContentMissing error.
 func IsNIBContentMissing(err error) bool {
 	switch err.(type) {
 	case nil:

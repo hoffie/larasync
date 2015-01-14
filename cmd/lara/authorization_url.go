@@ -10,12 +10,16 @@ import (
 	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
 )
 
+// AuthorizationURL is used to pass and create a authorizations
+// for registering against a new server.
 type AuthorizationURL struct {
 	URL     *url.URL
 	SignKey [PrivateKeySize]byte
 	EncKey  [EncryptionKeySize]byte
 }
 
+// parseAuthURL takes a URL and tries to extract the encryption key
+// and the auhtorization key from the fragment.
 func parseAuthURL(URL *url.URL) (*AuthorizationURL, error) {
 	authURL := &AuthorizationURL{}
 	err := authURL.parse(URL)
@@ -25,14 +29,16 @@ func parseAuthURL(URL *url.URL) (*AuthorizationURL, error) {
 	return authURL, nil
 }
 
-func newAuthURL(repositoryBaseUrl string,
+// newAuthURL generates a new authorization URL with the passed
+// arguments.
+func newAuthURL(repositoryBaseURL string,
 	signingPrivKey *[PrivateKeySize]byte,
 	encryptionKey *[EncryptionKeySize]byte) (*AuthorizationURL, error) {
 
 	pubKey := edhelpers.GetPublicKeyFromPrivate(*signingPrivKey)
 	pubKeyString := hex.EncodeToString(pubKey[:])
 
-	u, err := url.Parse(fmt.Sprintf("%s/authorizations/%s", repositoryBaseUrl, pubKeyString))
+	u, err := url.Parse(fmt.Sprintf("%s/authorizations/%s", repositoryBaseURL, pubKeyString))
 	if err != nil {
 		return nil, err
 	}
@@ -45,14 +51,18 @@ func newAuthURL(repositoryBaseUrl string,
 	return authURL, nil
 }
 
+// SignKeyString returns the authorization key encoded as hex.
 func (a *AuthorizationURL) SignKeyString() string {
 	return hex.EncodeToString(a.SignKey[:])
 }
 
+// EncKeyString returns the encryption key encoded as hex.
 func (a *AuthorizationURL) EncKeyString() string {
 	return hex.EncodeToString(a.EncKey[:])
 }
 
+// String formats the AuthorizationURL which should be passed to
+// the new client to authorize.
 func (a *AuthorizationURL) String() string {
 	return fmt.Sprintf("%s#AuthEncKey=%s&AuthSignKey=%s",
 		a.URL.String(), a.EncKeyString(), a.SignKeyString())
@@ -78,6 +88,7 @@ func (a *AuthorizationURL) parse(URL *url.URL) error {
 	return nil
 }
 
+// parseForEncKey tries to extract the encryption key.
 func (a *AuthorizationURL) parseForEncKey(data string) ([EncryptionKeySize]byte, error) {
 	encKeyRegexp := regexp.MustCompile("AuthEncKey=(?P<key>[^&]+)")
 	encKeySlice, err := a.parseForKey(data, encKeyRegexp)
@@ -93,6 +104,7 @@ func (a *AuthorizationURL) parseForEncKey(data string) ([EncryptionKeySize]byte,
 	return encKey, nil
 }
 
+// parseForSignKey tries to extract the signing key.
 func (a *AuthorizationURL) parseForSignKey(data string) ([PrivateKeySize]byte, error) {
 	signKeyRegexp := regexp.MustCompile("AuthSignKey=(?P<key>[^&]+)")
 	signKeySlice, err := a.parseForKey(data, signKeyRegexp)
@@ -108,6 +120,7 @@ func (a *AuthorizationURL) parseForSignKey(data string) ([PrivateKeySize]byte, e
 	return signKey, nil
 }
 
+// parseForKey tries to parse a key from the data string and parses it with the given registry.
 func (a *AuthorizationURL) parseForKey(data string, r *regexp.Regexp) ([]byte, error) {
 	keyMatches := r.FindStringSubmatch(data)
 	extractionError := errors.New("Could not extract key.")

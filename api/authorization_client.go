@@ -60,6 +60,8 @@ func (c *Client) getAuthorizationRequest(authorizationURL string,
 	return req, nil
 }
 
+// GetAuthorization loads the authorizaion from a server as a URL. Authenticates
+// itself against the server with the passed authorization key.
 func (c *Client) GetAuthorization(authorizationURL string,
 	authPrivKey [PrivateKeySize]byte) (io.Reader, error) {
 	req, err := c.getAuthorizationRequest(authorizationURL, authPrivKey)

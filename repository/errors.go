@@ -28,6 +28,9 @@ var (
 	// ErrNIBConflict is returned when attempting to import a NIB
 	// which may not be fast-forwarded.
 	ErrNIBConflict = errors.New("NIB conflict (cannot fast forward)")
+	// ErrRefusingWorkOnDotLara is thrown when an attempt is made to add the
+	// management directory or some content to the repository.
+	ErrRefusingWorkOnDotLara = errors.New("will not work on .lara")
 )
 
 // errorString is a trivial implementation of error.

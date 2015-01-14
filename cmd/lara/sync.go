@@ -23,6 +23,11 @@ func (d *Dispatcher) syncAction() int {
 		fmt.Fprint(d.stderr, err)
 		return 1
 	}
+	err = r.AddItem(root)
+	if err != nil {
+		fmt.Fprintf(d.stderr, "Error: adding local changes failed (%s)\n", err)
+		return 1
+	}
 	dl := downloader{client: client, r: r}
 	err = dl.getAll()
 	if err != nil {

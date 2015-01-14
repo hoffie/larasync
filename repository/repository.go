@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/hoffie/larasync/helpers/atomic"
 	"github.com/hoffie/larasync/helpers/crypto"
@@ -129,6 +130,13 @@ func (r *Repository) AddItem(absPath string) error {
 	if err != nil {
 		return err
 	}
+	isBelow, err := path.IsBelow(absPath, filepath.Join(r.Path, managementDirName))
+	if err != nil {
+		return nil
+	}
+	if isBelow {
+		return ErrRefusingWorkOnDotLara
+	}
 	if stat.IsDir() {
 		return r.addDirectory(absPath)
 	}
@@ -187,6 +195,9 @@ func (r *Repository) addDirectory(absPath string) error {
 	for _, file := range files {
 		path := filepath.Join(absPath, file.Name())
 		err = r.AddItem(path)
+		if err == ErrRefusingWorkOnDotLara {
+			continue
+		}
 		if err != nil {
 			return err
 		}

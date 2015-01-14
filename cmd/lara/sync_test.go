@@ -40,7 +40,6 @@ func (t *SyncTests) TestSync(c *C) {
 	err = ioutil.WriteFile(testFile, []byte("Sync works upwards"), 0600)
 	c.Assert(err, IsNil)
 
-	t.runAndExpectCode(c, []string{"add", testFile}, 0)
 	t.runAndExpectCode(c, []string{"sync"}, 0)
 
 	num, err := test.NumFilesInDir(filepath.Join(t.ts.basePath,

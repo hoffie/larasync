@@ -114,3 +114,20 @@ func (t *RepositoryAddItemTests) TestExistingFileNoChange(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(len(nib.Revisions), Equals, 1)
 }
+
+func (t *RepositoryAddItemTests) TestAddDotLara(c *C) {
+	err := t.r.AddItem(filepath.Join(t.r.Path, managementDirName))
+	c.Assert(err, Equals, ErrRefusingWorkOnDotLara)
+}
+
+func (t *RepositoryAddItemTests) TestAddDotLaraModified(c *C) {
+	path := string(filepath.Separator) + filepath.Join(t.r.Path, managementDirName)
+	err := t.r.AddItem(path)
+	c.Assert(err, Equals, ErrRefusingWorkOnDotLara)
+}
+
+func (t *RepositoryAddItemTests) TestAddDotLaraSubdir(c *C) {
+	path := filepath.Join(t.r.Path, managementDirName, nibsDirName)
+	err := t.r.AddItem(path)
+	c.Assert(err, Equals, ErrRefusingWorkOnDotLara)
+}

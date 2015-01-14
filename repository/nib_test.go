@@ -99,3 +99,64 @@ func (t *NIBTests) TestAllObjectIDs(c *C) {
 	c.Assert(n.AllObjectIDs(), DeepEquals,
 		[]string{"meta1", "content1", "content2", "meta2", "content3"})
 }
+
+func (t *NIBTests) TestIsParentOf(c *C) {
+	oldNIB := &NIB{}
+	oldNIB.AppendRevision(&Revision{MetadataID: "meta1",
+		ContentIDs: []string{"content1", "content2"}})
+
+	newNIB := &NIB{}
+	newNIB.AppendRevision(&Revision{MetadataID: "meta1",
+		ContentIDs: []string{"content1", "content2"}})
+	newNIB.AppendRevision(&Revision{MetadataID: "meta2",
+		ContentIDs: []string{"content3", "content3"}})
+
+	c.Assert(oldNIB.IsParentOf(newNIB), Equals, true)
+}
+
+func (t *NIBTests) TestIsParentOfSameNIB(c *C) {
+	oldNIB := NIB{}
+	oldNIB.AppendRevision(&Revision{MetadataID: "meta1",
+		ContentIDs: []string{"content1", "content2"}})
+	oldNIB.AppendRevision(&Revision{MetadataID: "meta2",
+		ContentIDs: []string{"content3", "content3"}})
+
+	newNIB := oldNIB
+	c.Assert(oldNIB.IsParentOf(&newNIB), Equals, true)
+}
+
+func (t *NIBTests) TestIsParentOfLongerOfShorter(c *C) {
+	oldNIB := &NIB{}
+	oldNIB.AppendRevision(&Revision{MetadataID: "meta1",
+		ContentIDs: []string{"content1", "content2"}})
+	oldNIB.AppendRevision(&Revision{MetadataID: "meta2",
+		ContentIDs: []string{"content3", "content3"}})
+
+	newNIB := &NIB{}
+	newNIB.AppendRevision(&Revision{MetadataID: "meta1",
+		ContentIDs: []string{"content1", "content2"}})
+
+	c.Assert(oldNIB.IsParentOf(newNIB), Equals, false)
+}
+
+func (t *NIBTests) TestIsParentOfDifferentMetadata(c *C) {
+	oldNIB := &NIB{}
+	oldNIB.AppendRevision(&Revision{MetadataID: "meta1",
+		ContentIDs: []string{"content1", "content2"}})
+
+	newNIB := &NIB{}
+	newNIB.AppendRevision(&Revision{MetadataID: "meta2",
+		ContentIDs: []string{"content1", "content2"}})
+
+	c.Assert(oldNIB.IsParentOf(newNIB), Equals, false)
+}
+
+func (t *NIBTests) TestIsParentOfZeroLengthParent(c *C) {
+	oldNIB := &NIB{}
+
+	newNIB := &NIB{}
+	newNIB.AppendRevision(&Revision{MetadataID: "meta2",
+		ContentIDs: []string{"content1", "content2"}})
+
+	c.Assert(oldNIB.IsParentOf(newNIB), Equals, true)
+}

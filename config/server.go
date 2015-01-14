@@ -2,28 +2,12 @@ package config
 
 import (
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"time"
 
 	"github.com/hoffie/larasync/api"
 )
-
-// ErrAdminPubkeyMissing is returned if no admin pubkey is specified.
-var ErrAdminPubkeyMissing = errors.New("empty admin pubkey")
-
-// ErrInvalidAdminPubkey is returned if decoding the admin pubkey fails.
-var ErrInvalidAdminPubkey = errors.New("invalid admin pubkey")
-
-// ErrTruncatedAdminPubkey is returned if the given admin pubkey is too short.
-var ErrTruncatedAdminPubkey = errors.New("admin pubkey too short")
-
-// ErrMissingBasePath is returned if no base path is configured.
-var ErrMissingBasePath = errors.New("missing basepath")
-
-// ErrBadBasePath is returned if the configured base path is not accessible.
-var ErrBadBasePath = errors.New("unaccessible basepath")
 
 // ServerConfig contains all settings for our server mode.
 type ServerConfig struct {

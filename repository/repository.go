@@ -222,8 +222,9 @@ func (r *Repository) checkoutNIB(nib *NIB) error {
 	}
 
 	writer, err := atomic.NewWriter(absPath, ".lara.checkout.", defaultFilePerms)
+	defer writer.Close()
 	if err != nil {
-		writer.Close()
+		writer.Abort()
 		return err
 	}
 
@@ -231,22 +232,21 @@ func (r *Repository) checkoutNIB(nib *NIB) error {
 		content, err := r.readEncryptedObject(contentID)
 		_, err = writer.Write(content)
 		if err != nil {
+			writer.Abort()
 			return err
 		}
 	}
 
 	hasChanges, err := r.pathHasConflictingChanges(nib, absPath)
 	if err != nil {
+		writer.Abort()
 		return err
 	}
 	if hasChanges {
+		writer.Abort()
 		return errors.New("workdir conflict")
 	}
 
-	err = writer.Close()
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

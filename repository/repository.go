@@ -125,6 +125,13 @@ func (r *Repository) Create() error {
 
 // AddItem adds a new file or directory to the repository.
 func (r *Repository) AddItem(absPath string) error {
+	stat, err := os.Stat(absPath)
+	if err != nil {
+		return err
+	}
+	if stat.IsDir() {
+		return r.addDirectory(absPath)
+	}
 	metadataID, err := r.writeMetadata(absPath)
 	if err != nil {
 		return err
@@ -169,6 +176,22 @@ func (r *Repository) AddItem(absPath string) error {
 	}
 	//FIXME: timestamp, deviceID etc.
 	return nibStore.Add(nib)
+}
+
+// addDirectory walks the given directory and calls AddItem on each entry
+func (r *Repository) addDirectory(absPath string) error {
+	files, err := ioutil.ReadDir(absPath)
+	if err != nil {
+		return err
+	}
+	for _, file := range files {
+		path := filepath.Join(absPath, file.Name())
+		err = r.AddItem(path)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // CheckoutPath looks up the given path name in the internal repository state and

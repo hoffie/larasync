@@ -342,6 +342,12 @@ func (r *Repository) AddNIBContent(nibReader io.Reader) error {
 		return err
 	}
 
+	for _, objectID := range nib.AllObjectIDs() {
+		if !r.HasObject(objectID) {
+			return &nibContentMissing{contentID: objectID}
+		}
+	}
+
 	return nibStore.AddContent(nib.ID, bytes.NewReader(data))
 }
 

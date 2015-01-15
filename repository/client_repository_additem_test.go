@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"runtime"
 	"io/ioutil"
 	"path/filepath"
 
@@ -122,8 +123,13 @@ func (t *RepositoryAddItemTests) TestAddDotLara(c *C) {
 
 func (t *RepositoryAddItemTests) TestAddDotLaraModified(c *C) {
 	path := string(filepath.Separator) + filepath.Join(t.r.Path, managementDirName)
+	
 	err := t.r.AddItem(path)
-	c.Assert(err, Equals, ErrRefusingWorkOnDotLara)
+	if runtime.GOOS != "windows" {
+		c.Assert(err, Equals, ErrRefusingWorkOnDotLara)
+	} else {
+		c.Assert(err, NotNil)
+	}
 }
 
 func (t *RepositoryAddItemTests) TestAddDotLaraSubdir(c *C) {

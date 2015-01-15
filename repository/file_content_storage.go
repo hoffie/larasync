@@ -66,6 +66,7 @@ func (f *FileContentStorage) Set(contentID string, reader io.Reader) error {
 
 	_, err = io.Copy(writer, reader)
 	if err != nil {
+		writer.Abort()
 		writer.Close()
 		return err
 	}

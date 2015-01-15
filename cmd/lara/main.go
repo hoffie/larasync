@@ -42,6 +42,8 @@ func (d *Dispatcher) initApp() {
 	app.Name = "larasync"
 	app.Usage = "least authority rest assured synchronization"
 	app.Version = "pre-build"
+	app.Author = "The larasync team"
+	app.Email = "team@larasync.org"
 	app.Commands = d.cmdActions()
 	app.Flags = d.globalFlags()
 

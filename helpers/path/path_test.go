@@ -41,6 +41,11 @@ func (t *PathTests) TestNormalizeAbs(c *C) {
 }
 
 func (t *PathTests) TestNormalizeRedundantChar(c *C) {
+	if runtime.GOOS == "windows" {
+		c.Skip("Incompatible with windows")
+		return
+	}
+
 	n, err := Normalize(string(filepath.Separator) + t.dir)
 	c.Assert(err, IsNil)
 	c.Assert(n, Equals, t.dir)

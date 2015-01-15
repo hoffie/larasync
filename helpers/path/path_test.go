@@ -3,7 +3,7 @@ package path
 import (
 	"os"
 	"path/filepath"
-	"runtime"
+	"strings"
 
 	. "gopkg.in/check.v1"
 )
@@ -47,12 +47,10 @@ func (t *PathTests) TestNormalizeRedundantChar(c *C) {
 }
 
 func (t *PathTests) TestIsBelow(c *C) {
-	basePath := "//foo/a"
-	belowPath := "/foo"
-	if runtime.GOOS == "windows" {
-		basePath = t.dir
-		belowPath = filepath.Dir(t.dir)
-	}
+	basePath := t.dir
+	belowPath := filepath.Dir(t.dir)
+	basePath = strings.Replace(basePath, string(filepath.Separator),
+		string(filepath.Separator) + string(filepath.Separator), -1)
 	
 	is, err := IsBelow(basePath, belowPath)
 	c.Assert(err, IsNil)

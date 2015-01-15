@@ -17,20 +17,20 @@ import (
 func (d *Dispatcher) cloneAction() int {
 	args := d.context.Args()
 	if len(args) < 2 {
-		fmt.Fprintln(d.stderr, "Error: Parameters invalid")
-		fmt.Fprintln(d.stderr, "You have to pass the repository name to clone to as a first ")
-		fmt.Fprintln(d.stderr, "argument and the authorization url as second argument.")
+		fmt.Fprintln(d.stderr, "Error: Invalid Syntax")
+		fmt.Fprintln(d.stderr, "Use: URL LOCAL-DIRECTORY")
 		return 1
 	}
 
-	repo := repository.NewClient(args[0])
+	urlString := args[0]
+	repoName := args[1]
+	repo := repository.NewClient(repoName)
 	err := repo.Create()
 	if err != nil && !os.IsExist(err) {
 		fmt.Fprintf(d.stderr, "Error: Could not create repository: %s\n", err)
 		return 1
 	}
 
-	urlString := args[1]
 	u, err := url.Parse(urlString)
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: Could not parse url. (%s)\n", err)

@@ -40,7 +40,7 @@ func (t *CloneTests) TestClone(c *C) {
 	// we are testing with absolute paths here as "clone" will
 	// change the cwd!
 	clonePath := filepath.Join(t.dir, cloneName)
-	c.Assert(t.d.run([]string{"clone", clonePath, url}), Equals, 0)
+	c.Assert(t.d.run([]string{"clone", url, clonePath}), Equals, 0)
 	err = os.Chdir(clonePath)
 	c.Assert(err, IsNil)
 

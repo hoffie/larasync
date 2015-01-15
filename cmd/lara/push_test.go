@@ -7,7 +7,7 @@ import (
 
 	. "gopkg.in/check.v1"
 
-	"github.com/hoffie/larasync/helpers/test"
+	"github.com/hoffie/larasync/helpers/path"
 )
 
 type PushTests struct {
@@ -38,23 +38,23 @@ func (t *PushTests) TestPush(c *C) {
 
 	t.runAndExpectCode(c, []string{"add", testFile}, 0)
 
-	num, err := test.NumFilesInDir(filepath.Join(t.ts.basePath,
+	num, err := path.NumFilesInDir(filepath.Join(t.ts.basePath,
 		repoName, ".lara", "nibs"))
 	c.Assert(err, IsNil)
 	c.Assert(num, Equals, 0)
 
-	num, err = test.NumFilesInDir(filepath.Join(t.ts.basePath,
+	num, err = path.NumFilesInDir(filepath.Join(t.ts.basePath,
 		repoName, ".lara", "objects"))
 	c.Assert(err, IsNil)
 	c.Assert(num, Equals, 0)
 	t.runAndExpectCode(c, []string{"push"}, 0)
 
-	num, err = test.NumFilesInDir(filepath.Join(t.ts.basePath,
+	num, err = path.NumFilesInDir(filepath.Join(t.ts.basePath,
 		repoName, ".lara", "nibs"))
 	c.Assert(err, IsNil)
 	c.Assert(num, Equals, 1)
 
-	num, err = test.NumFilesInDir(filepath.Join(t.ts.basePath,
+	num, err = path.NumFilesInDir(filepath.Join(t.ts.basePath,
 		repoName, ".lara", "objects"))
 	c.Assert(err, IsNil)
 	c.Assert(num, Equals, 2)

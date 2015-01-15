@@ -3,14 +3,9 @@ package path
 import (
 	"os"
 	"path/filepath"
-	"testing"
 
 	. "gopkg.in/check.v1"
 )
-
-func Test(t *testing.T) {
-	TestingT(t)
-}
 
 var _ = Suite(&PathTests{})
 

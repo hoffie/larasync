@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/hoffie/larasync/helpers/test"
+	"github.com/hoffie/larasync/helpers/path"
 	. "gopkg.in/check.v1"
 )
 
@@ -32,15 +32,15 @@ func (t *RepositoryAddItemTests) SetUpTest(c *C) {
 }
 
 func (t *RepositoryAddItemTests) TestWriteFileToChunks(c *C) {
-	path := filepath.Join(t.dir, "foo.txt")
-	err := ioutil.WriteFile(path, []byte("foo"), 0600)
+	fullpath := filepath.Join(t.dir, "foo.txt")
+	err := ioutil.WriteFile(fullpath, []byte("foo"), 0600)
 	c.Assert(err, IsNil)
-	numFiles, err := test.NumFilesInDir(filepath.Join(t.dir, ".lara", "objects"))
+	numFiles, err := path.NumFilesInDir(filepath.Join(t.dir, ".lara", "objects"))
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 0)
-	err = t.r.AddItem(path)
+	err = t.r.AddItem(fullpath)
 	c.Assert(err, IsNil)
-	numFiles, err = test.NumFilesInDir(filepath.Join(t.dir, ".lara", "objects"))
+	numFiles, err = path.NumFilesInDir(filepath.Join(t.dir, ".lara", "objects"))
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 2)
 }
@@ -50,28 +50,28 @@ func (t *RepositoryAddItemTests) TestWriteFileToChunks(c *C) {
 func (t *RepositoryAddItemTests) TestExistingFileNIBReuse(c *C) {
 	nibsPath := filepath.Join(t.dir, ".lara", "nibs")
 	filename := "foo.txt"
-	path := filepath.Join(t.dir, filename)
-	err := ioutil.WriteFile(path, []byte("foo"), 0600)
+	fullpath := filepath.Join(t.dir, filename)
+	err := ioutil.WriteFile(fullpath, []byte("foo"), 0600)
 	c.Assert(err, IsNil)
 
-	numFiles, err := test.NumFilesInDir(nibsPath)
+	numFiles, err := path.NumFilesInDir(nibsPath)
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 0)
 
-	err = t.r.AddItem(path)
+	err = t.r.AddItem(fullpath)
 	c.Assert(err, IsNil)
 
-	numFiles, err = test.NumFilesInDir(nibsPath)
+	numFiles, err = path.NumFilesInDir(nibsPath)
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 1)
 
-	err = ioutil.WriteFile(path, []byte("foo2"), 0600)
+	err = ioutil.WriteFile(fullpath, []byte("foo2"), 0600)
 	c.Assert(err, IsNil)
 
-	err = t.r.AddItem(path)
+	err = t.r.AddItem(fullpath)
 	c.Assert(err, IsNil)
 
-	numFiles, err = test.NumFilesInDir(nibsPath)
+	numFiles, err = path.NumFilesInDir(nibsPath)
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 1)
 
@@ -87,25 +87,25 @@ func (t *RepositoryAddItemTests) TestExistingFileNIBReuse(c *C) {
 func (t *RepositoryAddItemTests) TestExistingFileNoChange(c *C) {
 	nibsPath := filepath.Join(t.dir, ".lara", "nibs")
 	filename := "foo.txt"
-	path := filepath.Join(t.dir, filename)
-	err := ioutil.WriteFile(path, []byte("foo"), 0600)
+	fullpath := filepath.Join(t.dir, filename)
+	err := ioutil.WriteFile(fullpath, []byte("foo"), 0600)
 	c.Assert(err, IsNil)
 
-	numFiles, err := test.NumFilesInDir(nibsPath)
+	numFiles, err := path.NumFilesInDir(nibsPath)
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 0)
 
-	err = t.r.AddItem(path)
+	err = t.r.AddItem(fullpath)
 	c.Assert(err, IsNil)
 
-	numFiles, err = test.NumFilesInDir(nibsPath)
+	numFiles, err = path.NumFilesInDir(nibsPath)
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 1)
 
-	err = t.r.AddItem(path)
+	err = t.r.AddItem(fullpath)
 	c.Assert(err, IsNil)
 
-	numFiles, err = test.NumFilesInDir(nibsPath)
+	numFiles, err = path.NumFilesInDir(nibsPath)
 	c.Assert(err, IsNil)
 	c.Assert(numFiles, Equals, 1)
 

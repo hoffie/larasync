@@ -39,7 +39,6 @@ type Dispatcher struct {
 func (d *Dispatcher) initApp() {
 	app := cli.NewApp()
 	app.EnableBashCompletion = true
-	app.Name = "larasync"
 	app.Usage = "least authority rest assured synchronization"
 	app.Version = "pre-build"
 	app.Author = "The larasync team"
@@ -55,7 +54,7 @@ func (d *Dispatcher) initApp() {
 // returns the exit code.
 func (d *Dispatcher) run(args []string) int {
 	passArgs := []string{}
-	progName := "lara"
+	progName := os.Args[0]
 
 	if (len(args) > 0 && args[0] != progName) || len(args) == 0 {
 		passArgs = append(passArgs, progName)

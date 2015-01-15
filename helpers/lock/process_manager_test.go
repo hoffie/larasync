@@ -1,6 +1,7 @@
 package lock
 
 import (
+	"runtime"
 	"time"
 
 	. "gopkg.in/check.v1"
@@ -50,6 +51,8 @@ func (t *ProcessManagerTests) TestDifferentRoles(c *C) {
 func (t *ProcessManagerTests) TestLockInteraction(c *C) {
 	locker := t.manager.Get(t.repositoryPath, "lock")
 	locker.Lock()
+	sleepTime := 10 * time.Millisecond
+
 	var (
 		unlockTime time.Time
 		relockTime time.Time
@@ -57,14 +60,20 @@ func (t *ProcessManagerTests) TestLockInteraction(c *C) {
 	go func() {
 		sameLocker := t.manager.Get(t.repositoryPath, "lock")
 		sameLocker.Lock()
+		// On windows the internal Clock has some issues with very
+		// short time spans. That is why we are waiting here another
+		// amount of time before writing down the lock time.
+		if runtime.GOOS == "windows" {
+			time.Sleep(200 * time.Millisecond)
+		}
 		relockTime = time.Now()
 		sameLocker.Unlock()
 	}()
 
-	time.Sleep(time.Duration(10 * time.Millisecond))
+	time.Sleep(sleepTime)
 	unlockTime = time.Now()
 	locker.Unlock()
-	time.Sleep(time.Duration(10 * time.Millisecond))
+	time.Sleep(sleepTime)
 	locker.Lock()
 	c.Assert(relockTime, NotNil)
 	delta := relockTime.Sub(unlockTime)

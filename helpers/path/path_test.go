@@ -3,6 +3,7 @@ package path
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	. "gopkg.in/check.v1"
 )
@@ -10,17 +11,24 @@ import (
 var _ = Suite(&PathTests{})
 
 type PathTests struct {
-	dir string
+	oldDir string
+	dir    string
 }
 
 func (t *PathTests) SetUpTest(c *C) {
 	var err error
+	t.oldDir, err = os.Getwd()
+	c.Assert(err, IsNil)
 	// Fix for OSX systems. Temporary folder lies in a symlink directory
 	// /var/folders which is actually at /private/var/folders
 	t.dir, err = filepath.EvalSymlinks(c.MkDir())
 	c.Assert(err, IsNil)
 	err = os.Chdir(t.dir)
 	c.Assert(err, IsNil)
+}
+
+func (t *PathTests) TearDownTest(c *C) {
+	os.Chdir(t.oldDir)
 }
 
 func (t *PathTests) TestNormalizeAbs(c *C) {
@@ -33,13 +41,19 @@ func (t *PathTests) TestNormalizeAbs(c *C) {
 }
 
 func (t *PathTests) TestNormalizeRedundantChar(c *C) {
-	n, err := Normalize(string(filepath.Separator) + t.dir)
+	path := strings.Replace(t.dir, string(filepath.Separator),
+		string(filepath.Separator)+string(filepath.Separator), -1)
+	c.Assert(path, Not(Equals), t.dir)
+	n, err := Normalize(path)
 	c.Assert(err, IsNil)
 	c.Assert(n, Equals, t.dir)
 }
 
 func (t *PathTests) TestIsBelow(c *C) {
-	is, err := IsBelow("//foo/a", "/foo")
+	basePath := t.dir
+	belowPath := filepath.Dir(t.dir)
+
+	is, err := IsBelow(basePath, belowPath)
 	c.Assert(err, IsNil)
 	c.Assert(is, Equals, true)
 }

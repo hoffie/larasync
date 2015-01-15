@@ -102,8 +102,11 @@ func (t *NIBStoreTest) TestNibGetSignatureMangled(c *C) {
 	reader, err := t.storage.Get(testNib.ID)
 	data, err := ioutil.ReadAll(reader)
 	c.Assert(err, IsNil)
+	err = reader.Close()
+	c.Assert(err, IsNil)
 	data[len(data)-1] = 50
-	t.storage.Set(testNib.ID, bytes.NewReader(data))
+	err = t.storage.Set(testNib.ID, bytes.NewReader(data))
+	c.Assert(err, IsNil)
 	_, err = t.nibStore.Get(testNib.ID)
 	c.Assert(err, NotNil)
 }
@@ -113,8 +116,11 @@ func (t *NIBStoreTest) TestNibGetContentMangled(c *C) {
 	reader, err := t.storage.Get(testNib.ID)
 	data, err := ioutil.ReadAll(reader)
 	c.Assert(err, IsNil)
+	err = reader.Close()
+	c.Assert(err, IsNil)
 	data[0] = 50
-	t.storage.Set(testNib.ID, bytes.NewReader(data))
+	err = t.storage.Set(testNib.ID, bytes.NewReader(data))
+	c.Assert(err, IsNil)
 	_, err = t.nibStore.Get(testNib.ID)
 	c.Assert(err, NotNil)
 }
@@ -131,6 +137,7 @@ func (t *NIBStoreTest) TestNibExistsNegative(c *C) {
 func (t *NIBStoreTest) TestNibVerificationSignatureError(c *C) {
 	testNib := t.addTestNIB(c)
 	reader, err := t.storage.Get(testNib.ID)
+	defer reader.Close()
 	data, err := ioutil.ReadAll(reader)
 	c.Assert(err, IsNil)
 	data[len(data)-1] = 50
@@ -165,6 +172,7 @@ func (t *NIBStoreTest) TestNibVerificationMarshallingError(c *C) {
 func (t *NIBStoreTest) TestNibVerification(c *C) {
 	testNib := t.addTestNIB(c)
 	reader, err := t.storage.Get(testNib.ID)
+	defer reader.Close()
 	c.Assert(err, IsNil)
 
 	data, err := ioutil.ReadAll(reader)

@@ -46,6 +46,7 @@ func (d *Dispatcher) initApp() {
 	app.Email = "team@larasync.org"
 	app.Commands = d.cmdActions()
 	app.Flags = d.globalFlags()
+	app.Writer = d.stdout
 
 	d.app = app
 }
@@ -58,8 +59,8 @@ func (d *Dispatcher) run(args []string) int {
 
 	if (len(args) > 0 && args[0] != progName) || len(args) == 0 {
 		passArgs = append(passArgs, progName)
-		passArgs = append(passArgs, args...)
 	}
+	passArgs = append(passArgs, args...)
 
 	if len(passArgs) <= 1 {
 		passArgs = append(passArgs, "")

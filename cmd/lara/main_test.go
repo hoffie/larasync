@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"strings"
 
 	. "gopkg.in/check.v1"
 )
@@ -30,4 +31,9 @@ func (t *MainTests) TestPrompt(c *C) {
 	c.Assert(t.out.Bytes(), DeepEquals, []byte("Foo: "))
 	c.Assert(err, IsNil)
 	c.Assert(res, DeepEquals, []byte("test"))
+}
+
+func (t *MainTests) TestArgHandling(c *C) {
+	c.Assert(t.d.run([]string{"help", "sync"}), Equals, 0)
+	c.Assert(strings.Index(t.out.String(), "command sync"), Not(Equals), -1)
 }

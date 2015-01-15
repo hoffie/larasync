@@ -11,7 +11,7 @@ import (
 
 // authorizeNewClient is the command line handler for a specific
 // repository to put a signed authorization signature to the server.
-func (d *Dispatcher) authorizeNewClient() int {
+func (d *Dispatcher) authorizeNewClientAction() int {
 	root, err := d.getRootFromWd()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: %s\n", err)

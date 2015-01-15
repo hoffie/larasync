@@ -9,7 +9,7 @@ import (
 // checkoutAction handles all "lara checkout" commands and dispatches to the
 // appropriate sub-handlers.
 func (d *Dispatcher) checkoutAction() int {
-	numArgs := len(d.flags.Args())
+	numArgs := len(d.context.Args())
 	if numArgs > 1 {
 		fmt.Fprintf(d.stderr, "Error: only one path is supported")
 		return 1

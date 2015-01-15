@@ -15,14 +15,13 @@ import (
 
 // syncAction implements the "lara clone" command.
 func (d *Dispatcher) cloneAction() int {
-	if len(d.flags.Args()) < 2 {
+	args := d.context.Args()
+	if len(args) < 2 {
 		fmt.Fprintln(d.stderr, "Error: Parameters invalid")
 		fmt.Fprintln(d.stderr, "You have to pass the repository name to clone to as a first ")
 		fmt.Fprintln(d.stderr, "argument and the authorization url as second argument.")
 		return 1
 	}
-
-	args := d.flags.Args()
 
 	repo := repository.NewClient(args[0])
 	err := repo.Create()

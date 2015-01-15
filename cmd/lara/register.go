@@ -9,7 +9,8 @@ import (
 
 // registerAction implements "lara register HOST NAME"
 func (d *Dispatcher) registerAction() int {
-	if len(d.flags.Args()) != 2 {
+	args := d.context.Args()
+	if len(args) != 2 {
 		fmt.Fprint(d.stderr,
 			"Error: please specify the remote host and a name\n"+
 				"\te.g. lara register example.org:14124 foo\n")
@@ -19,8 +20,8 @@ func (d *Dispatcher) registerAction() int {
 	if err != nil {
 		return 1
 	}
-	netloc := d.flags.Arg(0)
-	repoName := d.flags.Arg(1)
+	netloc := args[0]
+	repoName := args[1]
 	adminSecret, err := d.prompt("Admin secret: ")
 	if err != nil {
 		fmt.Fprint(d.stderr, "Error: unable to read the admin secret\n")

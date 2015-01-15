@@ -3,12 +3,12 @@ package main
 import (
 	"bufio"
 	"errors"
-	"flag"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
+	"github.com/codegangsta/cli"
 	"github.com/inconshreveable/log15"
 	"golang.org/x/crypto/ssh/terminal"
 
@@ -20,56 +20,51 @@ var log = log15.New("module", "main")
 
 // main is our service dispatcher.
 func main() {
-	d := &Dispatcher{stdin: os.Stdin, stdout: os.Stdout, stderr: os.Stderr}
-	os.Exit(d.run(os.Args[1:]))
+	dispatcher := &Dispatcher{stdin: os.Stdin, stdout: os.Stdout, stderr: os.Stderr}
+	os.Exit(dispatcher.run(os.Args))
 }
 
 // Dispatcher is the environment for our command dispatcher and keeps
 // references to the relevant external interfaces.
 type Dispatcher struct {
-	stdin  io.Reader
-	stdout io.Writer
-	stderr io.Writer
-	flags  *flag.FlagSet
+	stdin    io.Reader
+	stdout   io.Writer
+	stderr   io.Writer
+	context  *cli.Context
+	app      *cli.App
+	exitCode int
 }
 
-// run starts dispatching with the given args.
+// initApp initializes the app structure.
+func (d *Dispatcher) initApp() {
+	app := cli.NewApp()
+	app.EnableBashCompletion = true
+	app.Name = "larasync"
+	app.Usage = "least authority rest assured synchronization"
+	app.Version = "pre-build"
+	app.Commands = d.cmdActions()
+	app.Flags = d.globalFlags()
+
+	d.app = app
+}
+
+// run starts the cli with the entered arguments.
+// returns the exit code.
 func (d *Dispatcher) run(args []string) int {
-	d.makeFlagSet(args)
-	if len(args) < 1 {
-		fmt.Fprint(d.stderr, "Error: no action given\n")
-		fmt.Fprint(d.stderr, "Please specify an action, e.g.\n\tlara help\n")
-		return 1
+	passArgs := []string{}
+	progName := "lara"
+
+	if (len(args) > 0 && args[0] != progName) || len(args) == 0 {
+		passArgs = append(passArgs, progName)
+		passArgs = append(passArgs, args...)
 	}
-	action := args[0]
-	cmd := d.defaultAction
-	switch action {
-	case "add":
-		cmd = d.addAction
-	case "admin-secret":
-		cmd = d.adminSecretAction
-	case "authorize-new-client":
-		cmd = d.authorizeNewClient
-	case "checkout":
-		cmd = d.checkoutAction
-	case "clone":
-		cmd = d.cloneAction
-	case "help":
-		cmd = d.helpAction
-	case "init":
-		cmd = d.initAction
-	case "pull":
-		cmd = d.pullAction
-	case "push":
-		cmd = d.pushAction
-	case "register":
-		cmd = d.registerAction
-	case "server":
-		cmd = d.serverAction
-	case "sync":
-		cmd = d.syncAction
+
+	if len(passArgs) <= 1 {
+		passArgs = append(passArgs, "")
 	}
-	return cmd()
+	d.initApp()
+	d.app.Run(passArgs)
+	return d.exitCode
 }
 
 // setupLogging configures our loggers and sets up our subpackages to use
@@ -81,40 +76,16 @@ func (d *Dispatcher) setupLogging() {
 	api.Log.SetHandler(handler)
 }
 
-// helpAction outputs usage information.
-func (d *Dispatcher) helpAction() int {
-	fmt.Fprintln(d.stderr, "Syntax: lara ACTION\n")
-	fmt.Fprintln(d.stderr, "Possible actions:")
-	fmt.Fprintln(d.stderr, "  add                   adds the current state of the given file or directory")
-	fmt.Fprintln(d.stderr, "  admin-secret          asks for an admin secret outputs its hash")
-	fmt.Fprintln(d.stderr, "  authorize-new-client  initializes a new authorization variable for a new client.")
-	fmt.Fprintln(d.stderr, "  checkout              (over)writes the given path with the repository's state")
-	fmt.Fprintln(d.stderr, "  clone                 downloads an already initialized repository")
-	fmt.Fprintln(d.stderr, "  help                  this information")
-	fmt.Fprintln(d.stderr, "  init                  initialize a new repository")
-	fmt.Fprintln(d.stderr, "  pull                  downlodas the current state from the server\n")
-	fmt.Fprintln(d.stderr, "  push                  uploads the current state to the server")
-	fmt.Fprintln(d.stderr, "  register              register this repository with a server")
-	fmt.Fprintln(d.stderr, "  server                run in server mode")
-	fmt.Fprintln(d.stderr, "  sync                  uploads and downloads all files from and to the repository.")
-	return 0
-}
-
-// defaultAction is invoked for all unknown actions.
-func (d *Dispatcher) defaultAction() int {
-	fmt.Fprint(d.stderr, "Error: unknown action\n")
-	fmt.Fprint(d.stderr, "Please specify a valid action, see \n\tlara help\n")
-	return 1
-}
-
 // parseFirstPathArg takes the first command line argument and returns its
 // absolute value along with the associated repository root.
 func (d *Dispatcher) parseFirstPathArg() (string, string, error) {
-	numArgs := len(d.flags.Args())
+	args := d.context.Args()
+	numArgs := len(args)
 	if numArgs < 1 {
 		return "", "", errors.New("no path specified")
 	}
-	absPath, err := filepath.Abs(d.flags.Arg(0))
+
+	absPath, err := filepath.Abs(args[0])
 	if err != nil {
 		return "", "", errors.New("unable to resolve path")
 	}

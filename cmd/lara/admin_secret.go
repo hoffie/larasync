@@ -8,7 +8,7 @@ import (
 
 // adminSecretAction implements "lara admin-secret"
 func (d *Dispatcher) adminSecretAction() int {
-	if len(d.flags.Args()) != 0 {
+	if len(d.context.Args()) != 0 {
 		fmt.Fprint(d.stderr, "Error: this command takes no args\n")
 		return 1
 	}

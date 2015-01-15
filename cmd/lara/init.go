@@ -9,7 +9,8 @@ import (
 
 // initAction initializes a new repository.
 func (d *Dispatcher) initAction() int {
-	numArgs := len(d.flags.Args())
+	args := d.context.Args()
+	numArgs := len(args)
 	var target string
 	if numArgs < 1 {
 		pwd, err := os.Getwd()
@@ -19,7 +20,7 @@ func (d *Dispatcher) initAction() int {
 		}
 		target = pwd
 	} else {
-		target = d.flags.Arg(0)
+		target = args[0]
 		err := os.Mkdir(target, 0700)
 		if err != nil && os.IsExist(err) {
 			fmt.Fprint(d.stderr, "Unable to create directory\n")

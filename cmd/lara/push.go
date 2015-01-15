@@ -8,7 +8,7 @@ import (
 
 // pushAction implements "lara push"
 func (d *Dispatcher) pushAction() int {
-	if len(d.flags.Args()) != 0 {
+	if len(d.context.Args()) != 0 {
 		fmt.Fprint(d.stderr, "Error: this command takes no arguments\n")
 		return 1
 	}

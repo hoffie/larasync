@@ -12,12 +12,12 @@ var _ = Suite(&RepositoryAddItemTests{})
 
 type RepositoryAddItemTests struct {
 	dir string
-	r   *Repository
+	r   *ClientRepository
 }
 
 func (t *RepositoryAddItemTests) SetUpTest(c *C) {
 	t.dir = c.MkDir()
-	t.r = New(t.dir)
+	t.r = NewClient(t.dir)
 	err := t.r.CreateManagementDir()
 	c.Assert(err, IsNil)
 	err = t.r.keys.CreateSigningKey()

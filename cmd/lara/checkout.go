@@ -27,7 +27,7 @@ func (d *Dispatcher) checkoutPathAction() int {
 		fmt.Fprintf(d.stderr, "Error: %s\n", err)
 		return 1
 	}
-	r := repository.New(root)
+	r := repository.NewClient(root)
 	err = r.CheckoutPath(absPath)
 	if err != nil {
 		fmt.Fprintf(d.stderr,
@@ -43,7 +43,7 @@ func (d *Dispatcher) checkoutAllPathsAction() int {
 	if err != nil {
 		return 1
 	}
-	r := repository.New(root)
+	r := repository.NewClient(root)
 	err = r.CheckoutAllPaths()
 	if err != nil {
 		fmt.Fprintf(d.stderr,

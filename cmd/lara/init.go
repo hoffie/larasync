@@ -27,7 +27,7 @@ func (d *Dispatcher) initAction() int {
 			return 1
 		}
 	}
-	repo := repository.New(target)
+	repo := repository.NewClient(target)
 	err := repo.CreateManagementDir()
 	if err != nil {
 		fmt.Fprint(d.stderr, "Unable to create management directory\n")

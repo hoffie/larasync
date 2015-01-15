@@ -2,6 +2,8 @@ package api
 
 import (
 	"net/http"
+	"io"
+	"bytes"
 
 	. "gopkg.in/check.v1"
 )
@@ -39,9 +41,13 @@ func (t *AuthorizationPutTests) TestPut(c *C) {
 	t.setUpWithExist(c)
 	repo := t.getRepository(c)
 	reader, err := repo.GetAuthorizationReader(t.authPublicKey)
-	reader.Close()
 	c.Assert(err, IsNil)
-	t.req = t.requestWithReader(c, reader)
+	buff := &bytes.Buffer{}
+	_, err = io.Copy(buff, reader)
+	c.Assert(err, IsNil)
+	reader.Close()
+	
+	t.req = t.requestWithReader(c, buff)
 	t.signRequest()
 
 	resp := t.getResponse(t.req)

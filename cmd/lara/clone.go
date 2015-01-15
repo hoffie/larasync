@@ -26,7 +26,7 @@ func (d *Dispatcher) cloneAction() int {
 	repo := repository.NewClient(args[0])
 	err := repo.Create()
 	if err != nil && !os.IsExist(err) {
-		fmt.Fprintln(d.stderr, "Error: Could not create repository: %s", err)
+		fmt.Fprintf(d.stderr, "Error: Could not create repository: %s\n", err)
 		return 1
 	}
 

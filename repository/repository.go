@@ -237,16 +237,6 @@ func (r *Repository) SetAuthorizationData(publicKey [PublicKeySize]byte, authDat
 	return r.authorizationManager.SetData(publicKey, authData)
 }
 
-// SetAuthorization adds a authorization with the given publicKey and encrypts it with the
-// passed encryptionKey to this repository.
-func (r *Repository) SetAuthorization(
-	publicKey [PublicKeySize]byte,
-	encKey [EncryptionKeySize]byte,
-	authorization *Authorization,
-) error {
-	return r.authorizationManager.Set(publicKey, encKey, authorization)
-}
-
 // DeleteAuthorization removes the authorization with the given publicKey.
 func (r *Repository) DeleteAuthorization(publicKey [PublicKeySize]byte) error {
 	return r.authorizationManager.Delete(publicKey)

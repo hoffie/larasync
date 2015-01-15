@@ -388,9 +388,6 @@ func (r *ClientRepository) AddItem(absPath string) error {
 	rev.ContentIDs = contentIDs
 	rev.UTCTimestamp = time.Now().UTC().Unix()
 	//FIXME: deviceID etc.
-	if err != nil {
-		return err
-	}
 	latestRev, err := nib.LatestRevision()
 	if err != nil && err != ErrNoRevision {
 		return err

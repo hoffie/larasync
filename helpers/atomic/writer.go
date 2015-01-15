@@ -5,7 +5,8 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
+	"runtime"
 )
 
 // ReadCloserAbort provides an additional Abort method to the
@@ -49,7 +50,7 @@ func NewWriter(path, tmpPrefix string, perm os.FileMode) (*Writer, error) {
 // getDirFileName splits the directory and the filename
 // and returns the data entry.
 func (aw *Writer) getDirFileName() (string, string) {
-	return path.Split(aw.path)
+	return filepath.Split(aw.path)
 }
 
 // tmpFileNamePrefix returns the prefix which should be passed when
@@ -74,10 +75,13 @@ func (aw *Writer) init() error {
 		return err
 	}
 
-	err = f.Chmod(aw.filePerms)
-	if err != nil {
-		f.Close()
-		return err
+	if runtime.GOOS != "windows" {
+		// Chmod not supported on windows.
+		err = f.Chmod(aw.filePerms)
+		if err != nil {
+			f.Close()
+			return err
+		}
 	}
 
 	if err != nil {
@@ -111,6 +115,21 @@ func (aw *Writer) Close() error {
 	if aw.aborted {
 		os.Remove(aw.tmpFile.Name())
 		return nil
+	}
+
+	// On windows you can not move a file on an already existing one.
+	// This is however expected behaviour in the application. Thus the necessity
+	// to remove the item in Windows first.
+
+	// FIXME: Not quite sure if this is windows only. I would
+	if runtime.GOOS == "windows" {
+		_, err = os.Stat(aw.path)
+		if err == nil {
+			err = os.Remove(aw.path)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	// now we know it's fine to (over)write the file;

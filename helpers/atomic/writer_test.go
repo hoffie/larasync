@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	. "gopkg.in/check.v1"
 )
@@ -69,6 +70,11 @@ func (t *WriterTests) TestWrite(c *C) {
 }
 
 func (t *WriterTests) TestFileModeWrite(c *C) {
+	if runtime.GOOS == "windows" {
+		c.Skip("File Mode is not set on windows at the moment.")
+		return
+	}
+
 	testFilePath := filepath.Join(t.dir, "testfile")
 	writer, err := NewStandardWriter(testFilePath, 0770)
 

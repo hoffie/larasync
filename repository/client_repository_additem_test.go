@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"runtime"
 	"io/ioutil"
 	"path/filepath"
+	"runtime"
 
 	"github.com/hoffie/larasync/helpers/path"
 	. "gopkg.in/check.v1"
@@ -126,7 +126,7 @@ func (t *RepositoryAddItemTests) TestAddDotLara(c *C) {
 
 func (t *RepositoryAddItemTests) TestAddDotLaraModified(c *C) {
 	path := string(filepath.Separator) + filepath.Join(t.r.Path, managementDirName)
-	
+
 	err := t.r.AddItem(path)
 	if runtime.GOOS != "windows" {
 		c.Assert(err, Equals, ErrRefusingWorkOnDotLara)

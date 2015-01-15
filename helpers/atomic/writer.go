@@ -117,12 +117,12 @@ func (aw *Writer) Close() error {
 		os.Remove(aw.tmpFile.Name())
 		return nil
 	}
-	
+
 	// On windows you can not move a file on an already existing one.
 	// This is however expected behaviour in the application. Thus the necessity
 	// to remove the item in Windows first.
-	
-	// FIXME: Not quite sure if this is windows only. I would 
+
+	// FIXME: Not quite sure if this is windows only. I would
 	if runtime.GOOS == "windows" {
 		_, err = os.Stat(aw.path)
 		if err == nil {
@@ -132,7 +132,7 @@ func (aw *Writer) Close() error {
 			}
 		}
 	}
-	
+
 	// now we know it's fine to (over)write the file;
 	// sadly, there is a TOCTU race here, which seems kind of unavoidable
 	// (our check is already done, yet the actual rename operation happens just now)

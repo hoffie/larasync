@@ -3,7 +3,6 @@ package repository
 import (
 	"crypto/rand"
 	"crypto/sha512"
-	"errors"
 	"os"
 )
 
@@ -35,7 +34,6 @@ func (m *UUIDContentStorage) findFreeUUID() ([]byte, error) {
 			return hash, nil
 		}
 	}
-	return nil, errors.New("findFreeUUID: unexpected case")
 }
 
 // hasUUID checks if the given UUID is already in use in this repository;

@@ -41,7 +41,8 @@ func (c *ServerConfig) Sanitize() error {
 	}
 	_, err = ioutil.ReadDir(c.Repository.BasePath)
 	if err != nil {
-		Log.Error("unable to open repository base path configured; refusing to run (%s)", err)
+		Log.Error(fmt.Sprintf("unable to open repository base path configured; "+
+			"refusing to run (%s)", err))
 		return ErrBadBasePath
 	}
 	if c.Signatures.MaxAge == 0 {

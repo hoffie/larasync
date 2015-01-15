@@ -49,7 +49,7 @@ func (s *Server) repositoryCreate(rw http.ResponseWriter, req *http.Request) {
 
 	if len(repository.PubKey) != PublicKeySize {
 		errorMessage := fmt.Sprintf(
-			"Public key has to be of length %i got %i",
+			"Public key has to be of length %d got %d",
 			PublicKeySize,
 			len(repository.PubKey))
 		errorJSON(rw,

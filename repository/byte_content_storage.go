@@ -23,6 +23,7 @@ func (s *ByteContentStorage) GetBytes(id string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer r.Close()
 	data, err := ioutil.ReadAll(r)
 	if err != nil {
 		return nil, err

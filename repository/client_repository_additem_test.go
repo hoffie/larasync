@@ -79,6 +79,9 @@ func (t *RepositoryAddItemTests) TestExistingFileNIBReuse(c *C) {
 	nib, err := t.r.nibStore.Get(nibID)
 	c.Assert(err, IsNil)
 	c.Assert(len(nib.Revisions), Equals, 2)
+	c.Assert(nib.Revisions[0].UTCTimestamp, Not(Equals), int64(0))
+	c.Assert(nib.Revisions[0].UTCTimestamp <= nib.Revisions[1].UTCTimestamp,
+		Equals, true)
 }
 
 // TestExistingFileNoChange ensures that no unnecessary updates

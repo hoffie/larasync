@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/hoffie/larasync/helpers/atomic"
 	"github.com/hoffie/larasync/helpers/crypto"
@@ -385,6 +386,8 @@ func (r *ClientRepository) AddItem(absPath string) error {
 	rev := &Revision{}
 	rev.MetadataID = metadataID
 	rev.ContentIDs = contentIDs
+	rev.UTCTimestamp = time.Now().UTC().Unix()
+	//FIXME: deviceID etc.
 	if err != nil {
 		return err
 	}
@@ -395,7 +398,6 @@ func (r *ClientRepository) AddItem(absPath string) error {
 	if err == ErrNoRevision || !latestRev.HasSameContent(rev) {
 		nib.AppendRevision(rev)
 	}
-	//FIXME: timestamp, deviceID etc.
 	return nibStore.Add(nib)
 }
 

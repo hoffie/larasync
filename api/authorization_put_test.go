@@ -39,6 +39,7 @@ func (t *AuthorizationPutTests) TestPut(c *C) {
 	t.setUpWithExist(c)
 	repo := t.getRepository(c)
 	reader, err := repo.GetAuthorizationReader(t.authPublicKey)
+	reader.Close()
 	c.Assert(err, IsNil)
 	t.req = t.requestWithReader(c, reader)
 	t.signRequest()

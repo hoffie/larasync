@@ -57,7 +57,6 @@ func (aw *Writer) getDirFileName() (string, string) {
 // creating a temporary file.
 func (aw *Writer) tmpFileNamePrefix() string {
 	_, fileName := aw.getDirFileName()
-	fmt.Printf("%s%s", aw.tmpPrefix, fileName)
 	return fmt.Sprintf("%s%s", aw.tmpPrefix, fileName)
 }
 

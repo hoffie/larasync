@@ -16,6 +16,7 @@ const (
 	nibsDirName           = "nibs"
 	transactionsDirName   = "transactions"
 	authorizationsDirName = "authorizations"
+	keysDirName           = "keys"
 	stateConfigFileName   = "state.json"
 
 	// default permissions
@@ -53,7 +54,7 @@ func New(path string) *Repository {
 		newFileContentStorage(r.subPathFor(authorizationsDirName)),
 	)
 
-	r.keys = NewKeyStore(r.managementDirPath)
+	r.keys = NewKeyStore(newFileContentStorage(r.subPathFor(keysDirName)))
 	r.nibStore = newNIBStore(
 		newFileContentStorage(r.subPathFor(nibsDirName)),
 		r.keys,
@@ -88,6 +89,7 @@ func (r *Repository) CreateManagementDir() error {
 		newFileContentStorage(r.subPathFor(nibsDirName)),
 		newFileContentStorage(r.subPathFor(transactionsDirName)),
 		newFileContentStorage(r.subPathFor(objectsDirName)),
+		newFileContentStorage(r.subPathFor(keysDirName)),
 	}
 
 	for _, fileStorage := range storages {

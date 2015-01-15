@@ -41,7 +41,7 @@ func (t *AuthorizeNewClientTest) TestKeyMissing(c *C) {
 	t.initRepo(c)
 	t.registerServerInRepo(c)
 
-	err := os.Remove(filepath.Join(".lara", "signing.priv"))
+	err := os.Remove(filepath.Join(".lara", "keys", "signing.priv"))
 	c.Assert(err, IsNil)
 	c.Assert(t.d.run([]string{"authorize-new-client"}), Equals, 1)
 }
@@ -51,7 +51,7 @@ func (t *AuthorizeNewClientTest) TestOtherPrivKey(c *C) {
 	t.registerServerInRepo(c)
 
 	data := [PrivateKeySize]byte{}
-	err := ioutil.WriteFile(filepath.Join(".lara", "signing.priv"), data[:], 0600)
+	err := ioutil.WriteFile(filepath.Join(".lara", "keys", "signing.priv"), data[:], 0600)
 	c.Assert(err, IsNil)
 	c.Assert(t.d.run([]string{"authorize-new-client"}), Equals, 1)
 }

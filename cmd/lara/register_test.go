@@ -70,7 +70,8 @@ func (t *RegisterTests) TestRegister(c *C) {
 	c.Assert(t.d.run([]string{"register", url, repoName}), Equals, 0)
 
 	// check the server dir:
-	serverKeyFile := filepath.Join(t.ts.basePath, repoName, ".lara", "signing.pub")
+	serverKeyFile := filepath.Join(t.ts.basePath, repoName, ".lara",
+		"keys", "signing.pub")
 	stat, err := os.Stat(serverKeyFile)
 	c.Assert(err, IsNil)
 	c.Assert(stat.IsDir(), Equals, false)

@@ -4,8 +4,6 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"path/filepath"
 
 	"github.com/hoffie/larasync/helpers/crypto"
 	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
@@ -26,46 +24,33 @@ const (
 	// generating content hashes (HMAC).
 	HashingKeySize = crypto.HashingKeySize
 
-	// paths to our key files
-	encryptionKeyFileName     = "encryption.key"
-	hashingKeyFileName        = "hashing.key"
-	signingPrivateKeyFileName = "signing.priv"
-	signingPublicKeyFileName  = "signing.pub"
+	// ids for our keys in the storage
+	encryptionKeyName     = "encryption.key"
+	hashingKeyName        = "hashing.key"
+	signingPrivateKeyName = "signing.priv"
+	signingPublicKeyName  = "signing.pub"
 )
 
 // KeyStore is responsible for loading keys from the storage backend.
 type KeyStore struct {
-	base                  string
-	encryptionKeyPath     string
-	signingPrivateKeyPath string
-	signingPublicKeyPath  string
-	hashingKeyPath        string
+	base    string
+	storage *ByteContentStorage
 }
 
 // NewKeyStore returns a new KeyStore instance.
-func NewKeyStore(path string) *KeyStore {
-	ks := &KeyStore{base: path}
-	ks.setupPaths()
+func NewKeyStore(storage ContentStorage) *KeyStore {
+	ks := &KeyStore{storage: newByteContentStorage(storage)}
 	return ks
-}
-
-// setupPaths initializes several attributes referring to encryption
-// key paths.
-func (ks *KeyStore) setupPaths() {
-	ks.encryptionKeyPath = filepath.Join(ks.base, encryptionKeyFileName)
-	ks.signingPrivateKeyPath = filepath.Join(ks.base, signingPrivateKeyFileName)
-	ks.signingPublicKeyPath = filepath.Join(ks.base, signingPublicKeyFileName)
-	ks.hashingKeyPath = filepath.Join(ks.base, hashingKeyFileName)
 }
 
 // SetEncryptionKey sets the encryption key
 func (ks *KeyStore) SetEncryptionKey(key [EncryptionKeySize]byte) error {
-	return ioutil.WriteFile(ks.encryptionKeyPath, key[:], defaultFilePerms)
+	return ks.storage.SetBytes(encryptionKeyName, key[:])
 }
 
 // EncryptionKey returns the encryption key.
 func (ks *KeyStore) EncryptionKey() ([EncryptionKeySize]byte, error) {
-	key, err := ioutil.ReadFile(ks.encryptionKeyPath)
+	key, err := ks.storage.GetBytes(encryptionKeyName)
 	if len(key) != EncryptionKeySize {
 		return [EncryptionKeySize]byte{}, fmt.Errorf(
 			"invalid key length (%d)", len(key))
@@ -77,12 +62,12 @@ func (ks *KeyStore) EncryptionKey() ([EncryptionKeySize]byte, error) {
 
 // SetSigningPrivateKey sets the signing private key
 func (ks *KeyStore) SetSigningPrivateKey(key [PrivateKeySize]byte) error {
-	return ioutil.WriteFile(ks.signingPrivateKeyPath, key[:], defaultFilePerms)
+	return ks.storage.SetBytes(signingPrivateKeyName, key[:])
 }
 
 // SigningPrivateKey returns the signing private key.
 func (ks *KeyStore) SigningPrivateKey() ([PrivateKeySize]byte, error) {
-	key, err := ioutil.ReadFile(ks.signingPrivateKeyPath)
+	key, err := ks.storage.GetBytes(signingPrivateKeyName)
 	if len(key) != PrivateKeySize {
 		return [PrivateKeySize]byte{}, fmt.Errorf(
 			"invalid key length (%d)", len(key))
@@ -94,25 +79,25 @@ func (ks *KeyStore) SigningPrivateKey() ([PrivateKeySize]byte, error) {
 
 // SetSigningPublicKey sets the signing key's public key.
 func (ks *KeyStore) SetSigningPublicKey(key []byte) error {
-	return ioutil.WriteFile(ks.signingPublicKeyPath, key, defaultFilePerms)
+	return ks.storage.SetBytes(signingPublicKeyName, key)
 }
 
 // SigningPublicKey returns the signing public key.
 func (ks *KeyStore) SigningPublicKey() ([PublicKeySize]byte, error) {
 	privKey, err := ks.SigningPrivateKey()
 	if err != nil {
-		return ks.signingPublicKeyFromFile()
+		return ks.signingPublicKeyFromStorage()
 	}
 	return edhelpers.GetPublicKeyFromPrivate(privKey), nil
 }
 
-// signingPubkeyFromFile returns the repository signing public key.
+// signingPubkeyFromStorage returns the repository signing public key.
 //
 // It tries to retrieve the stored copy and is only called if the public key
 // cannot be derived from the private key (i.e. if the private key is not
 // available in this repository).
-func (ks *KeyStore) signingPublicKeyFromFile() ([PublicKeySize]byte, error) {
-	key, err := ioutil.ReadFile(ks.signingPublicKeyPath)
+func (ks *KeyStore) signingPublicKeyFromStorage() ([PublicKeySize]byte, error) {
+	key, err := ks.storage.GetBytes(signingPublicKeyName)
 	if len(key) != PublicKeySize {
 		return [PublicKeySize]byte{}, fmt.Errorf(
 			"invalid key length (%d)", len(key))
@@ -124,12 +109,12 @@ func (ks *KeyStore) signingPublicKeyFromFile() ([PublicKeySize]byte, error) {
 
 // SetHashingKey sets the repository hashing key (content addressing)
 func (ks *KeyStore) SetHashingKey(key [HashingKeySize]byte) error {
-	return ioutil.WriteFile(ks.hashingKeyPath, key[:], defaultFilePerms)
+	return ks.storage.SetBytes(hashingKeyName, key[:])
 }
 
 // HashingKey returns the repository signing private key.
 func (ks *KeyStore) HashingKey() ([HashingKeySize]byte, error) {
-	key, err := ioutil.ReadFile(ks.hashingKeyPath)
+	key, err := ks.storage.GetBytes(hashingKeyName)
 	if len(key) != HashingKeySize {
 		return [HashingKeySize]byte{}, fmt.Errorf(
 			"invalid key length (%d)", len(key))
@@ -142,13 +127,11 @@ func (ks *KeyStore) HashingKey() ([HashingKeySize]byte, error) {
 // CreateEncryptionKey generates a random encryption key.
 func (ks *KeyStore) CreateEncryptionKey() error {
 	key := make([]byte, EncryptionKeySize)
-	var arrKey [EncryptionKeySize]byte
 	_, err := rand.Read(key)
 	if err != nil {
 		return err
 	}
-	copy(arrKey[:], key)
-	err = ks.SetEncryptionKey(arrKey)
+	err = ks.storage.SetBytes(encryptionKeyName, key)
 	return err
 }
 

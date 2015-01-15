@@ -5,7 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"runtime"
 )
 
@@ -50,13 +50,14 @@ func NewWriter(path, tmpPrefix string, perm os.FileMode) (*Writer, error) {
 // getDirFileName splits the directory and the filename
 // and returns the data entry.
 func (aw *Writer) getDirFileName() (string, string) {
-	return path.Split(aw.path)
+	return filepath.Split(aw.path)
 }
 
 // tmpFileNamePrefix returns the prefix which should be passed when
 // creating a temporary file.
 func (aw *Writer) tmpFileNamePrefix() string {
 	_, fileName := aw.getDirFileName()
+	fmt.Printf("%s%s", aw.tmpPrefix, fileName)
 	return fmt.Sprintf("%s%s", aw.tmpPrefix, fileName)
 }
 

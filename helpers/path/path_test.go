@@ -10,17 +10,24 @@ import (
 var _ = Suite(&PathTests{})
 
 type PathTests struct {
+	oldDir string
 	dir string
 }
 
 func (t *PathTests) SetUpTest(c *C) {
 	var err error
+	t.oldDir, err = os.Getwd()
+	c.Assert(err, IsNil)
 	// Fix for OSX systems. Temporary folder lies in a symlink directory
 	// /var/folders which is actually at /private/var/folders
 	t.dir, err = filepath.EvalSymlinks(c.MkDir())
 	c.Assert(err, IsNil)
 	err = os.Chdir(t.dir)
 	c.Assert(err, IsNil)
+}
+
+func (t *PathTests) TearDownTest(c *C) {
+	os.Chdir(t.oldDir)
 }
 
 func (t *PathTests) TestNormalizeAbs(c *C) {

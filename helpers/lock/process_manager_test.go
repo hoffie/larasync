@@ -52,7 +52,7 @@ func (t *ProcessManagerTests) TestLockInteraction(c *C) {
 	locker := t.manager.Get(t.repositoryPath, "lock")
 	locker.Lock()
 	sleepTime := 10 * time.Millisecond
-	
+
 	var (
 		unlockTime time.Time
 		relockTime time.Time
@@ -69,7 +69,7 @@ func (t *ProcessManagerTests) TestLockInteraction(c *C) {
 		relockTime = time.Now()
 		sameLocker.Unlock()
 	}()
-	
+
 	time.Sleep(sleepTime)
 	unlockTime = time.Now()
 	locker.Unlock()

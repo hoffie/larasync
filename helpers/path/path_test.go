@@ -39,7 +39,10 @@ func (t *PathTests) TestNormalizeRedundantChar(c *C) {
 }
 
 func (t *PathTests) TestIsBelow(c *C) {
-	is, err := IsBelow("//foo/a", "/foo")
+	basePath := "//foo/a"
+	belowPath := "/foo"
+	
+	is, err := IsBelow(basePath, belowPath)
 	c.Assert(err, IsNil)
 	c.Assert(is, Equals, true)
 }

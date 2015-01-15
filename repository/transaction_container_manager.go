@@ -103,7 +103,7 @@ func (tcm TransactionContainerManager) Exists(transactionContainerUUID string) b
 // configured UUID for the transaction container.
 func (tcm TransactionContainerManager) currentTransactionContainerUUID() (string, error) {
 	reader, err := tcm.storage.Get("current")
-	
+
 	if err != nil {
 		if os.IsNotExist(err) {
 			return "", nil
@@ -111,7 +111,7 @@ func (tcm TransactionContainerManager) currentTransactionContainerUUID() (string
 		return "", err
 	}
 	defer reader.Close()
-	
+
 	data, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return "", err

@@ -7,7 +7,7 @@ import (
 
 	. "gopkg.in/check.v1"
 
-	"github.com/hoffie/larasync/helpers/test"
+	"github.com/hoffie/larasync/helpers/path"
 )
 
 type AuthorizeNewClientTest struct {
@@ -28,7 +28,7 @@ func (t *AuthorizeNewClientTest) TestAuthorization(c *C) {
 	t.registerServerInRepo(c)
 	t.doAuthorization(c)
 
-	num, err := test.NumFilesInDir(filepath.Join(t.serverRepoPath(), "authorizations"))
+	num, err := path.NumFilesInDir(filepath.Join(t.serverRepoPath(), "authorizations"))
 	c.Assert(err, IsNil)
 	c.Assert(num, Equals, 1)
 }

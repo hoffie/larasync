@@ -6,7 +6,7 @@ import (
 
 	. "gopkg.in/check.v1"
 
-	"github.com/hoffie/larasync/helpers/test"
+	"github.com/hoffie/larasync/helpers/path"
 )
 
 type SyncTests struct {
@@ -42,12 +42,12 @@ func (t *SyncTests) TestSync(c *C) {
 
 	t.runAndExpectCode(c, []string{"sync"}, 0)
 
-	num, err := test.NumFilesInDir(filepath.Join(t.ts.basePath,
+	num, err := path.NumFilesInDir(filepath.Join(t.ts.basePath,
 		repoName, ".lara", "nibs"))
 	c.Assert(err, IsNil)
 	c.Assert(num, Equals, 2)
 
-	num, err = test.NumFilesInDir(filepath.Join(t.ts.basePath,
+	num, err = path.NumFilesInDir(filepath.Join(t.ts.basePath,
 		repoName, ".lara", "objects"))
 	c.Assert(err, IsNil)
 	c.Assert(num, Equals, 4)

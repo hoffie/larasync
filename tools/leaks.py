@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+# Open file leak checker
+# Usage:
+# strace -ff open,close,chdir,execve $REGULAR_CMD 2>&1 | python leaks.py
 import re
 import sys
 import os

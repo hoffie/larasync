@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"runtime"
 )
 
 // ReadCloserAbort provides an additional Abort method to the
@@ -74,10 +75,13 @@ func (aw *Writer) init() error {
 		return err
 	}
 
-	err = f.Chmod(aw.filePerms)
-	if err != nil {
-		f.Close()
-		return err
+	if runtime.GOOS != "windows" {
+		// Chmod not supported on windows.
+		err = f.Chmod(aw.filePerms)
+		if err != nil {
+			f.Close()
+			return err
+		}
 	}
 
 	if err != nil {
@@ -112,7 +116,22 @@ func (aw *Writer) Close() error {
 		os.Remove(aw.tmpFile.Name())
 		return nil
 	}
-
+	
+	// On windows you can not move a file on an already existing one.
+	// This is however expected behaviour in the application. Thus the necessity
+	// to remove the item in Windows first.
+	
+	// FIXME: Not quite sure if this is windows only. I would 
+	if runtime.GOOS == "windows" {
+		_, err = os.Stat(aw.path)
+		if err == nil {
+			err = os.Remove(aw.path)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	
 	// now we know it's fine to (over)write the file;
 	// sadly, there is a TOCTU race here, which seems kind of unavoidable
 	// (our check is already done, yet the actual rename operation happens just now)

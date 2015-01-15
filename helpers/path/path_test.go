@@ -12,7 +12,7 @@ var _ = Suite(&PathTests{})
 
 type PathTests struct {
 	oldDir string
-	dir string
+	dir    string
 }
 
 func (t *PathTests) SetUpTest(c *C) {
@@ -41,12 +41,10 @@ func (t *PathTests) TestNormalizeAbs(c *C) {
 }
 
 func (t *PathTests) TestNormalizeRedundantChar(c *C) {
-	if runtime.GOOS == "windows" {
-		c.Skip("Incompatible with windows")
-		return
-	}
-
-	n, err := Normalize(string(filepath.Separator) + t.dir)
+	path := strings.Replace(t.dir, string(filepath.Separator),
+		string(filepath.Separator)+string(filepath.Separator), -1)
+	c.Assert(path, Not(Equals), t.dir)
+	n, err := Normalize(path)
 	c.Assert(err, IsNil)
 	c.Assert(n, Equals, t.dir)
 }
@@ -54,9 +52,7 @@ func (t *PathTests) TestNormalizeRedundantChar(c *C) {
 func (t *PathTests) TestIsBelow(c *C) {
 	basePath := t.dir
 	belowPath := filepath.Dir(t.dir)
-	basePath = strings.Replace(basePath, string(filepath.Separator),
-		string(filepath.Separator) + string(filepath.Separator), -1)
-	
+
 	is, err := IsBelow(basePath, belowPath)
 	c.Assert(err, IsNil)
 	c.Assert(is, Equals, true)

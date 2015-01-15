@@ -120,7 +120,7 @@ func (t *NIBStoreTest) TestNibGetContentMangled(c *C) {
 	c.Assert(err, IsNil)
 	data[0] = 50
 	err = t.storage.Set(testNib.ID, bytes.NewReader(data))
-	c.Assert(err, NotNil)
+	c.Assert(err, IsNil)
 	_, err = t.nibStore.Get(testNib.ID)
 	c.Assert(err, NotNil)
 }

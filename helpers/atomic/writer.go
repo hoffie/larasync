@@ -70,6 +70,10 @@ func (aw *Writer) init() error {
 
 	f, err := ioutil.TempFile(dirName, aw.tmpFileNamePrefix())
 
+	if err != nil {
+		return err
+	}
+
 	err = f.Chmod(aw.filePerms)
 	if err != nil {
 		f.Close()

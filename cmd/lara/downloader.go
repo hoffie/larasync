@@ -5,6 +5,7 @@ import (
 
 	"github.com/hoffie/larasync/api"
 	"github.com/hoffie/larasync/repository"
+	"github.com/hoffie/larasync/repository/nib"
 )
 
 // downloader handles downloads from server to client
@@ -30,11 +31,11 @@ func (dl *downloader) getNIBs() error {
 	}
 	for nibBytes := range nibBytesIterator {
 		// FIXME: overwrite checking!
-		nib, err := dl.r.VerifyAndParseNIBBytes(nibBytes)
+		n, err := dl.r.VerifyAndParseNIBBytes(nibBytes)
 		if err != nil {
 			return err
 		}
-		err = dl.fetchMissingData(nib)
+		err = dl.fetchMissingData(n)
 		if err != nil {
 			return err
 		}
@@ -48,8 +49,8 @@ func (dl *downloader) getNIBs() error {
 }
 
 // fetchMissingData loads missing objects in the passed NIB.
-func (dl *downloader) fetchMissingData(nib *repository.NIB) error {
-	objectIDs := nib.AllObjectIDs()
+func (dl *downloader) fetchMissingData(n *nib.NIB) error {
+	objectIDs := n.AllObjectIDs()
 	for _, objectID := range objectIDs {
 		if dl.r.HasObject(objectID) {
 			continue

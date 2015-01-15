@@ -13,9 +13,6 @@ var (
 	// ErrBadChunkSize will be thrown if a too little chunk size is requested.
 	// This is used by the Chunker implementation.
 	ErrBadChunkSize = errors.New("bad chunk size (must be >16 bytes)")
-	// ErrNoRevision is returned if no such revision can be found. This is thrown
-	// durint the NIB validation process.
-	ErrNoRevision = errors.New("no revision")
 	// ErrSignatureVerification gets returned if a signature of a signed NIB could
 	// not be verified.
 	ErrSignatureVerification = errors.New("Signature verification failed")

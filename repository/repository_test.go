@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/hoffie/larasync/repository/nib"
+
 	. "gopkg.in/check.v1"
 )
 
@@ -93,10 +95,10 @@ func (t *RepositoryTests) TestGetObject(c *C) {
 // It should throw an error if a content id references in the nib
 // is not existing yet.
 func (t *RepositoryAddItemTests) TestAddNibContentObjectIDsMissing(c *C) {
-	nib := &NIB{
+	n := &nib.NIB{
 		ID: "asdf",
-		Revisions: []*Revision{
-			&Revision{
+		Revisions: []*nib.Revision{
+			&nib.Revision{
 				MetadataID: "not-existing",
 				ContentIDs: []string{},
 			},
@@ -106,9 +108,9 @@ func (t *RepositoryAddItemTests) TestAddNibContentObjectIDsMissing(c *C) {
 	err := r.CreateManagementDir()
 	c.Assert(err, IsNil)
 
-	err = r.nibStore.Add(nib)
+	err = r.nibStore.Add(n)
 	c.Assert(err, IsNil)
-	data, err := r.nibStore.GetBytes(nib.ID)
+	data, err := r.nibStore.GetBytes(n.ID)
 	c.Assert(err, IsNil)
 
 	buffer := bytes.NewBuffer(data)
@@ -118,10 +120,10 @@ func (t *RepositoryAddItemTests) TestAddNibContentObjectIDsMissing(c *C) {
 }
 
 func (t *RepositoryAddItemTests) TestAddNIBContentConflict(c *C) {
-	nib := &NIB{
+	n := &nib.NIB{
 		ID: "asdf",
-		Revisions: []*Revision{
-			&Revision{
+		Revisions: []*nib.Revision{
+			&nib.Revision{
 				MetadataID: "metadata123",
 				ContentIDs: []string{},
 			},
@@ -137,16 +139,16 @@ func (t *RepositoryAddItemTests) TestAddNIBContentConflict(c *C) {
 	err = r.AddObject("metadata456", bytes.NewBufferString("y"))
 	c.Assert(err, IsNil)
 
-	err = r.nibStore.Add(nib)
+	err = r.nibStore.Add(n)
 	c.Assert(err, IsNil)
-	data1, err := r.nibStore.GetBytes(nib.ID)
+	data1, err := r.nibStore.GetBytes(n.ID)
 	c.Assert(err, IsNil)
 
-	nib.AppendRevision(&Revision{MetadataID: "metadata456"})
+	n.AppendRevision(&nib.Revision{MetadataID: "metadata456"})
 
-	err = r.nibStore.Add(nib)
+	err = r.nibStore.Add(n)
 	c.Assert(err, IsNil)
-	data2, err := r.nibStore.GetBytes(nib.ID)
+	data2, err := r.nibStore.GetBytes(n.ID)
 	c.Assert(err, IsNil)
 
 	buffer1 := bytes.NewBuffer(data1)

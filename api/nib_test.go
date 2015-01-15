@@ -13,6 +13,7 @@ import (
 
 	"github.com/hoffie/larasync/helpers/crypto"
 	"github.com/hoffie/larasync/repository"
+	"github.com/hoffie/larasync/repository/nib"
 )
 
 type NIBTest struct {
@@ -20,8 +21,8 @@ type NIBTest struct {
 	nibID string
 }
 
-func generateTestRevision() *repository.Revision {
-	return &repository.Revision{
+func generateTestRevision() *nib.Revision {
+	return &nib.Revision{
 		MetadataID:   "metadataId",
 		ContentIDs:   []string{"1", "2", "3"},
 		UTCTimestamp: time.Now().UTC().Unix(),
@@ -57,29 +58,29 @@ func (t *NIBTest) setNIBId(seed string) string {
 	return t.nibID
 }
 
-func (t *NIBTest) getTestNIB() *repository.NIB {
-	nib := repository.NIB{}
-	nib.ID = t.nibID
-	nib.AppendRevision(generateTestRevision())
-	return &nib
+func (t *NIBTest) getTestNIB() *nib.NIB {
+	n := nib.NIB{}
+	n.ID = t.nibID
+	n.AppendRevision(generateTestRevision())
+	return &n
 }
 
-func (t *NIBTest) nibToBytes(nib *repository.NIB) []byte {
+func (t *NIBTest) nibToBytes(n *nib.NIB) []byte {
 	buf := bytes.NewBufferString("")
-	nib.WriteTo(buf)
+	n.WriteTo(buf)
 	return buf.Bytes()
 }
 
 func (t *NIBTest) getTestNIBBytes() []byte {
-	nib := t.getTestNIB()
-	return t.nibToBytes(nib)
+	n := t.getTestNIB()
+	return t.nibToBytes(n)
 }
 
 func (t *NIBTest) getTestNIBSignedBytes(c *C) []byte {
 	return t.signNIBBytes(c, t.getTestNIBBytes())
 }
 
-func (t *NIBTest) addTestNIB(c *C) *repository.NIB {
+func (t *NIBTest) addTestNIB(c *C) *nib.NIB {
 	return t.addNIB(c, t.getTestNIB())
 }
 
@@ -93,8 +94,8 @@ func (t *NIBTest) signNIBBytes(c *C, nibBytes []byte) []byte {
 	return wr.Bytes()
 }
 
-func (t *NIBTest) fillNIBContentObjects(c *C, repo *repository.Repository, nib *repository.NIB) {
-	for _, objectID := range nib.AllObjectIDs() {
+func (t *NIBTest) fillNIBContentObjects(c *C, repo *repository.Repository, n *nib.NIB) {
+	for _, objectID := range n.AllObjectIDs() {
 		if !repo.HasObject(objectID) {
 			err := repo.AddObject(objectID, bytes.NewBuffer([]byte("ASDF")))
 			c.Assert(err, IsNil)
@@ -108,18 +109,18 @@ func (t *NIBTest) fillContentOfDefaultNIB(c *C) {
 	t.fillNIBContentObjects(c, repo, testNib)
 }
 
-func (t *NIBTest) addNIB(c *C, nib *repository.NIB) *repository.NIB {
+func (t *NIBTest) addNIB(c *C, n *nib.NIB) *nib.NIB {
 	repo := t.createRepository(c)
-	t.fillNIBContentObjects(c, repo, nib)
+	t.fillNIBContentObjects(c, repo, n)
 
 	err := repo.AddNIBContent(bytes.NewBuffer(
-		t.signNIBBytes(c, t.nibToBytes(nib))),
+		t.signNIBBytes(c, t.nibToBytes(n))),
 	)
 	c.Assert(err, IsNil)
-	return nib
+	return n
 }
 
-func (t *NIBTest) extractNIB(c *C, resp *httptest.ResponseRecorder) *repository.NIB {
+func (t *NIBTest) extractNIB(c *C, resp *httptest.ResponseRecorder) *nib.NIB {
 	body, err := ioutil.ReadAll(resp.Body)
 	c.Assert(err, IsNil)
 	reader, err := crypto.NewVerifyingReader(
@@ -128,9 +129,9 @@ func (t *NIBTest) extractNIB(c *C, resp *httptest.ResponseRecorder) *repository.
 	)
 	c.Assert(err, IsNil)
 
-	nib := repository.NIB{}
-	nib.ReadFrom(reader)
-	return &nib
+	n := nib.NIB{}
+	n.ReadFrom(reader)
+	return &n
 }
 
 func (t *NIBTest) verifyNIBSignature(c *C, resp *httptest.ResponseRecorder) bool {

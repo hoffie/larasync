@@ -1,4 +1,4 @@
-package repository
+package nib
 
 import (
 	. "gopkg.in/check.v1"

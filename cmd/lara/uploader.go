@@ -5,6 +5,7 @@ import (
 
 	"github.com/hoffie/larasync/api"
 	"github.com/hoffie/larasync/repository"
+	"github.com/hoffie/larasync/repository/nib"
 )
 
 // uploader handles uploads from server to client
@@ -27,8 +28,8 @@ func (ul *uploader) uploadNIBs() error {
 		return fmt.Errorf("unable to get NIB list (%s)", err)
 	}
 
-	for nib := range nibs {
-		err = ul.uploadNIB(nib)
+	for n := range nibs {
+		err = ul.uploadNIB(n)
 		if err != nil {
 			return err
 		}
@@ -38,10 +39,10 @@ func (ul *uploader) uploadNIBs() error {
 }
 
 // uploadNIB uploads a single passed NIB to the remote server.
-func (ul *uploader) uploadNIB(nib *repository.NIB) error {
+func (ul *uploader) uploadNIB(n *nib.NIB) error {
 	r := ul.r
 	client := ul.client
-	objectIDs := nib.AllObjectIDs()
+	objectIDs := n.AllObjectIDs()
 
 	for _, objectID := range objectIDs {
 		err := ul.uploadObject(objectID)
@@ -49,15 +50,15 @@ func (ul *uploader) uploadNIB(nib *repository.NIB) error {
 			return err
 		}
 	}
-	nibReader, err := r.GetNIBReader(nib.ID)
+	nibReader, err := r.GetNIBReader(n.ID)
 	if err != nil {
 		return err
 	}
 	defer nibReader.Close()
 
-	err = client.PutNIB(nib.ID, nibReader)
+	err = client.PutNIB(n.ID, nibReader)
 	if err != nil {
-		return fmt.Errorf("uploading nib %s failed (%s)", nib.ID, err)
+		return fmt.Errorf("uploading nib %s failed (%s)", n.ID, err)
 	}
 
 	return nil

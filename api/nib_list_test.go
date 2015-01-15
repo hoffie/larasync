@@ -11,7 +11,7 @@ import (
 
 	"github.com/hoffie/larasync/helpers/bincontainer"
 	"github.com/hoffie/larasync/helpers/crypto"
-	"github.com/hoffie/larasync/repository"
+	"github.com/hoffie/larasync/repository/nib"
 )
 
 type NIBListTest struct {
@@ -25,8 +25,8 @@ func (t *NIBListTest) SetUpTest(c *C) {
 	t.createRepository(c)
 }
 
-func (t *NIBListTest) createNibList(c *C) []*repository.NIB {
-	nibs := []*repository.NIB{}
+func (t *NIBListTest) createNibList(c *C) []*nib.NIB {
+	nibs := []*nib.NIB{}
 	for i := 0; i < 10; i++ {
 		t.setNIBId(
 			strconv.FormatInt(int64(i), 10),
@@ -66,22 +66,22 @@ func (t *NIBListTest) TestGetEmpty(c *C) {
 
 func AssertNibSetsEqual(
 	c *C,
-	storedNibs []*repository.NIB,
-	retrievedNibs []*repository.NIB,
+	storedNibs []*nib.NIB,
+	retrievedNibs []*nib.NIB,
 ) {
 	c.Assert(
 		len(storedNibs), Equals, len(retrievedNibs),
 	)
 
-	nibIds := func(nibs []*repository.NIB) []string {
+	nibIds := func(nibs []*nib.NIB) []string {
 		nibIds := make([]string, len(nibs))
-		for i, nib := range nibs {
-			nibIds[i] = nib.ID
+		for i, n := range nibs {
+			nibIds[i] = n.ID
 		}
 		return nibIds
 	}
 
-	sortedNibIds := func(nibs []*repository.NIB) []string {
+	sortedNibIds := func(nibs []*nib.NIB) []string {
 		ids := nibIds(nibs)
 		sort.Sort(sort.StringSlice(ids))
 		return ids
@@ -94,23 +94,23 @@ func AssertNibSetsEqual(
 
 }
 
-func (t *NIBListTest) nibFromContainer(c *C, data []byte) *repository.NIB {
+func (t *NIBListTest) nibFromContainer(c *C, data []byte) *nib.NIB {
 	reader, err := crypto.NewVerifyingReader(t.pubKey, bytes.NewReader(data))
 	c.Assert(err, IsNil)
 
-	nib := repository.NIB{}
-	_, err = nib.ReadFrom(reader)
+	n := nib.NIB{}
+	_, err = n.ReadFrom(reader)
 	c.Assert(err, IsNil)
 
 	c.Assert(reader.VerifyAfterRead(), Equals, true)
 
-	return &nib
+	return &n
 }
 
-func (t *NIBListTest) getNIBsFromReader(c *C, reader io.Reader) []*repository.NIB {
+func (t *NIBListTest) getNIBsFromReader(c *C, reader io.Reader) []*nib.NIB {
 	decoder := bincontainer.NewDecoder(reader)
 
-	nibs := []*repository.NIB{}
+	nibs := []*nib.NIB{}
 	for {
 		data, err := decoder.ReadChunk()
 
@@ -152,7 +152,7 @@ func (t *NIBListTest) TestGetFromTransactionId(c *C) {
 
 	AssertNibSetsEqual(
 		c,
-		[]*repository.NIB{nibs[len(nibs)-1]},
+		[]*nib.NIB{nibs[len(nibs)-1]},
 		t.getNIBsFromReader(c, resp.Body),
 	)
 

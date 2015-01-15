@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 
 	"github.com/hoffie/larasync/helpers/crypto"
+	"github.com/hoffie/larasync/repository/nib"
 )
 
 // NIBStore handles the interaction with NIBs in a specific
@@ -32,7 +33,7 @@ func newNIBStore(
 }
 
 // Get returns the NIB of the given id.
-func (s *NIBStore) Get(id string) (*NIB, error) {
+func (s *NIBStore) Get(id string) (*nib.NIB, error) {
 	pubKey, err := s.keys.SigningPublicKey()
 	if err != nil {
 		return nil, err
@@ -52,8 +53,8 @@ func (s *NIBStore) Get(id string) (*NIB, error) {
 		return nil, err
 	}
 
-	nib := NIB{}
-	_, err = nib.ReadFrom(signatureReader)
+	n := nib.NIB{}
+	_, err = n.ReadFrom(signatureReader)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +63,7 @@ func (s *NIBStore) Get(id string) (*NIB, error) {
 		return nil, ErrSignatureVerification
 	}
 
-	return &nib, nil
+	return &n, nil
 }
 
 // GetBytes returns the Byte representation of the
@@ -82,8 +83,8 @@ func (s *NIBStore) getReader(id string) (io.ReadCloser, error) {
 	return s.storage.Get(id)
 }
 
-func (s *NIBStore) getFromTransactions(transactions []*Transaction) <-chan *NIB {
-	nibChannel := make(chan *NIB, 100)
+func (s *NIBStore) getFromTransactions(transactions []*Transaction) <-chan *nib.NIB {
+	nibChannel := make(chan *nib.NIB, 100)
 
 	go func() {
 		errorOccured := false
@@ -118,7 +119,7 @@ func (s *NIBStore) getByteRepresentationsFromTransactions(transactions []*Transa
 }
 
 // GetAll returns all NIBs which have been commited to the store.
-func (s *NIBStore) GetAll() (<-chan *NIB, error) {
+func (s *NIBStore) GetAll() (<-chan *nib.NIB, error) {
 	transactions, err := s.transactionManager.All()
 	if err != nil {
 		return nil, err
@@ -139,7 +140,7 @@ func (s *NIBStore) GetAllBytes() (<-chan []byte, error) {
 }
 
 // GetFrom returns all NIBs added added after the given transaction id.
-func (s *NIBStore) GetFrom(transactionID int64) (<-chan *NIB, error) {
+func (s *NIBStore) GetFrom(transactionID int64) (<-chan *nib.NIB, error) {
 	transactions, err := s.transactionManager.From(transactionID)
 	if err != nil {
 		return nil, err
@@ -160,7 +161,7 @@ func (s *NIBStore) GetBytesFrom(transactionID int64) (<-chan []byte, error) {
 }
 
 // Add adds the given NIB to the store.
-func (s *NIBStore) Add(nib *NIB) error {
+func (s *NIBStore) Add(nib *nib.NIB) error {
 	if nib.ID == "" {
 		return errors.New("empty nib ID")
 	}
@@ -224,7 +225,7 @@ func (s *NIBStore) Exists(id string) bool {
 
 // VerifyAndParseBytes verifies the correctness of the given
 // data in the reader and returns the parsed nib.
-func (s *NIBStore) VerifyAndParseBytes(data []byte) (*NIB, error) {
+func (s *NIBStore) VerifyAndParseBytes(data []byte) (*nib.NIB, error) {
 	pubKey, err := s.keys.SigningPublicKey()
 	if err != nil {
 		return nil, err
@@ -251,11 +252,11 @@ func (s *NIBStore) VerifyAndParseBytes(data []byte) (*NIB, error) {
 		return nil, ErrSignatureVerification
 	}
 
-	nib := &NIB{}
-	_, err = nib.ReadFrom(bytes.NewReader(buf))
+	n := &nib.NIB{}
+	_, err = n.ReadFrom(bytes.NewReader(buf))
 	if err != nil {
 		return nil, ErrUnMarshalling
 	}
 
-	return nib, nil
+	return n, nil
 }

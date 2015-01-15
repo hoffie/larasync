@@ -11,6 +11,7 @@ import (
 	"github.com/hoffie/larasync/helpers/atomic"
 	"github.com/hoffie/larasync/helpers/crypto"
 	"github.com/hoffie/larasync/helpers/path"
+	"github.com/hoffie/larasync/repository/nib"
 )
 
 // ClientRepository is a Repository from a client-side view; it has all the keys
@@ -271,7 +272,7 @@ func (r *ClientRepository) CheckoutAllPaths() error {
 
 // pathHasConflictingChanges checks whether the item pointed to by absPath has any
 // changes not resolvable to a revision in the given NIB.
-func (r *ClientRepository) pathHasConflictingChanges(nib *NIB, absPath string) (bool, error) {
+func (r *ClientRepository) pathHasConflictingChanges(nib *nib.NIB, absPath string) (bool, error) {
 	workdirContentIDs, err := r.getFileChunkIDs(absPath)
 	if os.IsNotExist(err) {
 		return false, nil
@@ -285,7 +286,7 @@ func (r *ClientRepository) pathHasConflictingChanges(nib *NIB, absPath string) (
 }
 
 // checkoutNIB checks out the provided NIB's latest revision into the working directory.
-func (r *ClientRepository) checkoutNIB(nib *NIB) error {
+func (r *ClientRepository) checkoutNIB(nib *nib.NIB) error {
 	rev, err := nib.LatestRevision()
 	if err != nil {
 		return err
@@ -375,27 +376,27 @@ func (r *ClientRepository) AddItem(absPath string) error {
 
 	nibStore := r.nibStore
 
-	nib := &NIB{ID: nibID}
+	n := &nib.NIB{ID: nibID}
 	if nibStore.Exists(nibID) {
-		nib, err = nibStore.Get(nibID)
+		n, err = nibStore.Get(nibID)
 		if err != nil {
 			return err
 		}
 	}
 
-	rev := &Revision{}
+	rev := &nib.Revision{}
 	rev.MetadataID = metadataID
 	rev.ContentIDs = contentIDs
 	rev.UTCTimestamp = time.Now().UTC().Unix()
 	//FIXME: deviceID etc.
-	latestRev, err := nib.LatestRevision()
-	if err != nil && err != ErrNoRevision {
+	latestRev, err := n.LatestRevision()
+	if err != nil && err != nib.ErrNoRevision {
 		return err
 	}
-	if err == ErrNoRevision || !latestRev.HasSameContent(rev) {
-		nib.AppendRevision(rev)
+	if err == nib.ErrNoRevision || !latestRev.HasSameContent(rev) {
+		n.AppendRevision(rev)
 	}
-	return nibStore.Add(nib)
+	return nibStore.Add(n)
 }
 
 // addDirectory walks the given directory and calls AddItem on each entry

@@ -9,6 +9,7 @@ import (
 	"github.com/agl/ed25519"
 
 	"github.com/hoffie/larasync/helpers/crypto"
+	"github.com/hoffie/larasync/repository/nib"
 
 	. "gopkg.in/check.v1"
 )
@@ -61,14 +62,14 @@ func (t *NIBStoreTest) SetUpTest(c *C) {
 	)
 }
 
-func (t *NIBStoreTest) getTestNIB() *NIB {
-	n := &NIB{ID: "test"}
-	n.AppendRevision(&Revision{})
-	n.AppendRevision(&Revision{})
+func (t *NIBStoreTest) getTestNIB() *nib.NIB {
+	n := &nib.NIB{ID: "test"}
+	n.AppendRevision(&nib.Revision{})
+	n.AppendRevision(&nib.Revision{})
 	return n
 }
 
-func (t *NIBStoreTest) addTestNIB(c *C) *NIB {
+func (t *NIBStoreTest) addTestNIB(c *C) *nib.NIB {
 	n := t.getTestNIB()
 	err := t.nibStore.Add(n)
 	c.Assert(err, IsNil)
@@ -92,9 +93,9 @@ func (t *NIBStoreTest) TestTransactionAddition(c *C) {
 
 func (t *NIBStoreTest) TestNibGet(c *C) {
 	testNib := t.addTestNIB(c)
-	nib, err := t.nibStore.Get(testNib.ID)
+	n, err := t.nibStore.Get(testNib.ID)
 	c.Assert(err, IsNil)
-	c.Assert(nib.ID, Equals, testNib.ID)
+	c.Assert(n.ID, Equals, testNib.ID)
 }
 
 func (t *NIBStoreTest) TestNibGetSignatureMangled(c *C) {
@@ -147,9 +148,9 @@ func (t *NIBStoreTest) TestNibVerificationSignatureError(c *C) {
 }
 
 func (t *NIBStoreTest) TestNibVerificationMarshallingError(c *C) {
-	nib := t.getTestNIB()
+	n := t.getTestNIB()
 	rawNIB := &bytes.Buffer{}
-	_, err := nib.WriteTo(rawNIB)
+	_, err := n.WriteTo(rawNIB)
 	c.Assert(err, IsNil)
 	// corrupt the NIB
 	nibBytes := rawNIB.Bytes()
@@ -185,9 +186,9 @@ func (t *NIBStoreTest) TestNibVerification(c *C) {
 // It should return all added bytes
 func (t *NIBStoreTest) TestGetAllBytes(c *C) {
 	for i := 0; i < 100; i++ {
-		nib := t.getTestNIB()
-		nib.ID = fmt.Sprintf("test%d", i)
-		t.nibStore.Add(nib)
+		n := t.getTestNIB()
+		n.ID = fmt.Sprintf("test%d", i)
+		t.nibStore.Add(n)
 	}
 	found := 0
 
@@ -204,26 +205,26 @@ func (t *NIBStoreTest) TestGetAllBytes(c *C) {
 // It should Return all nib bytes
 func (t *NIBStoreTest) TestGetAll(c *C) {
 	for i := 0; i < 100; i++ {
-		nib := t.getTestNIB()
-		nib.ID = fmt.Sprintf("test%d", i)
-		t.nibStore.Add(nib)
+		n := t.getTestNIB()
+		n.ID = fmt.Sprintf("test%d", i)
+		t.nibStore.Add(n)
 	}
 	seen := []string{}
 
 	channel, err := t.nibStore.GetAll()
 	c.Assert(err, IsNil)
 
-	for nib := range channel {
-		if nib == nil {
+	for n := range channel {
+		if n == nil {
 			c.Error("error from channel")
 			return
 		}
 		for _, existingNib := range seen {
-			if existingNib == nib.ID {
+			if existingNib == n.ID {
 				c.Error("Double nib found.")
 			}
 		}
-		seen = append(seen, nib.ID)
+		seen = append(seen, n.ID)
 	}
 
 	c.Assert(len(seen), Equals, 100)
@@ -232,9 +233,9 @@ func (t *NIBStoreTest) TestGetAll(c *C) {
 
 func (t *NIBStoreTest) TestGetFrom(c *C) {
 	for i := 0; i < 100; i++ {
-		nib := t.getTestNIB()
-		nib.ID = fmt.Sprintf("test%d", i)
-		t.nibStore.Add(nib)
+		n := t.getTestNIB()
+		n.ID = fmt.Sprintf("test%d", i)
+		t.nibStore.Add(n)
 	}
 
 	transaction, err := t.transactionManager.CurrentTransaction()
@@ -251,8 +252,8 @@ func (t *NIBStoreTest) TestGetFrom(c *C) {
 	foundIds := []string{}
 	channel, err := t.nibStore.GetFrom(transaction.ID)
 
-	for nib := range channel {
-		foundIds = append(foundIds, nib.ID)
+	for n := range channel {
+		foundIds = append(foundIds, n.ID)
 	}
 
 	c.Assert(expectedIds, DeepEquals, foundIds)
@@ -260,9 +261,9 @@ func (t *NIBStoreTest) TestGetFrom(c *C) {
 
 func (t *NIBStoreTest) TestGetBytesFrom(c *C) {
 	for i := 0; i < 100; i++ {
-		nib := t.getTestNIB()
-		nib.ID = fmt.Sprintf("test%d", i)
-		t.nibStore.Add(nib)
+		n := t.getTestNIB()
+		n.ID = fmt.Sprintf("test%d", i)
+		t.nibStore.Add(n)
 	}
 
 	transaction, err := t.transactionManager.CurrentTransaction()

@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/hoffie/larasync/repository/nib"
 )
 
 const (
@@ -135,7 +137,7 @@ func (r *Repository) HasObject(objectID string) bool {
 
 // VerifyAndParseNIBBytes checks the signature of the given NIB and
 // deserializes it if the signature could be validated.
-func (r *Repository) VerifyAndParseNIBBytes(data []byte) (*NIB, error) {
+func (r *Repository) VerifyAndParseNIBBytes(data []byte) (*nib.NIB, error) {
 	return r.nibStore.VerifyAndParseBytes(data)
 }
 
@@ -168,7 +170,7 @@ func (r *Repository) AddNIBContent(nibReader io.Reader) error {
 
 // ensureConflictFreeNIBImport returns an error if we cannot import
 // the given NIB without conflicts or nil if everything is good.
-func (r *Repository) ensureConflictFreeNIBImport(otherNIB *NIB) error {
+func (r *Repository) ensureConflictFreeNIBImport(otherNIB *nib.NIB) error {
 	if !r.HasNIB(otherNIB.ID) {
 		return nil
 	}
@@ -183,7 +185,7 @@ func (r *Repository) ensureConflictFreeNIBImport(otherNIB *NIB) error {
 }
 
 // GetNIB returns a NIB for the given ID in this repository.
-func (r *Repository) GetNIB(id string) (*NIB, error) {
+func (r *Repository) GetNIB(id string) (*nib.NIB, error) {
 	return r.nibStore.Get(id)
 }
 
@@ -199,7 +201,7 @@ func (r *Repository) GetNIBBytesFrom(fromTransactionID int64) (<-chan []byte, er
 }
 
 // GetNIBsFrom returns nibs added since the passed transaction ID.
-func (r *Repository) GetNIBsFrom(fromTransactionID int64) (<-chan *NIB, error) {
+func (r *Repository) GetNIBsFrom(fromTransactionID int64) (<-chan *nib.NIB, error) {
 	return r.nibStore.GetFrom(fromTransactionID)
 }
 
@@ -211,7 +213,7 @@ func (r *Repository) GetAllNIBBytes() (<-chan []byte, error) {
 // GetAllNibs returns all the nibs which are stored in this repository.
 // Those will be returned with the oldest one first and the newest added
 // last.
-func (r *Repository) GetAllNibs() (<-chan *NIB, error) {
+func (r *Repository) GetAllNibs() (<-chan *nib.NIB, error) {
 	return r.nibStore.GetAll()
 }
 

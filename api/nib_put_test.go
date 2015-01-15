@@ -5,7 +5,7 @@ import (
 
 	. "gopkg.in/check.v1"
 
-	"github.com/hoffie/larasync/repository"
+	"github.com/hoffie/larasync/repository/nib"
 )
 
 type NIBPutTest struct {
@@ -80,9 +80,9 @@ func (t *NIBPutTest) TestPutNewStore(c *C) {
 	t.signRequest()
 	t.getResponse(t.req)
 
-	nib, err := r.GetNIB(t.nibID)
+	n, err := r.GetNIB(t.nibID)
 	c.Assert(err, IsNil)
-	c.Assert(nib.ID, Equals, t.nibID)
+	c.Assert(n.ID, Equals, t.nibID)
 }
 
 func (t *NIBPutTest) TestPutNewPrecondition(c *C) {
@@ -111,29 +111,29 @@ func (t *NIBPutTest) TestPutNewPreconditionFailed(c *C) {
 	c.Assert(resp.Code, Equals, http.StatusPreconditionFailed)
 }
 
-func (t *NIBPutTest) changeNIBForPut(c *C, nib *repository.NIB) *repository.NIB {
+func (t *NIBPutTest) changeNIBForPut(c *C, n *nib.NIB) *nib.NIB {
 	revision := generateTestRevision()
 	revision.MetadataID = "other-metadata"
 	revision.DeviceID = "other-id"
 
-	nib.AppendRevision(revision)
-	return nib
+	n.AppendRevision(revision)
+	return n
 }
 
-func (t *NIBPutTest) requestWithNib(c *C, nib *repository.NIB) *http.Request {
+func (t *NIBPutTest) requestWithNib(c *C, n *nib.NIB) *http.Request {
 	signedData := t.signNIBBytes(
 		c,
-		t.nibToBytes(nib),
+		t.nibToBytes(n),
 	)
 	return t.requestWithBytes(c, signedData)
 }
 
 func (t *NIBPutTest) TestPutUpdate(c *C) {
-	nib := t.addTestNIB(c)
-	nib = t.changeNIBForPut(c, nib)
+	n := t.addTestNIB(c)
+	n = t.changeNIBForPut(c, n)
 	repo := t.getRepository(c)
-	t.fillNIBContentObjects(c, repo, nib)
-	t.req = t.requestWithNib(c, nib)
+	t.fillNIBContentObjects(c, repo, n)
+	t.req = t.requestWithNib(c, n)
 	t.signRequest()
 
 	resp := t.getResponse(t.req)
@@ -141,9 +141,9 @@ func (t *NIBPutTest) TestPutUpdate(c *C) {
 }
 
 func (t *NIBPutTest) TestPutChanged(c *C) {
-	nib := t.normalPut(c)
+	n := t.normalPut(c)
 	repo := t.getRepository(c)
-	repoNib, err := repo.GetNIB(nib.ID)
+	repoNib, err := repo.GetNIB(n.ID)
 	c.Assert(err, IsNil)
 
 	revisions := repoNib.Revisions
@@ -153,13 +153,13 @@ func (t *NIBPutTest) TestPutChanged(c *C) {
 }
 
 func (t *NIBPutTest) TestPutConflict(c *C) {
-	nib := t.normalPut(c)
-	latestRev, err := nib.LatestRevision()
+	n := t.normalPut(c)
+	latestRev, err := n.LatestRevision()
 	c.Assert(err, IsNil)
 	latestRev.ContentIDs = []string{"changed"}
 	repo := t.getRepository(c)
-	t.fillNIBContentObjects(c, repo, nib)
-	t.req = t.requestWithNib(c, nib)
+	t.fillNIBContentObjects(c, repo, n)
+	t.req = t.requestWithNib(c, n)
 	t.signRequest()
 
 	resp := t.getResponse(t.req)
@@ -167,18 +167,18 @@ func (t *NIBPutTest) TestPutConflict(c *C) {
 
 }
 
-func (t *NIBPutTest) normalPut(c *C) *repository.NIB {
-	nib := t.addTestNIB(c)
-	nib = t.changeNIBForPut(c, nib)
+func (t *NIBPutTest) normalPut(c *C) *nib.NIB {
+	n := t.addTestNIB(c)
+	n = t.changeNIBForPut(c, n)
 	repo := t.getRepository(c)
-	t.fillNIBContentObjects(c, repo, nib)
+	t.fillNIBContentObjects(c, repo, n)
 
-	t.req = t.requestWithNib(c, nib)
+	t.req = t.requestWithNib(c, n)
 	t.signRequest()
 
 	resp := t.getResponse(t.req)
 	c.Assert(resp.Code, Equals, http.StatusOK)
-	return nib
+	return n
 }
 
 func (t *NIBPutTest) TestPutReferencedContentMissing(c *C) {

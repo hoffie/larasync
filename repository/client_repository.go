@@ -41,19 +41,19 @@ func (r *ClientRepository) StateConfig() (*StateConfig, error) {
 
 // writeFileToChunks takes a file path and saves its contents to the
 // storage in encrypted form with a content-addressing id.
-func (r *Repository) writeFileToChunks(path string) ([]string, error) {
+func (r *ClientRepository) writeFileToChunks(path string) ([]string, error) {
 	return r.splitFileToChunks(path, r.writeCryptoContainerObject)
 }
 
 // getFileChunkIDs analyzes the given file and returns its content ids.
 // This function does not write anything to disk.
-func (r *Repository) getFileChunkIDs(path string) ([]string, error) {
+func (r *ClientRepository) getFileChunkIDs(path string) ([]string, error) {
 	return r.splitFileToChunks(path, func(string, []byte) error { return nil })
 }
 
 // splitFileToChunks takes a file path and splits its contents into chunks
 // identified by their content ids.
-func (r *Repository) splitFileToChunks(path string, handler func(string, []byte) error) ([]string, error) {
+func (r *ClientRepository) splitFileToChunks(path string, handler func(string, []byte) error) ([]string, error) {
 	chunker, err := NewChunker(path, chunkSize)
 	if err != nil {
 		return nil, err
@@ -84,12 +84,12 @@ func (r *Repository) splitFileToChunks(path string, handler func(string, []byte)
 
 // GetSigningPrivateKey exposes the signing private key as it is required
 // in foreign packages such as api.
-func (r *Repository) GetSigningPrivateKey() ([PrivateKeySize]byte, error) {
+func (r *ClientRepository) GetSigningPrivateKey() ([PrivateKeySize]byte, error) {
 	return r.keys.SigningPrivateKey()
 }
 
 // CreateKeys handles creation of all required cryptographic keys.
-func (r *Repository) CreateKeys() error {
+func (r *ClientRepository) CreateKeys() error {
 	err := r.keys.CreateEncryptionKey()
 	if err != nil {
 		return err
@@ -111,7 +111,7 @@ func (r *Repository) CreateKeys() error {
 // encryptWithRandomKey takes a piece of data, encrypts it with a random
 // key and returns the result, prefixed by the random key encrypted by
 // the repository encryption key.
-func (r *Repository) encryptWithRandomKey(data []byte) ([]byte, error) {
+func (r *ClientRepository) encryptWithRandomKey(data []byte) ([]byte, error) {
 	encryptionKey, err := r.keys.EncryptionKey()
 	if err != nil {
 		return nil, err
@@ -122,7 +122,7 @@ func (r *Repository) encryptWithRandomKey(data []byte) ([]byte, error) {
 
 // hashChunk takes a chunk of data and constructs its content-addressing
 // hash.
-func (r *Repository) hashChunk(chunk []byte) (string, error) {
+func (r *ClientRepository) hashChunk(chunk []byte) (string, error) {
 	key, err := r.keys.HashingKey()
 	if err != nil {
 		return "", err
@@ -133,7 +133,7 @@ func (r *Repository) hashChunk(chunk []byte) (string, error) {
 
 // writeCryptoContainerObject takes a piece of raw data and
 // writes it to the object store in encrypted form.
-func (r *Repository) writeCryptoContainerObject(id string, data []byte) error {
+func (r *ClientRepository) writeCryptoContainerObject(id string, data []byte) error {
 	// PERFORMANCE: avoid re-writing pre-existing metadata files by checking for
 	// existance first.
 	var enc []byte
@@ -152,7 +152,7 @@ func (r *Repository) writeCryptoContainerObject(id string, data []byte) error {
 
 // readEncryptedObject reads the object with the given id and returns its
 // authenticated, unencrypted content.
-func (r *Repository) readEncryptedObject(id string) ([]byte, error) {
+func (r *ClientRepository) readEncryptedObject(id string) ([]byte, error) {
 	reader, err := r.objectStorage.Get(id)
 	if err != nil {
 		return nil, err
@@ -166,7 +166,7 @@ func (r *Repository) readEncryptedObject(id string) ([]byte, error) {
 
 // decryptContent is the counter-part of encryptWithRandomKey, i.e.
 // it returns the plain text again.
-func (r *Repository) decryptContent(enc []byte) ([]byte, error) {
+func (r *ClientRepository) decryptContent(enc []byte) ([]byte, error) {
 	encryptionKey, err := r.keys.EncryptionKey()
 	if err != nil {
 		return nil, err
@@ -177,7 +177,7 @@ func (r *Repository) decryptContent(enc []byte) ([]byte, error) {
 
 // writeMetadata writes the metadata object for the given path
 // to disk and returns its id.
-func (r *Repository) writeMetadata(absPath string) (string, error) {
+func (r *ClientRepository) writeMetadata(absPath string) (string, error) {
 	relPath, err := r.getRepoRelativePath(absPath)
 	if err != nil {
 		return "", err
@@ -207,12 +207,12 @@ func (r *Repository) writeMetadata(absPath string) (string, error) {
 }
 
 // getFilesNIBUUID returns the NIB for the given relative path
-func (r *Repository) pathToNIBID(relPath string) (string, error) {
+func (r *ClientRepository) pathToNIBID(relPath string) (string, error) {
 	return r.hashChunk([]byte(relPath))
 }
 
 // metadataByID returns the metadata object identified by the given object id.
-func (r *Repository) metadataByID(id string) (*Metadata, error) {
+func (r *ClientRepository) metadataByID(id string) (*Metadata, error) {
 	rawMetadata, err := r.readEncryptedObject(id)
 	if err != nil {
 		return nil, err
@@ -230,7 +230,7 @@ func (r *Repository) metadataByID(id string) (*Metadata, error) {
 // CheckoutPath looks up the given path name in the internal repository state and
 // writes the content from the repository state to the path in the working directory,
 // possibly overwriting an existing version of the file.
-func (r *Repository) CheckoutPath(absPath string) error {
+func (r *ClientRepository) CheckoutPath(absPath string) error {
 	relPath, err := r.getRepoRelativePath(absPath)
 	if err != nil {
 		return err
@@ -253,7 +253,7 @@ func (r *Repository) CheckoutPath(absPath string) error {
 }
 
 // CheckoutAllPaths checks out all tracked paths.
-func (r *Repository) CheckoutAllPaths() error {
+func (r *ClientRepository) CheckoutAllPaths() error {
 	nibStore := r.nibStore
 	nibs, err := nibStore.GetAll()
 	if err != nil {
@@ -270,7 +270,7 @@ func (r *Repository) CheckoutAllPaths() error {
 
 // pathHasConflictingChanges checks whether the item pointed to by absPath has any
 // changes not resolvable to a revision in the given NIB.
-func (r *Repository) pathHasConflictingChanges(nib *NIB, absPath string) (bool, error) {
+func (r *ClientRepository) pathHasConflictingChanges(nib *NIB, absPath string) (bool, error) {
 	workdirContentIDs, err := r.getFileChunkIDs(absPath)
 	if os.IsNotExist(err) {
 		return false, nil
@@ -284,7 +284,7 @@ func (r *Repository) pathHasConflictingChanges(nib *NIB, absPath string) (bool, 
 }
 
 // checkoutNIB checks out the provided NIB's latest revision into the working directory.
-func (r *Repository) checkoutNIB(nib *NIB) error {
+func (r *ClientRepository) checkoutNIB(nib *NIB) error {
 	rev, err := nib.LatestRevision()
 	if err != nil {
 		return err
@@ -338,7 +338,7 @@ func (r *Repository) checkoutNIB(nib *NIB) error {
 }
 
 // AddItem adds a new file or directory to the repository.
-func (r *Repository) AddItem(absPath string) error {
+func (r *ClientRepository) AddItem(absPath string) error {
 	stat, err := os.Stat(absPath)
 	if err != nil {
 		return err
@@ -400,7 +400,7 @@ func (r *Repository) AddItem(absPath string) error {
 }
 
 // addDirectory walks the given directory and calls AddItem on each entry
-func (r *Repository) addDirectory(absPath string) error {
+func (r *ClientRepository) addDirectory(absPath string) error {
 	files, err := ioutil.ReadDir(absPath)
 	if err != nil {
 		return err
@@ -416,4 +416,14 @@ func (r *Repository) addDirectory(absPath string) error {
 		}
 	}
 	return nil
+}
+
+// SetAuthorization adds a authorization with the given publicKey and encrypts it with the
+// passed encryptionKey to this repository.
+func (r *Repository) SetAuthorization(
+	publicKey [PublicKeySize]byte,
+	encKey [EncryptionKeySize]byte,
+	authorization *Authorization,
+) error {
+	return r.authorizationManager.Set(publicKey, encKey, authorization)
 }

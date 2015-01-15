@@ -40,12 +40,12 @@ func (tcm TransactionContainerManager) Get(transactionContainerUUID string) (*Tr
 	if err != nil {
 		return nil, err
 	}
+	defer reader.Close()
 
 	data, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return nil, err
 	}
-	_ = reader.Close()
 
 	protoTransactionContainer := &odf.TransactionContainer{}
 	err = proto.Unmarshal(
@@ -103,12 +103,15 @@ func (tcm TransactionContainerManager) Exists(transactionContainerUUID string) b
 // configured UUID for the transaction container.
 func (tcm TransactionContainerManager) currentTransactionContainerUUID() (string, error) {
 	reader, err := tcm.storage.Get("current")
+	
 	if err != nil {
 		if os.IsNotExist(err) {
 			return "", nil
 		}
 		return "", err
 	}
+	defer reader.Close()
+	
 	data, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return "", err

@@ -26,10 +26,6 @@ func (t *CommonTests) SetUpTest(c *C) {
 	t.d = &Dispatcher{stderr: t.out}
 }
 
-func (t *CommonTests) TestEmptyArgs(c *C) {
-	c.Assert(t.d.run([]string{}), Equals, 1)
-}
-
 func removeFilesInDir(dir string) error {
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {

@@ -56,14 +56,11 @@ func (d *Dispatcher) run(args []string) int {
 	passArgs := []string{}
 	progName := os.Args[0]
 
-	if (len(args) > 0 && args[0] != progName) || len(args) == 0 {
+	if (len(args) > 0 && args[0] != progName) {
 		passArgs = append(passArgs, progName)
 	}
 	passArgs = append(passArgs, args...)
 
-	if len(passArgs) <= 1 {
-		passArgs = append(passArgs, "")
-	}
 	d.initApp()
 	d.app.Run(passArgs)
 	return d.exitCode

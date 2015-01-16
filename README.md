@@ -9,10 +9,10 @@ Not even the developers use it for real data yet.
 
 A git-like command line interface is the only available interface at the moment.
 There are no signed releases, there is no conflict resolution, no automatic file synchronization, no kind of API or on-disk format stability guarantees are made, there are many other pitfalls and there *will* be bugs, so:
-**DO NOT USE IT IN PRUDUCTION YET**
+**DO NOT USE IT IN PRODUCTION YET**
 
 ## Platforms
-Development primarly happens on Linux and Mac OS X at the moment, but sporadic experiments on Windows seem to be successful as well.
+Development primarily happens on Linux and Mac OS X at the moment, but sporadic experiments on Windows seem to be successful as well.
 
 ## Usage
 1. Environment setup (required on both client and your server)

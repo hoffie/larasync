@@ -72,5 +72,5 @@ func (t *ConfigSanitizeTests) TestSignatureMaxAge(c *C) {
 	sc.Repository.BasePath = dir
 	err := sc.Sanitize()
 	c.Assert(err, IsNil)
-	c.Assert(sc.Signatures.MaxAge, Equals, 5*time.Second)
+	c.Assert(sc.Signatures.MaxAge, Equals, 10*time.Second)
 }

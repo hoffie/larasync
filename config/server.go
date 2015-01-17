@@ -46,7 +46,7 @@ func (c *ServerConfig) Sanitize() error {
 		return ErrBadBasePath
 	}
 	if c.Signatures.MaxAge == 0 {
-		c.Signatures.MaxAge = 5 * time.Second
+		c.Signatures.MaxAge = 10 * time.Second
 	}
 	return nil
 }

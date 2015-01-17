@@ -33,12 +33,9 @@ func (c *Client) Register(pubKey [PublicKeySize]byte) error {
 	if err != nil {
 		return err
 	}
-	resp, err := c.http.Do(req)
+	_, err = c.doRequest(req, http.StatusCreated)
 	if err != nil {
 		return err
-	}
-	if resp.StatusCode != http.StatusCreated {
-		return ErrUnexpectedStatus
 	}
 	return nil
 }

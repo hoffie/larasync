@@ -10,12 +10,9 @@ const defaultServerConfigPath = "larasync-server.gcfg"
 
 // getServerConfig reads the best-matching config file, sanitizes it
 // and returns the resulting config object.
-func getServerConfig() (*config.ServerConfig, error) {
+func getServerConfig(path string) (*config.ServerConfig, error) {
 	cfg := &config.ServerConfig{}
-	if configPath == "" {
-		configPath = defaultServerConfigPath
-	}
-	err := gcfg.ReadFileInto(cfg, configPath)
+	err := gcfg.ReadFileInto(cfg, path)
 	if err != nil {
 		return nil, err
 	}

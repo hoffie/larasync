@@ -39,7 +39,7 @@ func (d *Dispatcher) serverAction() int {
 	keyFile := filepath.Join(cfgDir, keyFileName)
 	err = d.needServerCert(certFile, keyFile)
 	if err != nil {
-		log.Err("unable to load/generate keys", log15.Ctx{"error": err})
+		log.Error("unable to load/generate keys", log15.Ctx{"error": err})
 		return 1
 	}
 	s := api.New(*cfg.Signatures.AdminPubkeyBinary,

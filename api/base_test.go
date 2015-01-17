@@ -9,11 +9,13 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path/filepath"
 	"time"
 
 	. "gopkg.in/check.v1"
 
 	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
+	"github.com/hoffie/larasync/helpers/x509"
 	"github.com/hoffie/larasync/repository"
 )
 
@@ -28,18 +30,17 @@ type BaseTests struct {
 	httpMethod     string
 	getURL         func() string
 	urlParams      url.Values
+	certFile       string
+	keyFile        string
 }
 
 func (t *BaseTests) SetUpTest(c *C) {
-	t.repos = c.MkDir()
+	t.createRepoManager(c)
+	t.createServer(c)
+
 	t.httpMethod = "GET"
 	t.repositoryName = "test"
-
-	rm, err := repository.NewManager(t.repos)
-	c.Assert(err, IsNil)
-	t.server = New(adminPubkey, time.Minute, rm)
-	c.Assert(rm.Exists(t.repositoryName), Equals, false)
-	t.rm = rm
+	c.Assert(t.rm.Exists(t.repositoryName), Equals, false)
 	t.getURL = func() string {
 		return fmt.Sprintf(
 			"http://example.org/repositories/%s",
@@ -50,6 +51,17 @@ func (t *BaseTests) SetUpTest(c *C) {
 	t.urlParams = url.Values{}
 }
 
+func (t *BaseTests) createRepoManager(c *C) {
+	t.repos = c.MkDir()
+	rm, err := repository.NewManager(t.repos)
+	c.Assert(err, IsNil)
+	t.rm = rm
+}
+
+func (t *BaseTests) createServer(c *C) {
+	t.server = New(adminPubkey, time.Minute, t.rm, t.certFile, t.keyFile)
+}
+
 func (t *BaseTests) SetUpSuite(c *C) {
 	byteArray := make([]byte, PrivateKeySize)
 	_, err := rand.Read(byteArray)
@@ -57,18 +69,19 @@ func (t *BaseTests) SetUpSuite(c *C) {
 	t.privateKey, err = passphraseToKey(byteArray)
 	c.Assert(err, IsNil)
 	t.pubKey = edhelpers.GetPublicKeyFromPrivate(t.privateKey)
+	t.createServerCert(c)
+}
+
+func (t *BaseTests) createServerCert(c *C) {
+	dir := c.MkDir()
+	t.certFile = filepath.Join(dir, "server.crt")
+	t.keyFile = filepath.Join(dir, "server.key")
+	err := x509.GenerateServerCertFiles(t.certFile, t.keyFile)
+	c.Assert(err, IsNil)
 }
 
 func (t *BaseTests) TearDownTest(c *C) {
 	os.RemoveAll(t.repos)
-}
-
-func (t *BaseTests) getServer() *Server {
-	return t.server
-}
-
-func (t *BaseTests) setServer(server *Server) {
-	t.server = server
 }
 
 func (t *BaseTests) getResponse(req *http.Request) *httptest.ResponseRecorder {

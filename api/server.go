@@ -1,6 +1,7 @@
 package api
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net"
 	"net/http"
@@ -19,6 +20,8 @@ type Server struct {
 	router        *mux.Router
 	maxRequestAge time.Duration
 	http          *http.Server
+	certFile      string
+	keyFile       string
 	rm            *repository.Manager
 }
 
@@ -28,7 +31,7 @@ const (
 )
 
 // New returns a new Server.
-func New(adminPubkey [PublicKeySize]byte, maxRequestAge time.Duration, rm *repository.Manager) *Server {
+func New(adminPubkey [PublicKeySize]byte, maxRequestAge time.Duration, rm *repository.Manager, certFile, keyFile string) *Server {
 	serveMux := http.NewServeMux()
 	s := Server{
 		adminPubkey:   adminPubkey,
@@ -39,6 +42,8 @@ func New(adminPubkey [PublicKeySize]byte, maxRequestAge time.Duration, rm *repos
 			Addr:    fmt.Sprintf(":%d", DefaultPort),
 			Handler: serveMux,
 		},
+		certFile: certFile,
+		keyFile:  keyFile,
 	}
 	s.setupRoutes()
 	serveMux.Handle("/", s.router)
@@ -203,13 +208,26 @@ func attachCurrentTransactionHeader(r *repository.Repository, rw http.ResponseWr
 	}
 }
 
-// ListenAndServe starts serving requests on the default port.
+// ListenAndServe starts serving requests on the default port using TLS
 func (s *Server) ListenAndServe() error {
-	return s.http.ListenAndServe()
+	listener, err := net.Listen("tcp", s.http.Addr)
+	if err != nil {
+		return err
+	}
+	return s.Serve(listener)
 }
 
-// Serve proxies net/http.Server.Serve; exposue of this function is required
-// for test server setup
+// Serve serves TLS-enabled requests on the given listener.
 func (s *Server) Serve(l net.Listener) error {
-	return s.http.Serve(l)
+	config := &tls.Config{}
+	config.NextProtos = []string{"http/1.1"}
+
+	var err error
+	config.Certificates = make([]tls.Certificate, 1)
+	config.Certificates[0], err = tls.LoadX509KeyPair(s.certFile, s.keyFile)
+	if err != nil {
+		return err
+	}
+	tlsListener := tls.NewListener(tcpKeepAliveListener{l.(*net.TCPListener)}, config)
+	return s.http.Serve(tlsListener)
 }

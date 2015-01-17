@@ -6,17 +6,13 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	. "gopkg.in/check.v1"
-
-	"github.com/hoffie/larasync/repository"
 )
 
 type RepoListTests struct {
-	server *Server
-	req    *http.Request
-	repos  string
+	BaseTests
+	req *http.Request
 }
 
 var _ = Suite(&RepoListTests{})
@@ -25,13 +21,9 @@ func (t *RepoListTests) SetUpTest(c *C) {
 	req, err := http.NewRequest("GET", "http://example.org/repositories", nil)
 	c.Assert(err, IsNil)
 	t.req = req
-}
-
-func (t *RepoListTests) SetUpSuite(c *C) {
-	t.repos = c.MkDir()
-	rm, err := repository.NewManager(t.repos)
-	c.Assert(err, IsNil)
-	t.server = New(adminPubkey, time.Minute, rm)
+	t.createRepoManager(c)
+	t.createServer(c)
+	t.createRepository(c)
 }
 
 func (t *RepoListTests) getResponse(req *http.Request) *httptest.ResponseRecorder {

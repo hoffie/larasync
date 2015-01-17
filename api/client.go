@@ -1,6 +1,7 @@
 package api
 
 import (
+	"crypto/tls"
 	"net/http"
 )
 
@@ -17,13 +18,16 @@ type Client struct {
 // NetlocToURL returns the URL matching the given netloc
 func NetlocToURL(netloc, repoName string) string {
 	// IMPROVEMENT: use mux router to generate URLs
-	return "http://" + netloc + "/repositories/" + repoName
+	return "https://" + netloc + "/repositories/" + repoName
 }
 
 // NewClient returns a new Client instance.
 func NewClient(url string) *Client {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
 	return &Client{
-		http:    &http.Client{},
+		http:    &http.Client{Transport: tr},
 		BaseURL: url,
 	}
 }

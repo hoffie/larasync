@@ -24,10 +24,12 @@ func (t *GenerateTests) TestGenerateServerCert(c *C) {
 
 func (t *GenerateTests) TestGenerateFiles(c *C) {
 	out := c.MkDir()
-	err := GenerateServerCertFiles(out)
+	keyFile := filepath.Join(out, "lara-server.key")
+	certFile := filepath.Join(out, "lara-server.crt")
+	err := GenerateServerCertFiles(certFile, keyFile)
 	c.Assert(err, IsNil)
-	_, err = os.Stat(filepath.Join(out, "lara-server.key"))
+	_, err = os.Stat(keyFile)
 	c.Assert(err, IsNil)
-	_, err = os.Stat(filepath.Join(out, "lara-server.crt"))
+	_, err = os.Stat(certFile)
 	c.Assert(err, IsNil)
 }

@@ -10,7 +10,6 @@ import (
 	"io"
 	"math/big"
 	"os"
-	"path/filepath"
 	"time"
 )
 
@@ -82,20 +81,18 @@ func pemBlockForKey(k *ecdsa.PrivateKey) (*pem.Block, error) {
 
 // GenerateServerCertFiles creates a certificate and a key file in the provided
 // output directory.
-func GenerateServerCertFiles(outDir string) error {
-	keyFilePath := filepath.Join(outDir, keyFileName)
-	keyOut, err := os.OpenFile(keyFilePath, os.O_CREATE|os.O_WRONLY, 0600)
-	if err != nil {
-		return err
-	}
-	defer keyOut.Close()
-
-	certFilePath := filepath.Join(outDir, certFileName)
-	certOut, err := os.OpenFile(certFilePath, os.O_CREATE|os.O_WRONLY, 0600)
+func GenerateServerCertFiles(certFile, keyFile string) error {
+	certOut, err := os.OpenFile(certFile, os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return err
 	}
 	defer certOut.Close()
+
+	keyOut, err := os.OpenFile(keyFile, os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		return err
+	}
+	defer keyOut.Close()
 
 	return GenerateServerCert(keyOut, certOut)
 }

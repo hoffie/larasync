@@ -4,9 +4,11 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/hoffie/larasync/api"
+	"github.com/hoffie/larasync/helpers/x509"
 	"github.com/hoffie/larasync/repository"
 )
 
@@ -43,7 +45,13 @@ func NewTestServer() (*TestServer, error) {
 		return nil, err
 	}
 
-	ts.api = api.New(pubKey, 5*time.Second, rm)
+	certFile := filepath.Join(tempdir, "server.crt")
+	keyFile := filepath.Join(tempdir, "server.key")
+	err = x509.GenerateServerCertFiles(certFile, keyFile)
+	if err != nil {
+		return nil, err
+	}
+	ts.api = api.New(pubKey, 5*time.Second, rm, certFile, keyFile)
 
 	err = ts.makeListener()
 	if err != nil {

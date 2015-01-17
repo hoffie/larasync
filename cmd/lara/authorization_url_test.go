@@ -25,7 +25,7 @@ func (t *AuthorizationURLTests) SetUpTest(c *C) {
 	t.pubKey = *pubKey
 	t.signKey = *signKey
 	rand.Read(t.encKey[:])
-	t.baseURL = "http://example.org/repo"
+	t.baseURL = "https://example.org/repo"
 }
 
 func (t *AuthorizationURLTests) getAuthURL() *AuthorizationURL {

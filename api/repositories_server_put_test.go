@@ -9,20 +9,14 @@ import (
 	"net/http/httptest"
 	"os"
 	"strings"
-	"time"
 
 	. "gopkg.in/check.v1"
-
-	"github.com/hoffie/larasync/repository"
 )
 
 type RepoListCreateTests struct {
-	server         *Server
-	rm             *repository.Manager
-	req            *http.Request
-	repos          string
-	repositoryName string
-	pubKey         []byte
+	BaseTests
+	req    *http.Request
+	pubKey []byte
 }
 
 var _ = Suite(&RepoListCreateTests{})
@@ -53,18 +47,15 @@ func (t *RepoListCreateTests) requestWithReader(c *C, httpBody io.Reader) *http.
 }
 
 func (t *RepoListCreateTests) SetUpTest(c *C) {
-	t.repos = c.MkDir()
 	t.repositoryName = "test"
-	rm, err := repository.NewManager(t.repos)
-	c.Assert(err, IsNil)
-	t.server = New(adminPubkey, time.Minute, rm)
-	c.Assert(rm.Exists(t.repositoryName), Equals, false)
-	t.rm = rm
+	t.createRepoManager(c)
+	t.createServer(c)
 	t.req = t.requestWithBytes(c, nil)
 }
 
 func (t *RepoListCreateTests) SetUpSuite(c *C) {
 	t.pubKey = make([]byte, PublicKeySize)
+	t.createServerCert(c)
 }
 
 func (t *RepoListCreateTests) TearDownTest(c *C) {

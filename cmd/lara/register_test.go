@@ -49,7 +49,7 @@ func (t *RegisterTests) TestRegisterNoArgs(c *C) {
 }
 
 func (t *RegisterTests) TestRegisterOnlyURL(c *C) {
-	url := "http://127.0.0.1:14124"
+	url := "https://127.0.0.1:14124"
 	c.Assert(t.d.run([]string{"register", url}), Equals, 1)
 }
 

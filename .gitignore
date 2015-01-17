@@ -1,3 +1,4 @@
-larasync
 .idea
 *.gcfg
+*.crt
+*.key

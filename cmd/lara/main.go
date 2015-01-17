@@ -56,7 +56,7 @@ func (d *Dispatcher) run(args []string) int {
 	passArgs := []string{}
 	progName := os.Args[0]
 
-	if (len(args) > 0 && args[0] != progName) {
+	if len(args) > 0 && args[0] != progName {
 		passArgs = append(passArgs, progName)
 	}
 	passArgs = append(passArgs, args...)

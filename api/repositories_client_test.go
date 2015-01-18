@@ -25,3 +25,9 @@ func (t *RepositoriesClientTest) TestConnError(c *C) {
 	err := t.client.Register(t.pubKey)
 	c.Assert(err, NotNil)
 }
+
+func (t *RepositoriesClientTest) TestAdminSecretError(c *C) {
+	t.client.adminSecret = []byte{}
+	err := t.client.Register(t.pubKey)
+	c.Assert(err, NotNil)
+}

@@ -1,10 +1,10 @@
 package atomic
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 
 	. "gopkg.in/check.v1"
 )
@@ -24,6 +24,10 @@ func (t *WriterTests) SetUpTest(c *C) {
 	t.dir = c.MkDir()
 }
 
+func (t *WriterTests) TearDownTest(c *C) {
+	writerErrorHook = nil
+}
+
 func (t *WriterTests) TestTmpFileCreation(c *C) {
 	testFilePath := filepath.Join(t.dir, "testfile")
 	writer, err := NewWriter(testFilePath, "testprefix", defaultFilePerms)
@@ -34,6 +38,14 @@ func (t *WriterTests) TestTmpFileCreation(c *C) {
 
 	_, err = os.Stat(testFilePath)
 	c.Assert(os.IsNotExist(err), Equals, true)
+}
+
+func (t *WriterTests) TestErrorOnInit(c *C) {
+	testFilePath := filepath.Join(t.dir, "testfile")
+	writerErrorHook = errors.New("Test")
+
+	_, err := NewWriter(testFilePath, "testprefix", defaultFilePerms)
+	c.Assert(err, NotNil)
 }
 
 func (t *WriterTests) TestClose(c *C) {
@@ -69,25 +81,6 @@ func (t *WriterTests) TestWrite(c *C) {
 	c.Assert(data, DeepEquals, testBytes)
 }
 
-func (t *WriterTests) TestFileModeWrite(c *C) {
-	if runtime.GOOS == "windows" {
-		c.Skip("File Mode is not set on windows at the moment.")
-		return
-	}
-
-	testFilePath := filepath.Join(t.dir, "testfile")
-	writer, err := NewStandardWriter(testFilePath, 0770)
-
-	writer.Close()
-
-	stat, err := os.Stat(testFilePath)
-	c.Assert(err, IsNil)
-	var fileMode os.FileMode
-	fileMode = 0770
-
-	c.Assert(stat.Mode(), Equals, fileMode)
-}
-
 func (t *WriterTests) TestAbort(c *C) {
 	testFilePath := filepath.Join(t.dir, "testfile")
 	writer, err := NewStandardWriter(testFilePath, 0770)
@@ -114,4 +107,14 @@ func (t *WriterTests) TestAbortNoOverwrite(c *C) {
 	writer.Close()
 	d, err := ioutil.ReadFile(testFilePath)
 	c.Assert(d, DeepEquals, oldFileData)
+}
+
+func (t *WriterTests) TestPlatformHookError(c *C) {
+	testFilePath := filepath.Join(t.dir, "testfile")
+	writer, err := NewStandardWriter(testFilePath, 0770)
+	c.Assert(err, IsNil)
+	writerErrorHook = errors.New("Test")
+	err = writer.Close()
+	c.Assert(err, NotNil)
+
 }

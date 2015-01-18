@@ -19,7 +19,11 @@ var log = log15.New("module", "main")
 // main is our service dispatcher.
 func main() {
 	dispatcher := &Dispatcher{stdin: os.Stdin, stdout: os.Stdout, stderr: os.Stderr}
-	os.Exit(dispatcher.run(os.Args))
+	args := []string{}
+	if len(os.Args) > 1 {
+		args = os.Args[1:]
+	}
+	os.Exit(dispatcher.run(args))
 }
 
 // Dispatcher is the environment for our command dispatcher and keeps
@@ -46,6 +50,10 @@ func (d *Dispatcher) initApp() {
 	app.Commands = d.cmdActions()
 	app.Flags = d.globalFlags()
 	app.Writer = d.stdout
+	app.CommandNotFound = func(ctx *cli.Context, cmd string) {
+		fmt.Fprint(d.stderr, "No such command; try help\n")
+		d.exitCode = 1
+	}
 
 	d.app = app
 }
@@ -53,19 +61,17 @@ func (d *Dispatcher) initApp() {
 // run starts the cli with the entered arguments.
 // returns the exit code.
 func (d *Dispatcher) run(args []string) int {
-	passArgs := []string{}
-	progName := os.Args[0]
+	passArgs := []string{"lara"}
 
-	if len(args) > 0 && args[0] != progName {
-		passArgs = append(passArgs, progName)
-	}
 	passArgs = append(passArgs, args...)
 
 	d.initApp()
-	d.exitCode = 1
+	if len(args) == 0 {
+		d.exitCode = 1
+	}
 	err := d.app.Run(passArgs)
 	if err != nil {
-		return 1
+		d.exitCode = 1
 	}
 	return d.exitCode
 }

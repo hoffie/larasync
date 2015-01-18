@@ -254,7 +254,6 @@ func (s *Server) CertificateFingerprint() (string, error) {
 func (s *Server) Serve(l net.Listener) error {
 	config := &tls.Config{
 		CipherSuites: []uint16{
-			tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
 			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
 		},
 		MinVersion:   tls.VersionTLS12,

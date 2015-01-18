@@ -10,6 +10,7 @@ import (
 	"math/big"
 	"net"
 	"strings"
+	"time"
 
 	. "gopkg.in/check.v1"
 )
@@ -138,4 +139,18 @@ func (t *FVTests) makeTestCert(c *C) (*x509.Certificate, []byte, *ecdsa.PrivateK
 	cert, err := x509.ParseCertificate(derBytes)
 	c.Assert(err, IsNil)
 	return cert, derBytes, priv
+}
+
+func (t *FVTests) TestNoConnection(c *C) {
+	fpv := &FingerprintVerifier{AcceptFingerprint: testCertFp}
+	_, err := fpv.DialTLS("tcp", "127.0.0.1:55543")
+	c.Assert(err, NotNil)
+}
+
+func (t *FVTests) TestTimeout(c *C) {
+	addr, l := t.setupTLSServer(c)
+	defer l.Close()
+	fpv := &FingerprintVerifier{AcceptFingerprint: testCertFp}
+	_, err := fpv.dialTLS("tcp", addr, 0*time.Minute)
+	c.Assert(err, NotNil)
 }

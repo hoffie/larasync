@@ -37,6 +37,12 @@ type FingerprintVerifier struct {
 // DialTLS is the function which hooks into net/http.Transport and should be
 // passed as a function reference.
 func (v *FingerprintVerifier) DialTLS(network, addr string) (net.Conn, error) {
+	return v.dialTLS(network, addr, handshakeTimeout)
+}
+
+// dialTLS is a helper function which does the main work for connecting
+// to the system.
+func (v *FingerprintVerifier) dialTLS(network, addr string, tlsTimeout time.Duration) (net.Conn, error) {
 	// setting InsecureSkipVerify here so that net/tls does not perform any
 	// validations; we validate the certificate fingerprint later.
 	cfg := &tls.Config{
@@ -52,7 +58,7 @@ func (v *FingerprintVerifier) DialTLS(network, addr string) (net.Conn, error) {
 	errc := make(chan error, 2)
 
 	// for canceling TLS handshake
-	timer := time.AfterFunc(handshakeTimeout, func() {
+	timer := time.AfterFunc(tlsTimeout, func() {
 		errc <- handshakeTimeoutError{}
 	})
 	go func() {

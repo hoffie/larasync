@@ -68,6 +68,7 @@ func (d *Dispatcher) cmdActions() []cli.Command {
 			Name:   "server",
 			Usage:  "run in server mode.",
 			Action: d.wrapAction(d.serverAction),
+			Flags:  d.serverFlags(),
 		},
 		{
 			Name:   "sync",

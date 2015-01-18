@@ -29,6 +29,7 @@ func (t *PullTests) TestPull(c *C) {
 	url := t.ts.hostAndPort
 	t.in.Write(t.ts.adminSecret)
 	t.in.WriteString("\n")
+	t.in.WriteString("y\n") // accept fingerprint
 	t.runAndExpectCode(c, []string{"register", url, repoName}, 0)
 
 	testFile := "foo.txt"

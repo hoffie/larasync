@@ -8,8 +8,9 @@ import (
 // StateConfig is used to keep track of state information
 // which has be be read and written programatically.
 type StateConfig struct {
-	Path          string `json:"-"`
-	DefaultServer string
+	Path                     string `json:"-"`
+	DefaultServer            string
+	DefaultServerFingerprint string
 }
 
 // Load attempts to load previous state config from disk.

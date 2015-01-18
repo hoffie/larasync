@@ -8,7 +8,6 @@ import (
 	"os"
 	"path"
 
-	"github.com/hoffie/larasync/api"
 	"github.com/hoffie/larasync/helpers/crypto"
 	"github.com/hoffie/larasync/repository"
 )
@@ -36,6 +35,11 @@ func (d *Dispatcher) cloneAction() int {
 		fmt.Fprintf(d.stderr, "Error: Could not parse url. (%s)\n", err)
 		return 1
 	}
+	authURL, err := parseAuthURL(u)
+	if err != nil {
+		fmt.Fprintf(d.stderr, "Error: Could not extract authorization information. (%s)\n", err)
+		return 1
+	}
 
 	sc, err := repo.StateConfig()
 	if err != nil {
@@ -43,19 +47,14 @@ func (d *Dispatcher) cloneAction() int {
 		return 1
 	}
 	sc.DefaultServer = "https://" + u.Host + path.Dir(path.Dir(u.Path))
+	sc.DefaultServerFingerprint = authURL.Fingerprint
 	err = sc.Save()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "unable to save state config (%s)\n", err)
 		return 1
 	}
 
-	client := api.NewClient(sc.DefaultServer)
-
-	authURL, err := parseAuthURL(u)
-	if err != nil {
-		fmt.Fprintf(d.stderr, "Error: Could not extract authorization information. (%s)\n", err)
-		return 1
-	}
+	client := d.clientForState(sc)
 
 	reader, err := client.GetAuthorization(authURL.URL.String(), authURL.SignKey)
 	if err != nil {

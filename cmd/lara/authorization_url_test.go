@@ -12,10 +12,11 @@ import (
 )
 
 type AuthorizationURLTests struct {
-	encKey  [EncryptionKeySize]byte
-	signKey [PrivateKeySize]byte
-	pubKey  [PublicKeySize]byte
-	baseURL string
+	encKey      [EncryptionKeySize]byte
+	signKey     [PrivateKeySize]byte
+	pubKey      [PublicKeySize]byte
+	fingerprint string
+	baseURL     string
 }
 
 var _ = Suite(&AuthorizationURLTests{})
@@ -24,12 +25,13 @@ func (t *AuthorizationURLTests) SetUpTest(c *C) {
 	pubKey, signKey, _ := edhelpers.GenerateKey()
 	t.pubKey = *pubKey
 	t.signKey = *signKey
+	t.fingerprint = "test"
 	rand.Read(t.encKey[:])
 	t.baseURL = "https://example.org/repo"
 }
 
 func (t *AuthorizationURLTests) getAuthURL() *AuthorizationURL {
-	auth, _ := newAuthURL(t.baseURL, &t.signKey, &t.encKey)
+	auth, _ := newAuthURL(t.baseURL, &t.signKey, &t.encKey, t.fingerprint)
 	return auth
 }
 
@@ -43,10 +45,11 @@ func (t *AuthorizationURLTests) getTestRequestURLString() string {
 
 func (t *AuthorizationURLTests) getTestURLString() string {
 	return fmt.Sprintf(
-		"%s#AuthEncKey=%s&AuthSignKey=%s",
+		"%s#AuthEncKey=%s&AuthSignKey=%s&Fingerprint=%s",
 		t.getTestRequestURLString(),
 		hex.EncodeToString(t.encKey[:]),
 		hex.EncodeToString(t.signKey[:]),
+		t.fingerprint,
 	)
 }
 
@@ -54,6 +57,7 @@ func (t *AuthorizationURLTests) TestGenerate(c *C) {
 	authURL := t.getAuthURL()
 	c.Assert(authURL.SignKey, DeepEquals, t.signKey)
 	c.Assert(authURL.EncKey, DeepEquals, t.encKey)
+	c.Assert(authURL.Fingerprint, DeepEquals, t.fingerprint)
 
 	c.Assert(authURL.String(), Equals, t.getTestURLString())
 }
@@ -65,11 +69,12 @@ func (t *AuthorizationURLTests) TestParse(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(authURL.SignKey, DeepEquals, t.signKey)
 	c.Assert(authURL.EncKey, DeepEquals, t.encKey)
+	c.Assert(authURL.Fingerprint, DeepEquals, t.fingerprint)
 	c.Assert(authURL.URL.String(), Equals, t.getTestRequestURLString())
 }
 
 func (t *AuthorizationURLTests) TestGenerateUrl(c *C) {
-	_, err := newAuthURL("%(asdf", &t.signKey, &t.encKey)
+	_, err := newAuthURL("%(asdf", &t.signKey, &t.encKey, t.fingerprint)
 	c.Assert(err, NotNil)
 }
 
@@ -89,7 +94,7 @@ func (t *AuthorizationURLTests) TestNoEncKey(c *C) {
 func (t *AuthorizationURLTests) TestNoSignKey(c *C) {
 	u, err := url.Parse(
 		fmt.Sprintf(
-			"%s#AuthSignKey=%s",
+			"%s#AuthEncKey=%s",
 			t.getTestRequestURLString(),
 			hex.EncodeToString(t.encKey[:]),
 		),
@@ -99,7 +104,21 @@ func (t *AuthorizationURLTests) TestNoSignKey(c *C) {
 	c.Assert(err, NotNil)
 }
 
-func (t *AuthorizationURLTests) TestToShortSignKey(c *C) {
+func (t *AuthorizationURLTests) TestNoFingerprint(c *C) {
+	u, err := url.Parse(
+		fmt.Sprintf(
+			"%s#AuthSignKey=%s&AuthEncKey=%s",
+			t.getTestRequestURLString(),
+			hex.EncodeToString(t.signKey[:]),
+			hex.EncodeToString(t.encKey[:]),
+		),
+	)
+	c.Assert(err, IsNil)
+	_, err = parseAuthURL(u)
+	c.Assert(err, NotNil)
+}
+
+func (t *AuthorizationURLTests) TestTooShortSignKey(c *C) {
 	signKeyString := hex.EncodeToString(t.signKey[:])
 	u, err := url.Parse(
 		fmt.Sprintf(
@@ -114,7 +133,7 @@ func (t *AuthorizationURLTests) TestToShortSignKey(c *C) {
 	c.Assert(err, NotNil)
 }
 
-func (t *AuthorizationURLTests) TestToShortSignKeyEncodingError(c *C) {
+func (t *AuthorizationURLTests) TestTooShortSignKeyEncodingError(c *C) {
 	signKeyString := hex.EncodeToString(t.signKey[:])
 	u, err := url.Parse(
 		fmt.Sprintf(
@@ -129,7 +148,7 @@ func (t *AuthorizationURLTests) TestToShortSignKeyEncodingError(c *C) {
 	c.Assert(err, NotNil)
 }
 
-func (t *AuthorizationURLTests) TestToShortEncryptionKey(c *C) {
+func (t *AuthorizationURLTests) TestTooShortEncryptionKey(c *C) {
 	signKeyString := hex.EncodeToString(t.signKey[:])
 	encKeyString := hex.EncodeToString(t.encKey[:])
 	u, err := url.Parse(
@@ -145,7 +164,7 @@ func (t *AuthorizationURLTests) TestToShortEncryptionKey(c *C) {
 	c.Assert(err, NotNil)
 }
 
-func (t *AuthorizationURLTests) TestToShortEncryptionKeyEncodingError(c *C) {
+func (t *AuthorizationURLTests) TestTooShortEncryptionKeyEncodingError(c *C) {
 	signKeyString := hex.EncodeToString(t.signKey[:])
 	encKeyString := hex.EncodeToString(t.encKey[:])
 	u, err := url.Parse(

@@ -22,7 +22,7 @@ func (d *Dispatcher) registerAction() int {
 	}
 	netloc := args[0]
 	repoName := args[1]
-	adminSecret, err := d.prompt("Admin secret: ")
+	adminSecret, err := d.promptPassword("Admin secret: ")
 	if err != nil {
 		fmt.Fprint(d.stderr, "Error: unable to read the admin secret\n")
 		return 1
@@ -35,19 +35,21 @@ func (d *Dispatcher) registerAction() int {
 	}
 
 	url := api.NetlocToURL(netloc, repoName)
-	client := api.NewClient(url)
-	client.SetAdminSecret(adminSecret)
-	err = client.Register(pubKey)
-	if err != nil {
-		fmt.Fprintf(d.stderr, "Error: unable to register (%s)\n", err)
-		return 1
-	}
+
 	sc, err := r.StateConfig()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: unable to load repo state (%s)\n", err)
 		return 1
 	}
 	sc.DefaultServer = url
+
+	client := d.clientForState(sc)
+	client.SetAdminSecret(adminSecret)
+	err = client.Register(pubKey)
+	if err != nil {
+		fmt.Fprintf(d.stderr, "Error: unable to register (%s)\n", err)
+		return 1
+	}
 	err = sc.Save()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: unable to save repo state (%s)\n", err)

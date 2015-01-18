@@ -55,6 +55,7 @@ func (t *BaseTests) registerServerInRepo(c *C) {
 	url := t.ts.hostAndPort
 	t.in.Write(t.ts.adminSecret)
 	t.in.WriteString("\n")
+	t.in.WriteString("y\n") // confirm server fingerprint
 	c.Assert(t.d.run([]string{"register", url, repoName}), Equals, 0)
 }
 

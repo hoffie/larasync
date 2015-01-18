@@ -1,8 +1,9 @@
 package api
 
 import (
-	"crypto/tls"
 	"net/http"
+
+	"github.com/hoffie/larasync/api/tls"
 )
 
 // Client provides convenience methods for accessing an api.Server
@@ -22,9 +23,13 @@ func NetlocToURL(netloc, repoName string) string {
 }
 
 // NewClient returns a new Client instance.
-func NewClient(url string) *Client {
+func NewClient(url, fingerprint string, fingerprintVerifier tls.VerificationFunc) *Client {
+	fpv := tls.FingerprintVerifier{
+		AcceptFingerprint: fingerprint,
+		VerificationFunc:  fingerprintVerifier,
+	}
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		DialTLS: fpv.DialTLS,
 	}
 	return &Client{
 		http:    &http.Client{Transport: tr},

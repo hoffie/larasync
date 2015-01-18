@@ -67,6 +67,7 @@ func (t *RegisterTests) TestRegister(c *C) {
 	url := t.ts.hostAndPort
 	t.in.Write(t.ts.adminSecret)
 	t.in.WriteString("\n")
+	t.in.WriteString("y\n")
 	c.Assert(t.d.run([]string{"register", url, repoName}), Equals, 0)
 
 	// check the server dir:

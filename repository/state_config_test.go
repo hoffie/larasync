@@ -23,8 +23,9 @@ func (t *StateConfigTests) getStateConfigPath() string {
 
 func (t *StateConfigTests) getStateConfig() *StateConfig {
 	return &StateConfig{
-		Path:          t.getStateConfigPath(),
-		DefaultServer: "default_server",
+		Path:                     t.getStateConfigPath(),
+		DefaultServer:            "default_server",
+		DefaultServerFingerprint: "fp",
 	}
 }
 
@@ -57,6 +58,7 @@ func (t *StateConfigTests) TestLoad(c *C) {
 	c.Assert(err, IsNil)
 
 	c.Assert(stateConfig.DefaultServer, Equals, "default_server")
+	c.Assert(stateConfig.DefaultServerFingerprint, Equals, "fp")
 }
 
 func (t *StateConfigTests) TestLoadNotExists(c *C) {

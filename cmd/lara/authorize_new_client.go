@@ -43,14 +43,15 @@ func (d *Dispatcher) authorizeNewClientAction() int {
 		return 1
 	}
 
-	client, err := clientFor(r)
+	client, err := d.clientFor(r)
 
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: %s\n", err)
 		return 1
 	}
 
-	authURL, err := newAuthURL(client.BaseURL, signingPrivKey, &encryptionKey)
+	authURL, err := newAuthURL(client.BaseURL, signingPrivKey, &encryptionKey,
+		d.sc.DefaultServerFingerprint)
 	if err != nil {
 		fmt.Fprintln(d.stderr, "Error: authorization url could not be generated.")
 	}

@@ -12,7 +12,7 @@ func (d *Dispatcher) adminSecretAction() int {
 		fmt.Fprint(d.stderr, "Error: this command takes no args\n")
 		return 1
 	}
-	adminSecret, err := d.prompt("Admin secret: ")
+	adminSecret, err := d.promptPassword("Admin secret: ")
 	if err != nil {
 		fmt.Fprint(d.stderr, "Error: unable to read the admin secret\n")
 		return 1

@@ -59,6 +59,7 @@ func (d *Dispatcher) needServerCert(certFile, keyFile string) error {
 	if haveKeys {
 		return nil
 	}
+	log.Info("no server certificate found; generating one")
 	return x509.GenerateServerCertFiles(certFile, keyFile)
 }
 

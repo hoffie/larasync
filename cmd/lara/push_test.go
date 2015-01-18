@@ -30,6 +30,7 @@ func (t *PushTests) TestPush(c *C) {
 	url := t.ts.hostAndPort
 	t.in.Write(t.ts.adminSecret)
 	t.in.WriteString("\n")
+	t.in.WriteString("y\n")
 	t.runAndExpectCode(c, []string{"register", url, repoName}, 0)
 
 	testFile := "foo.txt"

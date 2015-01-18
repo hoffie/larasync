@@ -17,7 +17,7 @@ func (d *Dispatcher) pullAction() int {
 		return 1
 	}
 	r := repository.NewClient(root)
-	client, err := clientFor(r)
+	client, err := d.clientFor(r)
 	if err != nil {
 		fmt.Fprint(d.stderr, err)
 		return 1

@@ -10,12 +10,19 @@ import (
 	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
 )
 
+var (
+	signKeyRegexp     = regexp.MustCompile("AuthSignKey=(?P<key>[^&]+)")
+	encKeyRegexp      = regexp.MustCompile("AuthEncKey=(?P<key>[^&]+)")
+	fingerprintRegexp = regexp.MustCompile("Fingerprint=(?P<key>[^&]+)")
+)
+
 // AuthorizationURL is used to pass and create a authorizations
 // for registering against a new server.
 type AuthorizationURL struct {
-	URL     *url.URL
-	SignKey [PrivateKeySize]byte
-	EncKey  [EncryptionKeySize]byte
+	URL         *url.URL
+	SignKey     [PrivateKeySize]byte
+	EncKey      [EncryptionKeySize]byte
+	Fingerprint string
 }
 
 // parseAuthURL takes a URL and tries to extract the encryption key
@@ -33,7 +40,8 @@ func parseAuthURL(URL *url.URL) (*AuthorizationURL, error) {
 // arguments.
 func newAuthURL(repositoryBaseURL string,
 	signingPrivKey *[PrivateKeySize]byte,
-	encryptionKey *[EncryptionKeySize]byte) (*AuthorizationURL, error) {
+	encryptionKey *[EncryptionKeySize]byte,
+	fingerprint string) (*AuthorizationURL, error) {
 
 	pubKey := edhelpers.GetPublicKeyFromPrivate(*signingPrivKey)
 	pubKeyString := hex.EncodeToString(pubKey[:])
@@ -44,9 +52,10 @@ func newAuthURL(repositoryBaseURL string,
 	}
 
 	authURL := &AuthorizationURL{
-		SignKey: *signingPrivKey,
-		EncKey:  *encryptionKey,
-		URL:     u,
+		SignKey:     *signingPrivKey,
+		EncKey:      *encryptionKey,
+		Fingerprint: fingerprint,
+		URL:         u,
 	}
 	return authURL, nil
 }
@@ -64,8 +73,8 @@ func (a *AuthorizationURL) EncKeyString() string {
 // String formats the AuthorizationURL which should be passed to
 // the new client to authorize.
 func (a *AuthorizationURL) String() string {
-	return fmt.Sprintf("%s#AuthEncKey=%s&AuthSignKey=%s",
-		a.URL.String(), a.EncKeyString(), a.SignKeyString())
+	return fmt.Sprintf("%s#AuthEncKey=%s&AuthSignKey=%s&Fingerprint=%s",
+		a.URL.String(), a.EncKeyString(), a.SignKeyString(), a.Fingerprint)
 }
 
 func (a *AuthorizationURL) parse(URL *url.URL) error {
@@ -82,15 +91,20 @@ func (a *AuthorizationURL) parse(URL *url.URL) error {
 		return err
 	}
 
+	fingerprint, err := a.parseForFingerprint(authData)
+	if err != nil {
+		return err
+	}
+
 	a.URL = URL
 	a.SignKey = signKey
 	a.EncKey = encKey
+	a.Fingerprint = fingerprint
 	return nil
 }
 
 // parseForEncKey tries to extract the encryption key.
 func (a *AuthorizationURL) parseForEncKey(data string) ([EncryptionKeySize]byte, error) {
-	encKeyRegexp := regexp.MustCompile("AuthEncKey=(?P<key>[^&]+)")
 	encKeySlice, err := a.parseForKey(data, encKeyRegexp)
 	encKey := [EncryptionKeySize]byte{}
 	if err != nil {
@@ -106,7 +120,6 @@ func (a *AuthorizationURL) parseForEncKey(data string) ([EncryptionKeySize]byte,
 
 // parseForSignKey tries to extract the signing key.
 func (a *AuthorizationURL) parseForSignKey(data string) ([PrivateKeySize]byte, error) {
-	signKeyRegexp := regexp.MustCompile("AuthSignKey=(?P<key>[^&]+)")
 	signKeySlice, err := a.parseForKey(data, signKeyRegexp)
 	signKey := [PrivateKeySize]byte{}
 	if err != nil {
@@ -120,7 +133,16 @@ func (a *AuthorizationURL) parseForSignKey(data string) ([PrivateKeySize]byte, e
 	return signKey, nil
 }
 
-// parseForKey tries to parse a key from the data string and parses it with the given registry.
+// parseForFingerprint tries to extract the fingerprint
+func (a *AuthorizationURL) parseForFingerprint(data string) (string, error) {
+	matches := fingerprintRegexp.FindStringSubmatch(data)
+	if len(matches) < 2 {
+		return "", errors.New("Could not parse fingerprint")
+	}
+	return string(matches[1]), nil
+}
+
+// parseForKey tries to parse a key from the data string and parses it with the given regexp.
 func (a *AuthorizationURL) parseForKey(data string, r *regexp.Regexp) ([]byte, error) {
 	keyMatches := r.FindStringSubmatch(data)
 	extractionError := errors.New("Could not extract key.")

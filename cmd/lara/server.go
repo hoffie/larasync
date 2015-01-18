@@ -42,8 +42,12 @@ func (d *Dispatcher) serverAction() int {
 		log.Error("unable to load/generate keys", log15.Ctx{"error": err})
 		return 1
 	}
-	s := api.New(*cfg.Signatures.AdminPubkeyBinary,
+	s, err := api.New(*cfg.Signatures.AdminPubkeyBinary,
 		cfg.Signatures.MaxAge, rm, certFile, keyFile)
+	if err != nil {
+		log.Error("unable to initialize server", log15.Ctx{"error": err})
+		return 1
+	}
 	log.Info("Listening", log15.Ctx{"address": cfg.Server.Listen})
 	log.Error("Error", log15.Ctx{"code": s.ListenAndServe()})
 	return 1

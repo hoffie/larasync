@@ -14,6 +14,11 @@ import (
 	"github.com/hoffie/larasync/repository"
 )
 
+const (
+	// DefaultPort specifies the server's default TCP port
+	DefaultPort = 14124
+)
+
 // Server represents our http environment.
 type Server struct {
 	adminPubkey   [PublicKeySize]byte
@@ -22,16 +27,12 @@ type Server struct {
 	http          *http.Server
 	certFile      string
 	keyFile       string
+	certificate   tls.Certificate
 	rm            *repository.Manager
 }
 
-const (
-	// DefaultPort specifies the server's default TCP port
-	DefaultPort = 14124
-)
-
 // New returns a new Server.
-func New(adminPubkey [PublicKeySize]byte, maxRequestAge time.Duration, rm *repository.Manager, certFile, keyFile string) *Server {
+func New(adminPubkey [PublicKeySize]byte, maxRequestAge time.Duration, rm *repository.Manager, certFile, keyFile string) (*Server, error) {
 	serveMux := http.NewServeMux()
 	s := Server{
 		adminPubkey:   adminPubkey,
@@ -46,8 +47,12 @@ func New(adminPubkey [PublicKeySize]byte, maxRequestAge time.Duration, rm *repos
 		keyFile:  keyFile,
 	}
 	s.setupRoutes()
+	err := s.loadCertificate()
+	if err != nil {
+		return nil, err
+	}
 	serveMux.Handle("/", s.router)
-	return &s
+	return &s, nil
 }
 
 func jsonHeader(rw http.ResponseWriter) {
@@ -217,17 +222,20 @@ func (s *Server) ListenAndServe() error {
 	return s.Serve(listener)
 }
 
+// loadCertificate loads and parses the on-disk certificates and keeps them
+// in memory for later use.
+func (s *Server) loadCertificate() error {
+	var err error
+	s.certificate, err = tls.LoadX509KeyPair(s.certFile, s.keyFile)
+	return err
+}
+
 // Serve serves TLS-enabled requests on the given listener.
 func (s *Server) Serve(l net.Listener) error {
 	config := &tls.Config{}
 	config.NextProtos = []string{"http/1.1"}
-
-	var err error
 	config.Certificates = make([]tls.Certificate, 1)
-	config.Certificates[0], err = tls.LoadX509KeyPair(s.certFile, s.keyFile)
-	if err != nil {
-		return err
-	}
+	config.Certificates[0] = s.certificate
 	tlsListener := tls.NewListener(tcpKeepAliveListener{l.(*net.TCPListener)}, config)
 	return s.http.Serve(tlsListener)
 }

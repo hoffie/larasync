@@ -51,7 +51,10 @@ func NewTestServer() (*TestServer, error) {
 	if err != nil {
 		return nil, err
 	}
-	ts.api = api.New(pubKey, 5*time.Second, rm, certFile, keyFile)
+	ts.api, err = api.New(pubKey, 5*time.Second, rm, certFile, keyFile)
+	if err != nil {
+		return nil, err
+	}
 
 	err = ts.makeListener()
 	if err != nil {

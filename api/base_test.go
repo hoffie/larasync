@@ -59,7 +59,9 @@ func (t *BaseTests) createRepoManager(c *C) {
 }
 
 func (t *BaseTests) createServer(c *C) {
-	t.server = New(adminPubkey, time.Minute, t.rm, t.certFile, t.keyFile)
+	var err error
+	t.server, err = New(adminPubkey, time.Minute, t.rm, t.certFile, t.keyFile)
+	c.Assert(err, IsNil)
 }
 
 func (t *BaseTests) SetUpSuite(c *C) {

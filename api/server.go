@@ -9,8 +9,10 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/inconshreveable/log15"
 
 	"github.com/hoffie/larasync/helpers/lock"
+	"github.com/hoffie/larasync/helpers/x509"
 	"github.com/hoffie/larasync/repository"
 )
 
@@ -227,6 +229,15 @@ func (s *Server) ListenAndServe() error {
 func (s *Server) loadCertificate() error {
 	var err error
 	s.certificate, err = tls.LoadX509KeyPair(s.certFile, s.keyFile)
+	if err != nil {
+		return err
+	}
+	if len(s.certificate.Certificate) != 1 {
+		return fmt.Errorf("bad number of certificates loaded (%d)",
+			len(s.certificate.Certificate))
+	}
+	fp, err := x509.CertificateFingerprintFromBytes(s.certificate.Certificate[0])
+	Log.Info("loaded certificate", log15.Ctx{"fingerprint": fp})
 	return err
 }
 

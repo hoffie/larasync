@@ -17,5 +17,7 @@ func (t *ServerFingerprintTests) Test(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(t.d.run([]string{"server-fingerprint"}), Equals, 0)
 	out := t.out.String()
-	c.Assert(len(out), Equals, 129 /*hex(SHA512) + '\n'*/)
+	// as we output a colored hash, the actual length is longer, which we don't
+	// validate here
+	c.Assert(len(out) >= 129 /*hex(SHA512) + '\n'*/, Equals, true)
 }

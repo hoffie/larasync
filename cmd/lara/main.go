@@ -69,7 +69,7 @@ func (d *Dispatcher) run(args []string) int {
 // setupLogging configures our loggers and sets up our subpackages to use
 // it as well.
 func (d *Dispatcher) setupLogging() {
-	handler := log15.StreamHandler(os.Stderr, log15.LogfmtFormat())
+	handler := log15.StreamHandler(d.stderr, log15.LogfmtFormat())
 	log.SetHandler(handler)
 	repository.Log.SetHandler(handler)
 	api.Log.SetHandler(handler)

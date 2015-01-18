@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/hoffie/larasync/helpers/colorhash"
 	"github.com/hoffie/larasync/helpers/x509"
 )
 
@@ -19,6 +20,6 @@ func (d *Dispatcher) serverFingerprintAction() int {
 	}
 	certFile, _ := d.serverCertFilePaths()
 	fp, err := x509.CertificateFingerprintFromPEMFile(certFile)
-	fmt.Fprintf(d.stdout, "%s\n", fp)
+	fmt.Fprintf(d.stdout, "\n%s\n%s\n\n", colorhash.Format(fp), fp)
 	return 0
 }

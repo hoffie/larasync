@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/hoffie/larasync/api"
+	"github.com/hoffie/larasync/helpers/colorhash"
 	"github.com/hoffie/larasync/repository"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -106,7 +107,7 @@ func (d *Dispatcher) confirmFingerprint(fp string) bool {
 	fmt.Fprint(d.stdout, "  lara server-fingerprint\n")
 	fmt.Fprint(d.stdout, "or ask the server administrator to provide you with the fingerprint.\n\n")
 	fmt.Fprint(d.stdout, "Only continue connecting when the above mentioned fingerprint matches this value:\n")
-	fmt.Fprintf(d.stdout, "  %s\n", fp)
+	fmt.Fprintf(d.stdout, "\n%s\n%s\n\n", colorhash.Format(fp), fp)
 	res, err := d.promptCleartext("Do the fingerprints match? (y/N) ")
 	if err != nil {
 		return false

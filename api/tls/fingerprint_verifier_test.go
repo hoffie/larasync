@@ -153,4 +153,10 @@ func (t *FVTests) TestTimeout(c *C) {
 	fpv := &FingerprintVerifier{AcceptFingerprint: testCertFp}
 	_, err := fpv.dialTLS("tcp", addr, 0*time.Minute)
 	c.Assert(err, NotNil)
+
+	c.Assert(err, FitsTypeOf, handshakeTimeoutError{})
+	timeoutError := err.(handshakeTimeoutError)
+	c.Check(len(timeoutError.Error()) > 1, Equals, true)
+	c.Check(timeoutError.Temporary(), Equals, true)
+	c.Check(timeoutError.Timeout(), Equals, true)
 }

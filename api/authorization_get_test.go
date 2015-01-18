@@ -3,6 +3,7 @@ package api
 import (
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 
 	. "gopkg.in/check.v1"
@@ -80,6 +81,18 @@ func (t *AuthorizationGetTests) TestRemove(c *C) {
 	repo := t.getRepository(c)
 	_, err := repo.GetAuthorizationReader(t.authPublicKey)
 	c.Assert(os.IsNotExist(err), Equals, true)
+}
+
+func (t *AuthorizationGetTests) TestPublicKeyExtractionFailure(c *C) {
+	t.setUpWithExist(c)
+	urlString := t.req.URL.String()
+	urlString = urlString[:len(urlString)-2]
+	var err error
+	t.req.URL, err = url.Parse(urlString)
+	c.Assert(err, IsNil)
+
+	resp := t.getResponse(t.req)
+	c.Assert(resp.Code, Equals, http.StatusUnauthorized)
 }
 
 func (t *AuthorizationGetTests) signRequestWithAuthKey() {

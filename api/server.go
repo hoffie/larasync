@@ -253,7 +253,10 @@ func (s *Server) CertificateFingerprint() (string, error) {
 // Serve serves TLS-enabled requests on the given listener.
 func (s *Server) Serve(l net.Listener) error {
 	config := &tls.Config{
-		CipherSuites: []uint16{tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256},
+		CipherSuites: []uint16{
+			tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+		},
 		MinVersion:   tls.VersionTLS12,
 		NextProtos:   []string{"http/1.1"},
 		Certificates: []tls.Certificate{s.certificate},

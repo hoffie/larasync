@@ -39,7 +39,11 @@ type FingerprintVerifier struct {
 func (v *FingerprintVerifier) DialTLS(network, addr string) (net.Conn, error) {
 	// setting InsecureSkipVerify here so that net/tls does not perform any
 	// validations; we validate the certificate fingerprint later.
-	cfg := &tls.Config{InsecureSkipVerify: true}
+	cfg := &tls.Config{
+		InsecureSkipVerify: true,
+		CipherSuites:       []uint16{tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256},
+		MinVersion:         tls.VersionTLS12,
+	}
 	plainConn, err := net.Dial(network, addr)
 	if err != nil {
 		return nil, err

@@ -11,11 +11,13 @@ import (
 )
 
 type RepoListTests struct {
-	BaseTests
+	BaseServerTest
 	req *http.Request
 }
 
-var _ = Suite(&RepoListTests{})
+var _ = Suite(&RepoListTests{
+	BaseServerTest: newBaseServerTest(),
+})
 
 func (t *RepoListTests) SetUpTest(c *C) {
 	req, err := http.NewRequest("GET", "http://example.org/repositories", nil)

@@ -14,12 +14,14 @@ import (
 )
 
 type RepoListCreateTests struct {
-	BaseTests
+	BaseServerTest
 	req    *http.Request
 	pubKey []byte
 }
 
-var _ = Suite(&RepoListCreateTests{})
+var _ = Suite(&RepoListCreateTests{
+	BaseServerTest: newBaseServerTest(),
+})
 
 func (t *RepoListCreateTests) requestWithBytes(c *C, body []byte) *http.Request {
 	var httpBody io.Reader

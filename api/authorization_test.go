@@ -13,7 +13,7 @@ import (
 )
 
 type AuthorizationTests struct {
-	BaseTests
+	BaseServerTest
 	encryptionKey  [repository.EncryptionKeySize]byte
 	authPrivateKey [repository.PrivateKeySize]byte
 	authPublicKey  [repository.PublicKeySize]byte
@@ -21,12 +21,12 @@ type AuthorizationTests struct {
 
 func getAuthorizationTest() AuthorizationTests {
 	return AuthorizationTests{
-		BaseTests: BaseTests{},
+		BaseServerTest: newBaseServerTest(),
 	}
 }
 
 func (t *AuthorizationTests) SetUpTest(c *C) {
-	t.BaseTests.SetUpTest(c)
+	t.BaseServerTest.SetUpTest(c)
 	t.encryptionKey = [repository.EncryptionKeySize]byte{}
 	t.authPrivateKey = [repository.PrivateKeySize]byte{}
 

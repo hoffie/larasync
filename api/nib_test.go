@@ -17,7 +17,7 @@ import (
 )
 
 type NIBTest struct {
-	BaseTests
+	BaseServerTest
 	nibID string
 }
 
@@ -32,12 +32,12 @@ func generateTestRevision() *nib.Revision {
 
 func getNIBTest() NIBTest {
 	return NIBTest{
-		BaseTests: BaseTests{},
+		BaseServerTest: newBaseServerTest(),
 	}
 }
 
 func (t *NIBTest) SetUpTest(c *C) {
-	t.BaseTests.SetUpTest(c)
+	t.BaseServerTest.SetUpTest(c)
 	origGetURL := t.getURL
 	t.getURL = func() string {
 		return fmt.Sprintf(

@@ -9,19 +9,19 @@ import (
 )
 
 type BlobTests struct {
-	BaseTests
+	BaseServerTest
 	blobID   string
 	blobData []byte
 }
 
 func createBlobTests() BlobTests {
 	return BlobTests{
-		BaseTests: BaseTests{},
+		BaseServerTest: newBaseServerTest(),
 	}
 }
 
 func (t *BlobTests) SetUpTest(c *C) {
-	t.BaseTests.SetUpTest(c)
+	t.BaseServerTest.SetUpTest(c)
 	t.blobID = "1234567890"
 	t.blobData = []byte("This is testdata")
 	baseURLGet := t.getURL

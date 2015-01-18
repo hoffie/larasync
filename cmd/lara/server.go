@@ -7,6 +7,7 @@ import (
 	"github.com/inconshreveable/log15"
 
 	"github.com/hoffie/larasync/api"
+	"github.com/hoffie/larasync/config"
 	"github.com/hoffie/larasync/helpers/x509"
 	"github.com/hoffie/larasync/repository"
 )
@@ -19,14 +20,9 @@ const (
 // serverAction starts the server process.
 func (d *Dispatcher) serverAction() int {
 	d.setupLogging()
-	cfgPath, err := d.getServerConfigPath()
+	cfg, err := d.loadServerConfig()
 	if err != nil {
-		log.Error("unable to get absolute server config path", log15.Ctx{"error": err})
-		return 1
-	}
-	cfg, err := getServerConfig(cfgPath)
-	if err != nil {
-		log.Error("unable to parse configuration", log15.Ctx{"error": err})
+		log.Error("unable to load server config", log15.Ctx{"error": err})
 		return 1
 	}
 	rm, err := repository.NewManager(cfg.Repository.BasePath)
@@ -34,14 +30,12 @@ func (d *Dispatcher) serverAction() int {
 		log.Error("repository.Manager creation failure", log15.Ctx{"error": err})
 		return 1
 	}
-	cfgDir := filepath.Dir(cfgPath)
-	certFile := filepath.Join(cfgDir, certFileName)
-	keyFile := filepath.Join(cfgDir, keyFileName)
-	err = d.needServerCert(certFile, keyFile)
+	err = d.needServerCert()
 	if err != nil {
 		log.Error("unable to load/generate keys", log15.Ctx{"error": err})
 		return 1
 	}
+	certFile, keyFile := d.serverCertFilePaths()
 	s, err := api.New(*cfg.Signatures.AdminPubkeyBinary,
 		cfg.Signatures.MaxAge, rm, certFile, keyFile)
 	if err != nil {
@@ -55,20 +49,30 @@ func (d *Dispatcher) serverAction() int {
 
 // needServerCert checks whether both required certificate files exist;
 // if they don't, an appropriate certificate is generated
-func (d *Dispatcher) needServerCert(certFile, keyFile string) error {
-	haveKeys, err := d.haveServerCert(certFile, keyFile)
+func (d *Dispatcher) needServerCert() error {
+	haveKeys, err := d.haveServerCert()
 	if err != nil {
 		return err
 	}
 	if haveKeys {
 		return nil
 	}
+	certFile, keyFile := d.serverCertFilePaths()
 	log.Info("no server certificate found; generating one")
 	return x509.GenerateServerCertFiles(certFile, keyFile)
 }
 
+// serverCertFilePaths returns the server certificate file paths
+func (d *Dispatcher) serverCertFilePaths() (string, string) {
+	cfgDir := filepath.Dir(d.serverCfgPath)
+	certFile := filepath.Join(cfgDir, certFileName)
+	keyFile := filepath.Join(cfgDir, keyFileName)
+	return certFile, keyFile
+}
+
 // haveServerCert returns whether both required files are present.
-func (d *Dispatcher) haveServerCert(certFile, keyFile string) (bool, error) {
+func (d *Dispatcher) haveServerCert() (bool, error) {
+	certFile, keyFile := d.serverCertFilePaths()
 	for _, file := range []string{certFile, keyFile} {
 		_, err := os.Stat(file)
 		if os.IsNotExist(err) {
@@ -89,4 +93,18 @@ func (d *Dispatcher) getServerConfigPath() (string, error) {
 	}
 	path, err := filepath.Abs(path)
 	return path, err
+}
+
+// loadServerConfig attempts to load the server config file
+func (d *Dispatcher) loadServerConfig() (*config.ServerConfig, error) {
+	var err error
+	d.serverCfgPath, err = d.getServerConfigPath()
+	if err != nil {
+		return nil, err
+	}
+	cfg, err := getServerConfig(d.serverCfgPath)
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
 }

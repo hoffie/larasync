@@ -4,6 +4,9 @@ import (
 	"crypto/sha512"
 	"crypto/x509"
 	"encoding/hex"
+	"encoding/pem"
+	"errors"
+	"io/ioutil"
 )
 
 // CertificateFingerprint returns the SHA-512 fingerprint of the given certificate
@@ -35,4 +38,18 @@ func CertificateFingerprintFromBytes(cert []byte) (string, error) {
 		return "", err
 	}
 	return CertificateFingerprint(parsed), nil
+}
+
+// CertificateFingerprintFromPEMFile loads the given PEM file and returns its
+// fingerprint.
+func CertificateFingerprintFromPEMFile(path string) (string, error) {
+	pemBytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	block, _ := pem.Decode(pemBytes)
+	if block == nil {
+		return "", errors.New("unable to parse PEM block")
+	}
+	return CertificateFingerprintFromBytes(block.Bytes)
 }

@@ -236,9 +236,18 @@ func (s *Server) loadCertificate() error {
 		return fmt.Errorf("bad number of certificates loaded (%d)",
 			len(s.certificate.Certificate))
 	}
-	fp, err := x509.CertificateFingerprintFromBytes(s.certificate.Certificate[0])
+	fp, err := s.CertificateFingerprint()
 	Log.Info("loaded certificate", log15.Ctx{"fingerprint": fp})
-	return err
+	return nil
+}
+
+// CertificateFingerprint returns the server's certificate public key fingerprint
+func (s *Server) CertificateFingerprint() (string, error) {
+	fp, err := x509.CertificateFingerprintFromBytes(s.certificate.Certificate[0])
+	if err != nil {
+		return "", err
+	}
+	return fp, nil
 }
 
 // Serve serves TLS-enabled requests on the given listener.

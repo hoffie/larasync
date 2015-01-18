@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"os"
 	"path/filepath"
-	"time"
 
 	. "gopkg.in/check.v1"
 
@@ -14,7 +13,6 @@ import (
 )
 
 type BaseTests struct {
-	server         *Server
 	rm             *repository.Manager
 	repositoryName string
 	repos          string
@@ -26,7 +24,6 @@ type BaseTests struct {
 
 func (t *BaseTests) SetUpTest(c *C) {
 	t.createRepoManager(c)
-	t.createServer(c)
 
 	t.repositoryName = "test"
 	c.Assert(t.rm.Exists(t.repositoryName), Equals, false)
@@ -47,12 +44,6 @@ func (t *BaseTests) createRepoManager(c *C) {
 	rm, err := repository.NewManager(t.repos)
 	c.Assert(err, IsNil)
 	t.rm = rm
-}
-
-func (t *BaseTests) createServer(c *C) {
-	var err error
-	t.server, err = New(adminPubkey, time.Minute, t.rm, t.certFile, t.keyFile)
-	c.Assert(err, IsNil)
 }
 
 func (t *BaseTests) createServerCert(c *C) {

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"time"
 
 	. "gopkg.in/check.v1"
 )
@@ -19,6 +20,7 @@ func newBaseServerTest() BaseServerTest {
 
 type BaseServerTest struct {
 	BaseTests
+	server     *Server
 	req        *http.Request
 	httpMethod string
 	getURL     func() string
@@ -27,6 +29,7 @@ type BaseServerTest struct {
 
 func (t *BaseServerTest) SetUpTest(c *C) {
 	t.BaseTests.SetUpTest(c)
+	t.createServer(c)
 	t.httpMethod = "GET"
 	t.getURL = func() string {
 		return fmt.Sprintf(
@@ -36,6 +39,12 @@ func (t *BaseServerTest) SetUpTest(c *C) {
 	}
 	t.req = t.requestEmptyBody(c)
 	t.urlParams = url.Values{}
+}
+
+func (t *BaseServerTest) createServer(c *C) {
+	var err error
+	t.server, err = New(adminPubkey, time.Minute, t.rm, t.certFile, t.keyFile)
+	c.Assert(err, IsNil)
 }
 
 func (t *BaseServerTest) getResponse(req *http.Request) *httptest.ResponseRecorder {

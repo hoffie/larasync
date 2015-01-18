@@ -7,6 +7,7 @@ import (
 	. "gopkg.in/check.v1"
 
 	"github.com/hoffie/larasync/helpers/path"
+	"github.com/hoffie/larasync/repository"
 )
 
 type SyncTests struct {
@@ -51,4 +52,21 @@ func (t *SyncTests) TestSync(c *C) {
 		repoName, ".lara", "objects"))
 	c.Assert(err, IsNil)
 	c.Assert(num, Equals, 4)
+}
+
+func (t *SyncTests) breakLocalFingerprint(c *C) {
+	scPath := filepath.Join(".lara", "state.json")
+	sc := &repository.StateConfig{Path: scPath}
+	err := sc.Load()
+	c.Assert(err, IsNil)
+	sc.DefaultServerFingerprint = "broken"
+	err = sc.Save()
+	c.Assert(err, IsNil)
+}
+
+func (t *SyncTests) TestSyncFingerprintFail(c *C) {
+	t.TestSync(c)
+	t.runAndExpectCode(c, []string{"sync"}, 0)
+	t.breakLocalFingerprint(c)
+	t.runAndExpectCode(c, []string{"sync"}, 1)
 }

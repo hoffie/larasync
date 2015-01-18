@@ -62,7 +62,11 @@ func (d *Dispatcher) run(args []string) int {
 	passArgs = append(passArgs, args...)
 
 	d.initApp()
-	d.app.Run(passArgs)
+	d.exitCode = 1
+	err := d.app.Run(passArgs)
+	if err != nil {
+		return 1
+	}
 	return d.exitCode
 }
 

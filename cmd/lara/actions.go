@@ -71,6 +71,11 @@ func (d *Dispatcher) cmdActions() []cli.Command {
 			Flags:  d.serverFlags(),
 		},
 		{
+			Name:   "server-fingerprint",
+			Usage:  "print server certificate's public key fingerprint",
+			Action: d.wrapAction(d.serverFingerprintAction),
+		},
+		{
 			Name:   "sync",
 			Usage:  "uploads and downloads all files from and to the repository.",
 			Action: d.wrapAction(d.syncAction),

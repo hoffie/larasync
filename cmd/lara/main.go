@@ -25,13 +25,14 @@ func main() {
 // Dispatcher is the environment for our command dispatcher and keeps
 // references to the relevant external interfaces.
 type Dispatcher struct {
-	stdin    io.Reader
-	stdout   io.Writer
-	stderr   io.Writer
-	context  *cli.Context
-	app      *cli.App
-	sc       *repository.StateConfig
-	exitCode int
+	stdin         io.Reader
+	stdout        io.Writer
+	stderr        io.Writer
+	context       *cli.Context
+	app           *cli.App
+	sc            *repository.StateConfig
+	serverCfgPath string
+	exitCode      int
 }
 
 // initApp initializes the app structure.

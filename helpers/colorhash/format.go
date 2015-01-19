@@ -39,7 +39,7 @@ func Format(s string) string {
 		for y := 0; y < len(line); y += charsPerBlock {
 			block := line[y : y+charsPerBlock]
 			res += colorBlock(block)
-			res += block
+			res += "++++"
 		}
 		res += clearColor()
 		res += "\n"

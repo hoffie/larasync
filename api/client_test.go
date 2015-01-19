@@ -15,3 +15,8 @@ func (t *ClientTests) TestClientCreation(c *C) {
 	})
 	c.Assert(client, NotNil)
 }
+
+func (t *ClientTests) TestNetlocToUrl(c *C) {
+	testRepository := "https://example.org:80/repositories/testRepository"
+	c.Assert(NetlocToURL("example.org:80", "testRepository"), Equals, testRepository)
+}

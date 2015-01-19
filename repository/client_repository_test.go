@@ -97,3 +97,20 @@ func (t *RepositoryTests) TestCurrentAuthorization(c *C) {
 	c.Assert(auth.SigningKey, DeepEquals, signingKey)
 
 }
+
+func (t *RepositoryTests) TestGetSigningKey(c *C) {
+	r := NewClient(t.dir)
+	err := r.CreateManagementDir()
+	c.Assert(err, IsNil)
+
+	err = r.keys.CreateSigningKey()
+	c.Assert(err, IsNil)
+
+	data, err := r.GetSigningPrivateKey()
+	c.Assert(err, IsNil)
+
+	keyData, err := r.keys.SigningPrivateKey()
+	c.Assert(err, IsNil)
+
+	c.Assert(data, DeepEquals, keyData)
+}

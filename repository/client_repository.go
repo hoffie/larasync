@@ -427,3 +427,32 @@ func (r *Repository) SetAuthorization(
 ) error {
 	return r.authorizationManager.Set(publicKey, encKey, authorization)
 }
+
+// CurrentAuthorization returns the currently valid Authorization object
+// for this repository. If the privateKeys necessary for this are not
+// stored in the keyStore an error is returned.
+func (r *Repository) CurrentAuthorization() (*Authorization, error) {
+	keys := r.keys
+	encryptionKey, err := keys.EncryptionKey()
+	if err != nil {
+		return nil, errors.New("Could not load encryption key.")
+	}
+
+	hashingKey, err := keys.HashingKey()
+	if err != nil {
+		return nil, errors.New("Could not load hashing key.")
+	}
+
+	signatureKey, err := keys.SigningPrivateKey()
+	if err != nil {
+		return nil, errors.New("Could not load private signing key.")
+	}
+
+	auth := &Authorization{
+		EncryptionKey: encryptionKey,
+		HashingKey:    hashingKey,
+		SigningKey:    signatureKey,
+	}
+
+	return auth, nil
+}

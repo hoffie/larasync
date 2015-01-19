@@ -70,3 +70,30 @@ func (t *RepositoryTests) TestGetFileChunkIDs(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(ids2, DeepEquals, ids)
 }
+
+func (t *RepositoryTests) TestCurrentAuthorization(c *C) {
+	r := NewClient(t.dir)
+	err := r.CreateManagementDir()
+	c.Assert(err, IsNil)
+
+	err = r.CreateKeys()
+	c.Assert(err, IsNil)
+
+	keyStore := r.keys
+	auth, err := r.CurrentAuthorization()
+	c.Assert(err, IsNil)
+
+	encrpytionKey, err := keyStore.EncryptionKey()
+	c.Assert(err, IsNil)
+
+	hashingKey, err := keyStore.HashingKey()
+	c.Assert(err, IsNil)
+
+	signingKey, err := keyStore.SigningPrivateKey()
+	c.Assert(err, IsNil)
+
+	c.Assert(auth.EncryptionKey, DeepEquals, encrpytionKey)
+	c.Assert(auth.HashingKey, DeepEquals, hashingKey)
+	c.Assert(auth.SigningKey, DeepEquals, signingKey)
+
+}

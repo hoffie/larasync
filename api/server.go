@@ -238,7 +238,7 @@ func (s *Server) loadCertificate() error {
 	}
 	fp, err := s.CertificateFingerprint()
 	Log.Info("loaded certificate", log15.Ctx{"fingerprint": fp})
-	return nil
+	return err
 }
 
 // CertificateFingerprint returns the server's certificate public key fingerprint

@@ -6,7 +6,7 @@ import (
 )
 
 // putObjectRequest builds a request for uploading an object
-func (c *Client) putObjectRequest(objectID string, content io.ReadCloser) (*http.Request, error) {
+func (c *Client) putObjectRequest(objectID string, content io.Reader) (*http.Request, error) {
 	req, err := http.NewRequest("PUT", c.BaseURL+"/blobs/"+objectID,
 		content)
 	if err != nil {
@@ -18,7 +18,7 @@ func (c *Client) putObjectRequest(objectID string, content io.ReadCloser) (*http
 }
 
 // PutObject uploads an object to the server
-func (c *Client) PutObject(objectID string, content io.ReadCloser) error {
+func (c *Client) PutObject(objectID string, content io.Reader) error {
 	req, err := c.putObjectRequest(objectID, content)
 	if err != nil {
 		return err

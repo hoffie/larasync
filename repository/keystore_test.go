@@ -4,11 +4,13 @@ import (
 	"github.com/agl/ed25519"
 
 	. "gopkg.in/check.v1"
+
+	"github.com/hoffie/larasync/repository/content"
 )
 
 type KeyStoreTests struct {
 	dir     string
-	storage *FileContentStorage
+	storage *content.FileStorage
 	ks      *KeyStore
 }
 
@@ -16,7 +18,7 @@ var _ = Suite(&KeyStoreTests{})
 
 func (t *KeyStoreTests) SetUpTest(c *C) {
 	t.dir = c.MkDir()
-	t.storage = newFileContentStorage(t.dir)
+	t.storage = content.NewFileStorage(t.dir)
 	t.ks = NewKeyStore(t.storage)
 }
 

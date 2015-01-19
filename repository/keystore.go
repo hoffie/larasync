@@ -7,6 +7,7 @@ import (
 
 	"github.com/hoffie/larasync/helpers/crypto"
 	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
+	"github.com/hoffie/larasync/repository/content"
 )
 
 const (
@@ -34,12 +35,12 @@ const (
 // KeyStore is responsible for loading keys from the storage backend.
 type KeyStore struct {
 	base    string
-	storage *ByteContentStorage
+	storage *content.ByteStorage
 }
 
 // NewKeyStore returns a new KeyStore instance.
-func NewKeyStore(storage ContentStorage) *KeyStore {
-	ks := &KeyStore{storage: newByteContentStorage(storage)}
+func NewKeyStore(storage content.Storage) *KeyStore {
+	ks := &KeyStore{storage: content.NewByteStorage(storage)}
 	return ks
 }
 

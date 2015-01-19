@@ -1,4 +1,4 @@
-package repository
+package content
 
 import (
 	"bytes"
@@ -12,79 +12,79 @@ import (
 	. "gopkg.in/check.v1"
 )
 
-type FileContentStorageTests struct {
+type FileStorageTests struct {
 	dir     string
-	storage *FileContentStorage
+	storage *FileStorage
 	data    []byte
 }
 
-var _ = Suite(&FileContentStorageTests{})
+var _ = Suite(&FileStorageTests{})
 
-func (t *FileContentStorageTests) SetUpTest(c *C) {
+func (t *FileStorageTests) SetUpTest(c *C) {
 	t.dir = c.MkDir()
-	t.storage = &FileContentStorage{StoragePath: t.dir}
+	t.storage = NewFileStorage(t.dir)
 	t.data = []byte("This is a test blob storage file input.")
 }
 
-func (t *FileContentStorageTests) blobID() string {
+func (t *FileStorageTests) blobID() string {
 	blobIDBytes := sha256.New().Sum(t.data)
 	return hex.EncodeToString(blobIDBytes[:])
 }
 
-func (t *FileContentStorageTests) blobPath() string {
+func (t *FileStorageTests) blobPath() string {
 	return path.Join(t.dir, t.blobID())
 }
 
-func (t *FileContentStorageTests) testReader() io.Reader {
+func (t *FileStorageTests) testReader() io.Reader {
 	return bytes.NewReader(t.data)
 }
 
-func (t *FileContentStorageTests) setData() error {
+func (t *FileStorageTests) setData() error {
 	return t.storage.Set(t.blobID(), t.testReader())
 }
 
-func (t *FileContentStorageTests) TestSet(c *C) {
+func (t *FileStorageTests) TestSet(c *C) {
 	err := t.setData()
 	c.Assert(err, IsNil)
 	_, err = os.Stat(t.blobPath())
 	c.Assert(err, IsNil)
 }
 
-func (t *FileContentStorageTests) TestSetInputData(c *C) {
+func (t *FileStorageTests) TestSetInputData(c *C) {
 	t.setData()
 	file, _ := os.Open(t.blobPath())
 	fileData, _ := ioutil.ReadAll(file)
 	c.Assert(fileData[:], DeepEquals, t.data[:])
 }
 
-func (t *FileContentStorageTests) TestExistsNegative(c *C) {
+func (t *FileStorageTests) TestExistsNegative(c *C) {
 	c.Assert(t.storage.Exists(t.blobID()), Equals, false)
 }
 
-func (t *FileContentStorageTests) TestExistsPositive(c *C) {
+func (t *FileStorageTests) TestExistsPositive(c *C) {
 	t.setData()
 	c.Assert(t.storage.Exists(t.blobID()), Equals, true)
 }
 
-func (t *FileContentStorageTests) TestGet(c *C) {
+func (t *FileStorageTests) TestGet(c *C) {
 	t.storage.Set(t.blobID(), t.testReader())
 	_, err := t.storage.Get(t.blobID())
 	c.Assert(err, IsNil)
 }
 
-func (t *FileContentStorageTests) TestGetData(c *C) {
+func (t *FileStorageTests) TestGetData(c *C) {
 	t.setData()
 	file, _ := t.storage.Get(t.blobID())
 	fileData, _ := ioutil.ReadAll(file)
 	c.Assert(fileData[:], DeepEquals, t.data)
 }
 
-func (t *FileContentStorageTests) TestGetError(c *C) {
+func (t *FileStorageTests) TestGetError(c *C) {
 	_, err := t.storage.Get(t.blobID())
 	c.Assert(err, NotNil)
 }
 
-func (t *FileContentStorageTests) TestSetError(c *C) {
+func (t *FileStorageTests) TestSetError(c *C) {
 	os.RemoveAll(t.dir)
 
 	err := t.storage.Set(t.blobID(),
@@ -92,14 +92,14 @@ func (t *FileContentStorageTests) TestSetError(c *C) {
 	c.Assert(err, NotNil)
 }
 
-func (t *FileContentStorageTests) TestDelete(c *C) {
+func (t *FileStorageTests) TestDelete(c *C) {
 	t.setData()
 	err := t.storage.Delete(t.blobID())
 	c.Assert(err, IsNil)
 	c.Assert(t.storage.Exists(t.blobID()), Equals, false)
 }
 
-func (t *FileContentStorageTests) TestDeleteError(c *C) {
+func (t *FileStorageTests) TestDeleteError(c *C) {
 	err := t.storage.Delete(t.blobID())
 	c.Assert(err, NotNil)
 }

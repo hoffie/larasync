@@ -7,21 +7,21 @@ import (
 	"io/ioutil"
 
 	"github.com/hoffie/larasync/helpers/crypto"
+	"github.com/hoffie/larasync/repository/content"
 	"github.com/hoffie/larasync/repository/nib"
 )
 
 // NIBStore handles the interaction with NIBs in a specific
 // repository.
 type NIBStore struct {
-	storage            ContentStorage
+	storage            content.Storage
 	keys               *KeyStore
 	transactionManager *TransactionManager
 }
 
 // newNibStore generates the NIBStore with the passed backend, repository,
 // and transactionManager.
-func newNIBStore(
-	storage ContentStorage,
+func newNIBStore(storage content.Storage,
 	keys *KeyStore,
 	transactionManager *TransactionManager,
 ) *NIBStore {

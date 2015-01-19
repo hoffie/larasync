@@ -7,15 +7,16 @@ import (
 	"io/ioutil"
 
 	"github.com/hoffie/larasync/helpers/crypto"
+	"github.com/hoffie/larasync/repository/content"
 )
 
 // AuthorizationManager handles the Authorizations of a specific
 //
 type AuthorizationManager struct {
-	storage ContentStorage
+	storage content.Storage
 }
 
-func newAuthorizationManager(storage ContentStorage) *AuthorizationManager {
+func newAuthorizationManager(storage content.Storage) *AuthorizationManager {
 	return &AuthorizationManager{
 		storage: storage,
 	}

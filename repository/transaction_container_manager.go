@@ -10,21 +10,22 @@ import (
 	"github.com/golang/protobuf/proto"
 
 	"github.com/hoffie/larasync/helpers/lock"
+	"github.com/hoffie/larasync/repository/content"
 	"github.com/hoffie/larasync/repository/odf"
 )
 
 // TransactionContainerManager is used to manage the transaction containers
 // and to keep track of the most current transaction manager,
 type TransactionContainerManager struct {
-	storage UUIDContentStorage
+	storage *content.UUIDStorage
 	lock    sync.Locker
 }
 
 // newTransactionContainerManager initializes a container manager
 // the passed content storage which is used to access the stored
 // data entries.
-func newTransactionContainerManager(storage ContentStorage, lockingPath string) *TransactionContainerManager {
-	uuidStorage := UUIDContentStorage{storage}
+func newTransactionContainerManager(storage content.Storage, lockingPath string) *TransactionContainerManager {
+	uuidStorage := content.NewUUIDStorage(storage)
 	return &TransactionContainerManager{
 		storage: uuidStorage,
 		lock: lock.CurrentManager().Get(
@@ -138,7 +139,7 @@ func (tcm TransactionContainerManager) CurrentTransactionContainer() (*Transacti
 // NewContainer returns a newly container with a new UUID which has been added to the
 // storage backend.
 func (tcm TransactionContainerManager) NewContainer() (*TransactionContainer, error) {
-	data, err := tcm.storage.findFreeUUID()
+	data, err := tcm.storage.FindFreeUUID()
 	if err != nil {
 		return nil, err
 	}

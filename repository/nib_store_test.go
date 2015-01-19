@@ -9,6 +9,7 @@ import (
 	"github.com/agl/ed25519"
 
 	"github.com/hoffie/larasync/helpers/crypto"
+	"github.com/hoffie/larasync/repository/content"
 	"github.com/hoffie/larasync/repository/nib"
 
 	. "gopkg.in/check.v1"
@@ -18,7 +19,7 @@ type NIBStoreTest struct {
 	dir                string
 	repository         *Repository
 	nibStore           *NIBStore
-	storage            ContentStorage
+	storage            content.Storage
 	transactionManager *TransactionManager
 }
 
@@ -38,17 +39,13 @@ func (t *NIBStoreTest) SetUpTest(c *C) {
 	signingPubKey, err := t.repository.keys.SigningPublicKey()
 	c.Assert(*pubKey, DeepEquals, signingPubKey)
 
-	fileStorage := &FileContentStorage{
-		StoragePath: filepath.Join(t.dir, "nibs"),
-	}
+	fileStorage := content.NewFileStorage(filepath.Join(t.dir, "nibs"))
 	err = fileStorage.CreateDir()
 	c.Assert(err, IsNil)
 
 	t.storage = fileStorage
 
-	transactionStorage := &FileContentStorage{
-		StoragePath: filepath.Join(t.dir, "transactions"),
-	}
+	transactionStorage := content.NewFileStorage(filepath.Join(t.dir, "transactions"))
 	err = transactionStorage.CreateDir()
 	c.Assert(err, IsNil)
 

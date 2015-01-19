@@ -1,7 +1,6 @@
-package repository
+package content
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"path"
@@ -9,23 +8,29 @@ import (
 	"github.com/hoffie/larasync/helpers/atomic"
 )
 
-// FileContentStorage is the basic implementation of the ContentStorage
+const (
+	// default permissions
+	defaultFilePerms = 0600
+	defaultDirPerms  = 0700
+)
+
+// FileStorage is the basic implementation of the Storage
 // implementation which stores the data into the file system.
-type FileContentStorage struct {
-	StoragePath string
+type FileStorage struct {
+	path string
 }
 
-// newFileContentStorage generates a file content storage with the
+// NewFileStorage generates a file content storage with the
 // given path.
-func newFileContentStorage(path string) *FileContentStorage {
-	return &FileContentStorage{
-		StoragePath: path,
+func NewFileStorage(path string) *FileStorage {
+	return &FileStorage{
+		path: path,
 	}
 }
 
 // CreateDir ensures that the file blob storage directory exists.
-func (f *FileContentStorage) CreateDir() error {
-	err := os.Mkdir(f.StoragePath, defaultDirPerms)
+func (f *FileStorage) CreateDir() error {
+	err := os.Mkdir(f.path, defaultDirPerms)
 
 	if err != nil && !os.IsExist(err) {
 		return err
@@ -34,14 +39,14 @@ func (f *FileContentStorage) CreateDir() error {
 }
 
 // storagePathFor returns the storage path for the data entry.
-func (f *FileContentStorage) storagePathFor(contentID string) string {
-	return path.Join(f.StoragePath, contentID)
+func (f *FileStorage) storagePathFor(contentID string) string {
+	return path.Join(f.path, contentID)
 }
 
 // Get returns the file handle for the given contentID.
 // If there is no data stored for the Id it should return a
 // os.ErrNotExists error.
-func (f *FileContentStorage) Get(contentID string) (io.ReadCloser, error) {
+func (f *FileStorage) Get(contentID string) (io.ReadCloser, error) {
 	if f.Exists(contentID) {
 		return os.Open(f.storagePathFor(contentID))
 	}
@@ -49,7 +54,7 @@ func (f *FileContentStorage) Get(contentID string) (io.ReadCloser, error) {
 }
 
 // Set sets the data of the given contentID in the blob storage.
-func (f *FileContentStorage) Set(contentID string, reader io.Reader) error {
+func (f *FileStorage) Set(contentID string, reader io.Reader) error {
 	blobStoragePath := f.storagePathFor(contentID)
 
 	writer, err := atomic.NewStandardWriter(blobStoragePath, defaultFilePerms)
@@ -73,7 +78,7 @@ func (f *FileContentStorage) Set(contentID string, reader io.Reader) error {
 }
 
 // Exists checks if the given entry is stored in the database.
-func (f *FileContentStorage) Exists(contentID string) bool {
+func (f *FileStorage) Exists(contentID string) bool {
 	_, err := os.Stat(f.storagePathFor(contentID))
 	if err != nil {
 		return !os.IsNotExist(err)
@@ -82,6 +87,6 @@ func (f *FileContentStorage) Exists(contentID string) bool {
 }
 
 // Delete removes the data with the given contentID from the store.
-func (f *FileContentStorage) Delete(contentID string) error {
+func (f *FileStorage) Delete(contentID string) error {
 	return os.Remove(f.storagePathFor(contentID))
 }

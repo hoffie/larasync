@@ -1,22 +1,22 @@
-package repository
+package content
 
 import (
 	. "gopkg.in/check.v1"
 )
 
-type ByteContentStorageTests struct {
+type ByteStorageTests struct {
 	dir string
 }
 
-var _ = Suite(&ByteContentStorageTests{})
+var _ = Suite(&ByteStorageTests{})
 
-func (t *ByteContentStorageTests) SetUpTest(c *C) {
+func (t *ByteStorageTests) SetUpTest(c *C) {
 	t.dir = c.MkDir()
 }
 
-func (t *ByteContentStorageTests) Test(c *C) {
-	s := newFileContentStorage(t.dir)
-	b := newByteContentStorage(s)
+func (t *ByteStorageTests) Test(c *C) {
+	s := NewFileStorage(t.dir)
+	b := NewByteStorage(s)
 	myContent := []byte("asd")
 	err := b.SetBytes("foo", myContent)
 	c.Assert(err, IsNil)

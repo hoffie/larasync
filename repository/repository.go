@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/hoffie/larasync/repository/content"
 	"github.com/hoffie/larasync/repository/nib"
 )
 
@@ -34,7 +35,7 @@ const (
 type Repository struct {
 	Path                 string
 	keys                 *KeyStore
-	objectStorage        ContentStorage
+	objectStorage        content.Storage
 	nibStore             *NIBStore
 	transactionManager   *TransactionManager
 	authorizationManager *AuthorizationManager
@@ -46,19 +47,19 @@ func New(path string) *Repository {
 	r := &Repository{Path: path}
 	r.setupPaths()
 
-	r.objectStorage = newFileContentStorage(r.subPathFor(objectsDirName))
+	r.objectStorage = content.NewFileStorage(r.subPathFor(objectsDirName))
 
 	r.transactionManager = newTransactionManager(
-		newFileContentStorage(r.subPathFor(transactionsDirName)),
+		content.NewFileStorage(r.subPathFor(transactionsDirName)),
 		r.GetManagementDir(),
 	)
 	r.authorizationManager = newAuthorizationManager(
-		newFileContentStorage(r.subPathFor(authorizationsDirName)),
+		content.NewFileStorage(r.subPathFor(authorizationsDirName)),
 	)
 
-	r.keys = NewKeyStore(newFileContentStorage(r.subPathFor(keysDirName)))
+	r.keys = NewKeyStore(content.NewFileStorage(r.subPathFor(keysDirName)))
 	r.nibStore = newNIBStore(
-		newFileContentStorage(r.subPathFor(nibsDirName)),
+		content.NewFileStorage(r.subPathFor(nibsDirName)),
 		r.keys,
 		r.transactionManager,
 	)
@@ -86,12 +87,12 @@ func (r *Repository) CreateManagementDir() error {
 		return err
 	}
 
-	storages := []*FileContentStorage{
-		newFileContentStorage(r.subPathFor(authorizationsDirName)),
-		newFileContentStorage(r.subPathFor(nibsDirName)),
-		newFileContentStorage(r.subPathFor(transactionsDirName)),
-		newFileContentStorage(r.subPathFor(objectsDirName)),
-		newFileContentStorage(r.subPathFor(keysDirName)),
+	storages := []*content.FileStorage{
+		content.NewFileStorage(r.subPathFor(authorizationsDirName)),
+		content.NewFileStorage(r.subPathFor(nibsDirName)),
+		content.NewFileStorage(r.subPathFor(transactionsDirName)),
+		content.NewFileStorage(r.subPathFor(objectsDirName)),
+		content.NewFileStorage(r.subPathFor(keysDirName)),
 	}
 
 	for _, fileStorage := range storages {

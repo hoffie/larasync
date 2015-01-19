@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/hoffie/larasync/helpers/lock"
+	"github.com/hoffie/larasync/repository/content"
 )
 
 const transactionsInContainer int = 100
@@ -24,7 +25,7 @@ type TransactionManager struct {
 
 // newTransactionManager initializes a new transaction manager
 // with the given storage as a backend.
-func newTransactionManager(storage ContentStorage, lockingPath string) *TransactionManager {
+func newTransactionManager(storage content.Storage, lockingPath string) *TransactionManager {
 	manager := newTransactionContainerManager(storage, lockingPath)
 	return &TransactionManager{
 		manager: manager,

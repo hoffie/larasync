@@ -3,6 +3,8 @@ package repository
 import (
 	"os"
 
+	"github.com/hoffie/larasync/repository/content"
+
 	. "gopkg.in/check.v1"
 )
 
@@ -15,7 +17,7 @@ var _ = Suite(&TransactionContainerManagerTest{})
 
 func (t *TransactionContainerManagerTest) SetUpTest(c *C) {
 	t.dir = c.MkDir()
-	storage := &FileContentStorage{StoragePath: t.dir}
+	storage := content.NewFileStorage(t.dir)
 
 	t.tcm = newTransactionContainerManager(storage, t.dir)
 }

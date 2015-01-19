@@ -8,6 +8,7 @@ import (
 	. "gopkg.in/check.v1"
 
 	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
+	"github.com/hoffie/larasync/repository/content"
 )
 
 type AuthorizationManagerTests struct {
@@ -21,9 +22,8 @@ var _ = Suite(&AuthorizationManagerTests{})
 
 func (t *AuthorizationManagerTests) SetUpTest(c *C) {
 	t.dir = c.MkDir()
-	t.am = newAuthorizationManager(&FileContentStorage{
-		StoragePath: t.dir,
-	})
+	fileStorage := content.NewFileStorage(t.dir)
+	t.am = newAuthorizationManager(fileStorage)
 	rand.Read(t.encryptionKey[:])
 	rand.Read(t.signaturePrivateKey[:])
 }

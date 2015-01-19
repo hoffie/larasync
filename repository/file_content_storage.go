@@ -38,13 +38,6 @@ func (f *FileContentStorage) storagePathFor(contentID string) string {
 	return path.Join(f.StoragePath, contentID)
 }
 
-// tempStoragePathFor returns the storage path which should be used to buffer
-// data before it should be finalized.
-func (f *FileContentStorage) tempStoragePathFor(contentID string) string {
-	storagePath := f.storagePathFor(contentID)
-	return fmt.Sprintf("%s.tmp", storagePath)
-}
-
 // Get returns the file handle for the given contentID.
 // If there is no data stored for the Id it should return a
 // os.ErrNotExists error.

@@ -1,9 +1,7 @@
 package api
 
 import (
-	"io/ioutil"
 	"net"
-	"os"
 	"time"
 
 	"github.com/hoffie/larasync/helpers/x509"
@@ -16,26 +14,15 @@ type TestServer struct {
 	listener    net.Listener
 	hostAndPort string
 	adminSecret []byte
-	basePath    string
 	rm          *repository.Manager
 	api         *Server
 }
 
 // NewTestServer creates a server instance for testing purposes.
 // It uses a random port for that.
-func NewTestServer(certFile, keyFile string) (*TestServer, error) {
+func NewTestServer(certFile, keyFile string, rm *repository.Manager) (*TestServer, error) {
 	ts := &TestServer{
 		adminSecret: adminSecret,
-	}
-	tempdir, err := ioutil.TempDir("", "lara")
-	if err != nil {
-		return nil, err
-	}
-	ts.basePath = tempdir
-
-	rm, err := repository.NewManager(ts.basePath)
-	if err != nil {
-		return nil, err
 	}
 
 	pubKey, err := GetAdminSecretPubkey(ts.adminSecret)
@@ -81,11 +68,5 @@ func (ts *TestServer) makeListener() error {
 // Close cleans when done using this instance;
 // it removes the temporary directory and stops listening
 func (ts *TestServer) Close() {
-	ts.removeBasePath()
 	ts.listener.Close()
-}
-
-// removeBasePath removes the temporary directory
-func (ts *TestServer) removeBasePath() error {
-	return os.RemoveAll(ts.basePath)
 }

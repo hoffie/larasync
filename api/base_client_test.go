@@ -25,7 +25,7 @@ func (t *BaseClientTest) serverURL(c *C) string {
 func (t *BaseClientTest) SetUpTest(c *C) {
 	t.BaseTests.SetUpTest(c)
 	var err error
-	t.server, err = NewTestServer(t.certFile, t.keyFile)
+	t.server, err = NewTestServer(t.certFile, t.keyFile, t.rm)
 
 	c.Assert(err, IsNil)
 	t.client = NewClient(

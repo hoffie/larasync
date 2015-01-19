@@ -8,7 +8,7 @@ import (
 )
 
 // putNIBRequest builds a request for uploading NIB
-func (c *Client) putNIBRequest(nibID string, nibReader io.ReadCloser) (*http.Request, error) {
+func (c *Client) putNIBRequest(nibID string, nibReader io.Reader) (*http.Request, error) {
 	req, err := http.NewRequest("PUT", c.BaseURL+"/nibs/"+nibID,
 		nibReader)
 	if err != nil {
@@ -20,7 +20,7 @@ func (c *Client) putNIBRequest(nibID string, nibReader io.ReadCloser) (*http.Req
 }
 
 // PutNIB uploads a NIB to the server
-func (c *Client) PutNIB(nibID string, nibReader io.ReadCloser) error {
+func (c *Client) PutNIB(nibID string, nibReader io.Reader) error {
 	req, err := c.putNIBRequest(nibID, nibReader)
 	if err != nil {
 		return err

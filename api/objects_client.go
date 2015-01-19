@@ -44,7 +44,7 @@ func (c *Client) GetObject(objectID string) (io.Reader, error) {
 		return nil, err
 	}
 	resp, err := c.doRequest(req, http.StatusCreated, http.StatusOK)
-	if resp == nil {
+	if err != nil {
 		return nil, err
 	}
 	return resp.Body, err

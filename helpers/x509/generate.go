@@ -79,8 +79,8 @@ func pemBlockForKey(k *ecdsa.PrivateKey) (*pem.Block, error) {
 	return &pem.Block{Type: "EC PRIVATE KEY", Bytes: b}, nil
 }
 
-// GenerateServerCertFiles creates a certificate and a key file in the provided
-// output directory.
+// GenerateServerCertFiles creates a certificate and a key file at the given
+// locations.
 func GenerateServerCertFiles(certFile, keyFile string) error {
 	certOut, err := os.OpenFile(certFile, os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {

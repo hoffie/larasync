@@ -20,6 +20,8 @@ type FileStorageTests struct {
 
 var _ = Suite(&FileStorageTests{})
 
+var dangerousNames = []string{"..", "../xyz"}
+
 func (t *FileStorageTests) SetUpTest(c *C) {
 	t.dir = c.MkDir()
 	t.storage = NewFileStorage(t.dir)
@@ -41,6 +43,14 @@ func (t *FileStorageTests) testReader() io.Reader {
 
 func (t *FileStorageTests) setData() error {
 	return t.storage.Set(t.blobID(), t.testReader())
+}
+
+func (t *FileStorageTests) TestSetDangerousName(c *C) {
+	r := t.testReader()
+	for _, id := range dangerousNames {
+		err := t.storage.Set(id, r)
+		c.Assert(err, NotNil)
+	}
 }
 
 func (t *FileStorageTests) TestSet(c *C) {
@@ -70,6 +80,13 @@ func (t *FileStorageTests) TestGet(c *C) {
 	t.storage.Set(t.blobID(), t.testReader())
 	_, err := t.storage.Get(t.blobID())
 	c.Assert(err, IsNil)
+}
+
+func (t *FileStorageTests) TestGetDangerousName(c *C) {
+	for _, id := range dangerousNames {
+		_, err := t.storage.Get(id)
+		c.Assert(err, NotNil)
+	}
 }
 
 func (t *FileStorageTests) TestGetData(c *C) {

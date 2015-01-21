@@ -14,7 +14,7 @@ type NIBClientTest struct {
 }
 
 var _ = Suite(&NIBClientTest{
-BaseTest: newBaseTest(),
+	BaseTest: newBaseTest(),
 })
 
 func (t *NIBClientTest) SetUpTest(c *C) {

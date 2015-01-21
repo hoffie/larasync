@@ -4,8 +4,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/hoffie/larasync/helpers/bincontainer"
 	. "github.com/hoffie/larasync/api/common"
+	"github.com/hoffie/larasync/helpers/bincontainer"
 )
 
 // putNIBRequest builds a request for uploading NIB

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"encoding/json"
-	
+
 	"github.com/hoffie/larasync/api"
 )
 

@@ -3,7 +3,7 @@ package client
 import (
 	"io"
 	"net/http"
-	
+
 	. "github.com/hoffie/larasync/api/common"
 )
 

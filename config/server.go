@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"time"
 
-	"github.com/hoffie/larasync/api/server"
 	apicommon "github.com/hoffie/larasync/api/common"
+	"github.com/hoffie/larasync/api/server"
 )
 
 // ServerConfig contains all settings for our server mode.

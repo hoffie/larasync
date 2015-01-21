@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/hoffie/larasync/repository/nib"
-	
-	. "gopkg.in/check.v1"
+
 	. "github.com/hoffie/larasync/api/common"
+	. "gopkg.in/check.v1"
 )
 
 type NIBPutTest struct {

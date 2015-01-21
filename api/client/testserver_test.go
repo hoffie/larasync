@@ -4,10 +4,10 @@ import (
 	"net"
 	"time"
 
+	. "github.com/hoffie/larasync/api/common"
+	"github.com/hoffie/larasync/api/server"
 	"github.com/hoffie/larasync/helpers/x509"
 	"github.com/hoffie/larasync/repository"
-	"github.com/hoffie/larasync/api/server"
-	. "github.com/hoffie/larasync/api/common"
 )
 
 // TestServer is used for creating and managing

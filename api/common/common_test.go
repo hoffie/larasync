@@ -2,7 +2,7 @@ package common
 
 import (
 	"testing"
-	
+
 	. "gopkg.in/check.v1"
 )
 

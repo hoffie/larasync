@@ -16,7 +16,7 @@ type ObjectsClientTest struct {
 }
 
 var _ = Suite(&ObjectsClientTest{
-BaseTest: newBaseTest(),
+	BaseTest: newBaseTest(),
 })
 
 func (t *ObjectsClientTest) SetUpTest(c *C) {

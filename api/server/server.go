@@ -14,7 +14,7 @@ import (
 	"github.com/hoffie/larasync/helpers/lock"
 	"github.com/hoffie/larasync/helpers/x509"
 	"github.com/hoffie/larasync/repository"
-	
+
 	. "github.com/hoffie/larasync/api/common"
 )
 

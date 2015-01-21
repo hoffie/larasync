@@ -2,21 +2,21 @@ package server
 
 import (
 	"bytes"
+	"crypto/rand"
 	"fmt"
 	"io"
-	"os"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"path/filepath"
 	"time"
-	"crypto/rand"
-	
-	"github.com/hoffie/larasync/repository"
-	"github.com/hoffie/larasync/helpers/x509"
-	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
+
 	. "github.com/hoffie/larasync/api/common"
-	
+	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
+	"github.com/hoffie/larasync/helpers/x509"
+	"github.com/hoffie/larasync/repository"
+
 	. "gopkg.in/check.v1"
 )
 
@@ -32,11 +32,11 @@ type BaseTests struct {
 	keyFile        string
 	pubKey         [PublicKeySize]byte
 	privateKey     [PrivateKeySize]byte
-	server     *Server
-	req        *http.Request
-	httpMethod string
-	getURL     func() string
-	urlParams  url.Values
+	server         *Server
+	req            *http.Request
+	httpMethod     string
+	getURL         func() string
+	urlParams      url.Values
 }
 
 func (t *BaseTests) SetUpTest(c *C) {

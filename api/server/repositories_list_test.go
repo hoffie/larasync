@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	. "github.com/hoffie/larasync/api/common"
-	
+
 	. "gopkg.in/check.v1"
 )
 
@@ -18,7 +18,7 @@ type RepoListTests struct {
 }
 
 var _ = Suite(&RepoListTests{
-BaseTests: newBaseTest(),
+	BaseTests: newBaseTest(),
 })
 
 func (t *RepoListTests) SetUpTest(c *C) {

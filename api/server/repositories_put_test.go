@@ -11,9 +11,9 @@ import (
 	"strings"
 
 	"github.com/hoffie/larasync/api"
-	
+
 	. "github.com/hoffie/larasync/api/common"
-	
+
 	. "gopkg.in/check.v1"
 )
 
@@ -24,7 +24,7 @@ type RepoListCreateTests struct {
 }
 
 var _ = Suite(&RepoListCreateTests{
-BaseTests: newBaseTest(),
+	BaseTests: newBaseTest(),
 })
 
 func (t *RepoListCreateTests) requestWithBytes(c *C, body []byte) *http.Request {

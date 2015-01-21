@@ -1,22 +1,21 @@
 package client
 
 import (
-	"os"
 	"crypto/rand"
+	"os"
 	"path"
 	"path/filepath"
 
-	"github.com/hoffie/larasync/repository"
-	"github.com/hoffie/larasync/helpers/x509"
-	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
 	. "github.com/hoffie/larasync/api/common"
+	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
+	"github.com/hoffie/larasync/helpers/x509"
+	"github.com/hoffie/larasync/repository"
 
 	. "gopkg.in/check.v1"
 )
 
 func newBaseTest() BaseTest {
-	return BaseTest{
-	}
+	return BaseTest{}
 }
 
 type BaseTest struct {
@@ -27,10 +26,10 @@ type BaseTest struct {
 	keyFile        string
 	pubKey         [PublicKeySize]byte
 	privateKey     [PrivateKeySize]byte
-	encryptionKey [repository.EncryptionKeySize]byte
-	hashingKey    [repository.HashingKeySize]byte
-	client        *Client
-	server        *TestServer
+	encryptionKey  [repository.EncryptionKeySize]byte
+	hashingKey     [repository.HashingKeySize]byte
+	client         *Client
+	server         *TestServer
 }
 
 func (t *BaseTest) serverURL(c *C) string {
@@ -42,7 +41,7 @@ func (t *BaseTest) SetUpTest(c *C) {
 
 	t.repositoryName = "test"
 	c.Assert(t.rm.Exists(t.repositoryName), Equals, false)
-	
+
 	var err error
 	t.server, err = NewTestServer(t.certFile, t.keyFile, t.rm)
 	c.Assert(err, IsNil)

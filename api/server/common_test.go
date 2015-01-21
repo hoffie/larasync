@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	. "github.com/hoffie/larasync/api/common"
-	
+
 	. "gopkg.in/check.v1"
 )
 

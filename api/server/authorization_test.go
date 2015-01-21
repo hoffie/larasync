@@ -10,7 +10,7 @@ import (
 
 	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
 	"github.com/hoffie/larasync/repository"
-	
+
 	. "github.com/hoffie/larasync/api/common"
 )
 

@@ -19,7 +19,7 @@ type AuthorizationClientTest struct {
 }
 
 var _ = Suite(&AuthorizationClientTest{
-BaseTest: newBaseTest(),
+	BaseTest: newBaseTest(),
 })
 
 func (t *AuthorizationClientTest) getAuthorizationURL(c *C) string {

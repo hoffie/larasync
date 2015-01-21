@@ -6,7 +6,7 @@ import (
 
 	"github.com/inconshreveable/log15"
 
-	"github.com/hoffie/larasync/api"
+	"github.com/hoffie/larasync/api/server"
 	"github.com/hoffie/larasync/config"
 	"github.com/hoffie/larasync/helpers/x509"
 	"github.com/hoffie/larasync/repository"
@@ -36,7 +36,7 @@ func (d *Dispatcher) serverAction() int {
 		return 1
 	}
 	certFile, keyFile := d.serverCertFilePaths()
-	s, err := api.New(*cfg.Signatures.AdminPubkeyBinary,
+	s, err := server.New(*cfg.Signatures.AdminPubkeyBinary,
 		cfg.Signatures.MaxAge, rm, certFile, keyFile)
 	if err != nil {
 		log.Error("unable to initialize server", log15.Ctx{"error": err})

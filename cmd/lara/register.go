@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/hoffie/larasync/api"
+	"github.com/hoffie/larasync/api/client"
 	"github.com/hoffie/larasync/repository"
 )
 
@@ -34,7 +34,7 @@ func (d *Dispatcher) registerAction() int {
 		return 1
 	}
 
-	url := api.NetlocToURL(netloc, repoName)
+	url := client.NetlocToURL(netloc, repoName)
 
 	sc, err := r.StateConfig()
 	if err != nil {

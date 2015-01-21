@@ -3,14 +3,14 @@ package main
 import (
 	"bytes"
 
-	"github.com/hoffie/larasync/api"
+	"github.com/hoffie/larasync/api/client"
 	"github.com/hoffie/larasync/repository"
 	"github.com/hoffie/larasync/repository/nib"
 )
 
 // downloader handles downloads from server to client
 type downloader struct {
-	client *api.Client
+	client *client.Client
 	r      *repository.ClientRepository
 }
 

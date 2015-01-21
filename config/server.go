@@ -6,7 +6,8 @@ import (
 	"io/ioutil"
 	"time"
 
-	"github.com/hoffie/larasync/api"
+	"github.com/hoffie/larasync/api/server"
+	apicommon "github.com/hoffie/larasync/api/common"
 )
 
 // ServerConfig contains all settings for our server mode.
@@ -16,7 +17,7 @@ type ServerConfig struct {
 	}
 	Signatures struct {
 		AdminPubkey       string
-		AdminPubkeyBinary *[api.PublicKeySize]byte
+		AdminPubkeyBinary *[apicommon.PublicKeySize]byte
 		MaxAge            time.Duration
 	}
 	Repository struct {
@@ -28,7 +29,7 @@ type ServerConfig struct {
 // required options are set to sane values.
 func (c *ServerConfig) Sanitize() error {
 	if c.Server.Listen == "" {
-		c.Server.Listen = fmt.Sprintf("127.0.0.1:%d", api.DefaultPort)
+		c.Server.Listen = fmt.Sprintf("127.0.0.1:%d", server.DefaultPort)
 	}
 	err := c.decodeAdminPubkey()
 	if err != nil {
@@ -60,10 +61,10 @@ func (c *ServerConfig) decodeAdminPubkey() error {
 	if err != nil {
 		return ErrInvalidAdminPubkey
 	}
-	if len(dec) != api.PublicKeySize {
+	if len(dec) != apicommon.PublicKeySize {
 		return ErrTruncatedAdminPubkey
 	}
-	c.Signatures.AdminPubkeyBinary = new([api.PublicKeySize]byte)
+	c.Signatures.AdminPubkeyBinary = new([apicommon.PublicKeySize]byte)
 	copy(c.Signatures.AdminPubkeyBinary[:], dec)
 	return nil
 }

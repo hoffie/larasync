@@ -3,14 +3,14 @@ package main
 import (
 	"fmt"
 
-	"github.com/hoffie/larasync/api"
+	"github.com/hoffie/larasync/api/client"
 	"github.com/hoffie/larasync/repository"
 	"github.com/hoffie/larasync/repository/nib"
 )
 
 // uploader handles uploads from server to client
 type uploader struct {
-	client *api.Client
+	client *client.Client
 	r      *repository.ClientRepository
 }
 

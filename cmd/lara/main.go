@@ -10,7 +10,8 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/inconshreveable/log15"
 
-	"github.com/hoffie/larasync/api"
+	"github.com/hoffie/larasync/api/client"
+	"github.com/hoffie/larasync/api/server"
 	"github.com/hoffie/larasync/repository"
 )
 
@@ -82,7 +83,8 @@ func (d *Dispatcher) setupLogging() {
 	handler := log15.StreamHandler(d.stderr, log15.LogfmtFormat())
 	log.SetHandler(handler)
 	repository.Log.SetHandler(handler)
-	api.Log.SetHandler(handler)
+	server.Log.SetHandler(handler)
+	client.Log.SetHandler(handler)
 }
 
 // parseFirstPathArg takes the first command line argument and returns its

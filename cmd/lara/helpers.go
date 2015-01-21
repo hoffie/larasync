@@ -5,7 +5,7 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/hoffie/larasync/api"
+	"github.com/hoffie/larasync/api/client"
 	"github.com/hoffie/larasync/helpers/colorhash"
 	"github.com/hoffie/larasync/repository"
 	"golang.org/x/crypto/ssh/terminal"
@@ -22,7 +22,7 @@ const (
 
 // clientFor returns the Client which is configured to communicate
 // with the given server repository.
-func (d *Dispatcher) clientFor(r *repository.ClientRepository) (*api.Client, error) {
+func (d *Dispatcher) clientFor(r *repository.ClientRepository) (*client.Client, error) {
 	sc, err := r.StateConfig()
 	if err != nil {
 		return nil, fmt.Errorf("unable to load state config (%s)", err)
@@ -41,10 +41,10 @@ func (d *Dispatcher) clientFor(r *repository.ClientRepository) (*api.Client, err
 	return client, nil
 }
 
-func (d *Dispatcher) clientForState(sc *repository.StateConfig) *api.Client {
+func (d *Dispatcher) clientForState(sc *repository.StateConfig) *client.Client {
 	d.sc = sc
 	defaultServer := sc.DefaultServer
-	return api.NewClient(defaultServer.URL, defaultServer.Fingerprint,
+	return client.New(defaultServer.URL, defaultServer.Fingerprint,
 		d.confirmFingerprint)
 }
 

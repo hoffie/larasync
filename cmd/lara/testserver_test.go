@@ -7,20 +7,21 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/hoffie/larasync/api"
+	apicommon "github.com/hoffie/larasync/api/common"
+	"github.com/hoffie/larasync/api/server"
 	"github.com/hoffie/larasync/helpers/x509"
 	"github.com/hoffie/larasync/repository"
 )
 
 // TestServer is used for creating and managing
-// api.Server instances for testing.
+// api.server.Server instances for testing.
 type TestServer struct {
 	listener    net.Listener
 	hostAndPort string
 	adminSecret []byte
 	basePath    string
 	rm          *repository.Manager
-	api         *api.Server
+	api         *server.Server
 }
 
 // NewTestServer creates a server instance for testing purposes.
@@ -40,7 +41,7 @@ func NewTestServer() (*TestServer, error) {
 		return nil, err
 	}
 
-	pubKey, err := api.GetAdminSecretPubkey(ts.adminSecret)
+	pubKey, err := apicommon.GetAdminSecretPubkey(ts.adminSecret)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +52,7 @@ func NewTestServer() (*TestServer, error) {
 	if err != nil {
 		return nil, err
 	}
-	ts.api, err = api.New(pubKey, 5*time.Second, rm, certFile, keyFile)
+	ts.api, err = server.New(pubKey, 5*time.Second, rm, certFile, keyFile)
 	if err != nil {
 		return nil, err
 	}

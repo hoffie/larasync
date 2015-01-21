@@ -27,7 +27,8 @@ func (d *Dispatcher) clientFor(r *repository.ClientRepository) (*api.Client, err
 	if err != nil {
 		return nil, fmt.Errorf("unable to load state config (%s)", err)
 	}
-	if sc.DefaultServer == "" {
+	defaultServer := sc.DefaultServer
+	if defaultServer.URL == "" {
 		return nil, fmt.Errorf("no default server configured (state)")
 	}
 	privKey, err := r.GetSigningPrivateKey()
@@ -42,7 +43,8 @@ func (d *Dispatcher) clientFor(r *repository.ClientRepository) (*api.Client, err
 
 func (d *Dispatcher) clientForState(sc *repository.StateConfig) *api.Client {
 	d.sc = sc
-	return api.NewClient(sc.DefaultServer, sc.DefaultServerFingerprint,
+	defaultServer := sc.DefaultServer
+	return api.NewClient(defaultServer.URL, defaultServer.Fingerprint,
 		d.confirmFingerprint)
 }
 
@@ -122,7 +124,7 @@ func (d *Dispatcher) confirmFingerprint(fp string) bool {
 		// yes, we return true here nevertheless
 		return true
 	}
-	d.sc.DefaultServerFingerprint = fp
+	d.sc.DefaultServer.Fingerprint = fp
 	err = d.sc.Save()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Warning: failed to save fingerprint (%s)\n", err)

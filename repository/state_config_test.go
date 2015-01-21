@@ -22,11 +22,14 @@ func (t *StateConfigTests) getStateConfigPath() string {
 }
 
 func (t *StateConfigTests) getStateConfig() *StateConfig {
-	return &StateConfig{
-		Path:                     t.getStateConfigPath(),
-		DefaultServer:            "default_server",
-		DefaultServerFingerprint: "fp",
+	stateConfig := NewStateConfig(t.getStateConfigPath())
+	stateConfig.DefaultServer = &ServerStateConfig{
+		URL:                 "default_server",
+		Fingerprint:         "fp",
+		RemoteTransactionID: "remotetransid",
+		LocalTransactionID:  "localtransid",
 	}
+	return stateConfig
 }
 
 func (t *StateConfigTests) TestSave(c *C) {
@@ -57,8 +60,11 @@ func (t *StateConfigTests) TestLoad(c *C) {
 	err := stateConfig.Load()
 	c.Assert(err, IsNil)
 
-	c.Assert(stateConfig.DefaultServer, Equals, "default_server")
-	c.Assert(stateConfig.DefaultServerFingerprint, Equals, "fp")
+	defaultServer := stateConfig.DefaultServer
+	c.Assert(defaultServer.URL, Equals, "default_server")
+	c.Assert(defaultServer.Fingerprint, Equals, "fp")
+	c.Assert(defaultServer.LocalTransactionID, Equals, "localtransid")
+	c.Assert(defaultServer.RemoteTransactionID, Equals, "remotetransid")
 }
 
 func (t *StateConfigTests) TestLoadNotExists(c *C) {

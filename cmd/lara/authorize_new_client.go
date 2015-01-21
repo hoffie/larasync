@@ -50,8 +50,9 @@ func (d *Dispatcher) authorizeNewClientAction() int {
 		return 1
 	}
 
+	defaultServer := d.sc.DefaultServer
 	authURL, err := newAuthURL(client.BaseURL, signingPrivKey, &encryptionKey,
-		d.sc.DefaultServerFingerprint)
+		defaultServer.Fingerprint)
 	if err != nil {
 		fmt.Fprintln(d.stderr, "Error: authorization url could not be generated.")
 	}

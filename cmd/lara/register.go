@@ -41,7 +41,8 @@ func (d *Dispatcher) registerAction() int {
 		fmt.Fprintf(d.stderr, "Error: unable to load repo state (%s)\n", err)
 		return 1
 	}
-	sc.DefaultServer = url
+	defaultServer := sc.DefaultServer
+	defaultServer.URL = url
 
 	client := d.clientForState(sc)
 	client.SetAdminSecret(adminSecret)

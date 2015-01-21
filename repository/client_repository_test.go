@@ -22,13 +22,13 @@ func (t *ClientRepositoryTests) TestStateConfig(c *C) {
 
 	sc, err := r.StateConfig()
 	c.Assert(err, IsNil)
-	sc.DefaultServer = exp
+	sc.DefaultServer.URL = exp
 	sc.Save()
 
 	r2 := NewClient(t.dir)
 	sc2, err := r2.StateConfig()
 	c.Assert(err, IsNil)
-	c.Assert(sc2.DefaultServer, Equals, exp)
+	c.Assert(sc2.DefaultServer.URL, Equals, exp)
 }
 
 func (t *RepositoryTests) TestPathToNIBID(c *C) {

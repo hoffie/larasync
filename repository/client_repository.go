@@ -33,7 +33,7 @@ func (r *ClientRepository) StateConfig() (*StateConfig, error) {
 		return r.stateConfig, nil
 	}
 	path := r.subPathFor(stateConfigFileName)
-	r.stateConfig = &StateConfig{Path: path}
+	r.stateConfig = NewStateConfig(path)
 	err := r.stateConfig.Load()
 	if err != nil && !os.IsNotExist(err) {
 		return nil, err

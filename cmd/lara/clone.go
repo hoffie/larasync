@@ -46,8 +46,9 @@ func (d *Dispatcher) cloneAction() int {
 		fmt.Fprintf(d.stderr, "unable to load state config (%s)\n", err)
 		return 1
 	}
-	sc.DefaultServer = "https://" + u.Host + path.Dir(path.Dir(u.Path))
-	sc.DefaultServerFingerprint = authURL.Fingerprint
+	defaultServer := sc.DefaultServer
+	defaultServer.URL = "https://" + u.Host + path.Dir(path.Dir(u.Path))
+	defaultServer.Fingerprint = authURL.Fingerprint
 	err = sc.Save()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "unable to save state config (%s)\n", err)

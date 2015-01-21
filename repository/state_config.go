@@ -8,9 +8,24 @@ import (
 // StateConfig is used to keep track of state information
 // which has be be read and written programatically.
 type StateConfig struct {
-	Path                     string `json:"-"`
-	DefaultServer            string
-	DefaultServerFingerprint string
+	Path          string             `json:"-"`
+	DefaultServer *ServerStateConfig `json:"default_server"`
+}
+
+// ServerStateConfig is a substruct which stores the state
+// established between the client and the remote server.
+type ServerStateConfig struct {
+	URL                 string `json:"url"`
+	Fingerprint         string `json:"fingerprint"`
+	RemoteTransactionID string `json:"remote_transaction_id"`
+	LocalTransactionID  string `json:"local_transaction_id"`
+}
+
+func NewStateConfig(path string) *StateConfig {
+	return &StateConfig{
+		Path:          path,
+		DefaultServer: &ServerStateConfig{},
+	}
 }
 
 // Load attempts to load previous state config from disk.

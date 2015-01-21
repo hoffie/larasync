@@ -59,7 +59,7 @@ func (t *SyncTests) breakLocalFingerprint(c *C) {
 	sc := &repository.StateConfig{Path: scPath}
 	err := sc.Load()
 	c.Assert(err, IsNil)
-	sc.DefaultServerFingerprint = "broken"
+	sc.DefaultServer.Fingerprint = "broken"
 	err = sc.Save()
 	c.Assert(err, IsNil)
 }

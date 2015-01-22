@@ -28,15 +28,15 @@ func (d *Dispatcher) syncAction() int {
 		fmt.Fprintf(d.stderr, "Error: adding local changes failed (%s)\n", err)
 		return 1
 	}
-	dl := downloader{client: client, r: r}
-	err = dl.getAll()
+	dl := client.Downloader(r)
+	err = dl.GetAll()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: syncing data from server failed (%s)\n", err)
 		return 1
 	}
 
-	ul := uploader{client: client, r: r}
-	err = ul.pushAll()
+	ul := client.Uploader(r)
+	err = ul.PushAll()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: uploading data to the server failed (%s)\n", err)
 		return 1

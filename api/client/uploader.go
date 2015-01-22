@@ -1,27 +1,35 @@
-package main
+package client
 
 import (
 	"fmt"
 
-	"github.com/hoffie/larasync/api/client"
 	"github.com/hoffie/larasync/repository"
 	"github.com/hoffie/larasync/repository/nib"
 )
 
-// uploader handles uploads from server to client
-type uploader struct {
-	client *client.Client
+// Uploader returns the uploader for the given client in the passed
+// repository.
+func (c *Client) Uploader(r *repository.ClientRepository) *Uploader {
+	return &Uploader{
+		client: c,
+		r:      r,
+	}
+}
+
+// Uploader handles uploads from server to client
+type Uploader struct {
+	client *Client
 	r      *repository.ClientRepository
 }
 
-// pushAll ensures that the remote state is synced with the local state.
-func (ul *uploader) pushAll() error {
+// PushAll ensures that the remote state is synced with the local state.
+func (ul *Uploader) PushAll() error {
 	return ul.uploadNIBs()
 }
 
 // uploadNIBs uploads all local NIBs and content of the NIBs to
 // the server.
-func (ul *uploader) uploadNIBs() error {
+func (ul *Uploader) uploadNIBs() error {
 	r := ul.r
 	nibs, err := r.GetAllNibs()
 	if err != nil {
@@ -39,7 +47,7 @@ func (ul *uploader) uploadNIBs() error {
 }
 
 // uploadNIB uploads a single passed NIB to the remote server.
-func (ul *uploader) uploadNIB(n *nib.NIB) error {
+func (ul *Uploader) uploadNIB(n *nib.NIB) error {
 	r := ul.r
 	client := ul.client
 	objectIDs := n.AllObjectIDs()
@@ -64,7 +72,7 @@ func (ul *uploader) uploadNIB(n *nib.NIB) error {
 	return nil
 }
 
-func (ul *uploader) uploadObject(objectID string) error {
+func (ul *Uploader) uploadObject(objectID string) error {
 	r := ul.r
 	client := ul.client
 

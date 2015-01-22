@@ -96,8 +96,8 @@ func (d *Dispatcher) cloneAction() int {
 	}
 	client.SetSigningPrivateKey(privKey)
 
-	dl := &downloader{client: client, r: repo}
-	err = dl.getAll()
+	dl := client.Downloader(repo)
+	err = dl.GetAll()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: Could not load data from server. (%s)\n", err)
 		return 1

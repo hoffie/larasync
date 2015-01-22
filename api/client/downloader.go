@@ -1,21 +1,29 @@
-package main
+package client
 
 import (
 	"bytes"
 
-	"github.com/hoffie/larasync/api/client"
 	"github.com/hoffie/larasync/repository"
 	"github.com/hoffie/larasync/repository/nib"
 )
 
-// downloader handles downloads from server to client
-type downloader struct {
-	client *client.Client
+// Downloader returns the downloader configured for the client
+// and the passed ClientRepository.
+func (c *Client) Downloader(r *repository.ClientRepository) *Downloader {
+	return &Downloader{
+		client: c,
+		r:      r,
+	}
+}
+
+// Downloader handles downloads from server to client
+type Downloader struct {
+	client *Client
 	r      *repository.ClientRepository
 }
 
-// getAll ensures that the local state matches the remote state.
-func (dl *downloader) getAll() error {
+// GetAll ensures that the local state matches the remote state.
+func (dl *Downloader) GetAll() error {
 	err := dl.getNIBs()
 	if err != nil {
 		return err
@@ -24,7 +32,7 @@ func (dl *downloader) getAll() error {
 }
 
 // getNIBs downloads all NIBs and stores them in the repository
-func (dl *downloader) getNIBs() error {
+func (dl *Downloader) getNIBs() error {
 	nibBytesIterator, err := dl.client.GetNIBs()
 	if err != nil {
 		return err
@@ -49,7 +57,7 @@ func (dl *downloader) getNIBs() error {
 }
 
 // fetchMissingData loads missing objects in the passed NIB.
-func (dl *downloader) fetchMissingData(n *nib.NIB) error {
+func (dl *Downloader) fetchMissingData(n *nib.NIB) error {
 	objectIDs := n.AllObjectIDs()
 	for _, objectID := range objectIDs {
 		if dl.r.HasObject(objectID) {
@@ -64,7 +72,7 @@ func (dl *downloader) fetchMissingData(n *nib.NIB) error {
 }
 
 // getObject downloads the named object
-func (dl *downloader) getObject(objectID string) error {
+func (dl *Downloader) getObject(objectID string) error {
 	resp, err := dl.client.GetObject(objectID)
 	if err != nil {
 		return err

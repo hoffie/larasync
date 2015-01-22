@@ -25,11 +25,8 @@ func (d *Dispatcher) pushAction() int {
 		return 1
 	}
 
-	ul := &uploader{
-		client: client,
-		r:      r,
-	}
-	err = ul.pushAll()
+	ul := client.Uploader(r)
+	err = ul.PushAll()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: %s\n",
 			err)

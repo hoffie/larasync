@@ -22,8 +22,8 @@ func (d *Dispatcher) pullAction() int {
 		fmt.Fprint(d.stderr, err)
 		return 1
 	}
-	dl := downloader{client: client, r: r}
-	err = dl.getAll()
+	dl := client.Downloader(r)
+	err = dl.GetAll()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: pull failed (%s)\n", err)
 		return 1

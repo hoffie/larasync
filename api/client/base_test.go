@@ -6,7 +6,7 @@ import (
 	"path"
 	"path/filepath"
 
-	. "github.com/hoffie/larasync/api/common"
+	"github.com/hoffie/larasync/api/common"
 	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
 	"github.com/hoffie/larasync/helpers/x509"
 	"github.com/hoffie/larasync/repository"
@@ -62,7 +62,7 @@ func (t *BaseTest) SetUpSuite(c *C) {
 	byteArray := make([]byte, PrivateKeySize)
 	_, err := rand.Read(byteArray)
 	c.Assert(err, IsNil)
-	t.privateKey, err = PassphraseToKey(byteArray)
+	t.privateKey, err = common.PassphraseToKey(byteArray)
 	c.Assert(err, IsNil)
 	t.pubKey = edhelpers.GetPublicKeyFromPrivate(t.privateKey)
 	t.createServerCert(c)

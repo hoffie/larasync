@@ -4,7 +4,7 @@ import (
 	"io"
 	"net/http"
 
-	. "github.com/hoffie/larasync/api/common"
+	"github.com/hoffie/larasync/api/common"
 	"github.com/hoffie/larasync/helpers/bincontainer"
 )
 
@@ -16,7 +16,7 @@ func (c *Client) putNIBRequest(nibID string, nibReader io.Reader) (*http.Request
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/octet-stream")
-	SignWithKey(req, c.signingPrivateKey)
+	common.SignWithKey(req, c.signingPrivateKey)
 	return req, nil
 }
 
@@ -36,7 +36,7 @@ func (c *Client) getNIBsRequest() (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-	SignWithKey(req, c.signingPrivateKey)
+	common.SignWithKey(req, c.signingPrivateKey)
 	return req, nil
 }
 

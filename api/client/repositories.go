@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/hoffie/larasync/api"
-	. "github.com/hoffie/larasync/api/common"
+	"github.com/hoffie/larasync/api/common"
 )
 
 // registerRequest builds a request for registering a new repository
@@ -25,7 +25,7 @@ func (c *Client) registerRequest(pubKey [PublicKeySize]byte) (*http.Request, err
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	SignWithPassphrase(req, c.adminSecret)
+	common.SignWithPassphrase(req, c.adminSecret)
 	return req, nil
 }
 

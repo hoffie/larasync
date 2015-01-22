@@ -4,7 +4,7 @@ import (
 	"net"
 	"time"
 
-	. "github.com/hoffie/larasync/api/common"
+	"github.com/hoffie/larasync/api/common"
 	"github.com/hoffie/larasync/api/server"
 	"github.com/hoffie/larasync/helpers/x509"
 	"github.com/hoffie/larasync/repository"
@@ -27,7 +27,7 @@ func NewTestServer(certFile, keyFile string, rm *repository.Manager) (*TestServe
 		adminSecret: adminSecret,
 	}
 
-	pubKey, err := GetAdminSecretPubkey(ts.adminSecret)
+	pubKey, err := common.GetAdminSecretPubkey(ts.adminSecret)
 	if err != nil {
 		return nil, err
 	}

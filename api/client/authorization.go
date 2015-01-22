@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	. "github.com/hoffie/larasync/api/common"
+	"github.com/hoffie/larasync/api/common"
 )
 
 // putAuthorizationRequest generates a request to add new authorization
@@ -26,7 +26,7 @@ func (c *Client) putAuthorizationRequest(
 	}
 
 	req.Header.Set("Content-Type", "application/octet-stream")
-	SignWithKey(req, c.signingPrivateKey)
+	common.SignWithKey(req, c.signingPrivateKey)
 	return req, nil
 }
 
@@ -58,7 +58,7 @@ func (c *Client) getAuthorizationRequest(authorizationURL string,
 		return nil, err
 	}
 
-	SignWithKey(req, authPrivKey)
+	common.SignWithKey(req, authPrivKey)
 	return req, nil
 }
 

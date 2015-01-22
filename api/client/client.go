@@ -4,8 +4,6 @@ import (
 	"net/http"
 
 	"github.com/hoffie/larasync/api/tls"
-
-	. "github.com/hoffie/larasync/api/common"
 )
 
 // Client provides convenience methods for accessing an api.Server
@@ -24,7 +22,7 @@ func NetlocToURL(netloc, repoName string) string {
 	return "https://" + netloc + "/repositories/" + repoName
 }
 
-// NewClient returns a new Client instance.
+// New returns a new Client instance.
 func New(url, fingerprint string, fingerprintVerifier tls.VerificationFunc) *Client {
 	fpv := tls.FingerprintVerifier{
 		AcceptFingerprint: fingerprint,

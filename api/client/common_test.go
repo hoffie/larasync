@@ -3,7 +3,7 @@ package client
 import (
 	"testing"
 
-	. "github.com/hoffie/larasync/api/common"
+	common "github.com/hoffie/larasync/api/common"
 
 	. "gopkg.in/check.v1"
 )
@@ -17,7 +17,7 @@ var adminPubkey [PublicKeySize]byte
 
 func init() {
 	var err error
-	adminPubkey, err = GetAdminSecretPubkey(adminSecret)
+	adminPubkey, err = common.GetAdminSecretPubkey(adminSecret)
 	if err != nil {
 		panic(err)
 	}

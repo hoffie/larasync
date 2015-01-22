@@ -4,7 +4,7 @@ import (
 	"io"
 	"net/http"
 
-	. "github.com/hoffie/larasync/api/common"
+	"github.com/hoffie/larasync/api/common"
 )
 
 // putObjectRequest builds a request for uploading an object
@@ -15,7 +15,7 @@ func (c *Client) putObjectRequest(objectID string, content io.Reader) (*http.Req
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/octet-stream")
-	SignWithKey(req, c.signingPrivateKey)
+	common.SignWithKey(req, c.signingPrivateKey)
 	return req, nil
 }
 
@@ -35,7 +35,7 @@ func (c *Client) getObjectRequest(objectID string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-	SignWithKey(req, c.signingPrivateKey)
+	common.SignWithKey(req, c.signingPrivateKey)
 	return req, nil
 }
 

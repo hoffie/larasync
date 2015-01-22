@@ -21,6 +21,8 @@ type ServerStateConfig struct {
 	LocalTransactionID  string `json:"local_transaction_id"`
 }
 
+// NewStateConfig creates a new StateConfig instance for the given path.
+// Subvalues are initialized with default values.
 func NewStateConfig(path string) *StateConfig {
 	return &StateConfig{
 		Path:          path,

@@ -37,6 +37,16 @@ func parseAuthURL(URL *url.URL) (*AuthorizationURL, error) {
 	return authURL, nil
 }
 
+// parseAuthURLString takes a string URL and uses parseAuthURL on it to derive
+// an AuthorizationURL object.
+func parseAuthURLString(urlString string) (*AuthorizationURL, error) {
+	u, err := url.Parse(urlString)
+	if err != nil {
+		return nil, fmt.Errorf("unparsable url (%s)", err)
+	}
+	return parseAuthURL(u)
+}
+
 // NewAuthURL generates a new authorization URL with the passed
 // arguments.
 func NewAuthURL(repositoryBaseURL string,

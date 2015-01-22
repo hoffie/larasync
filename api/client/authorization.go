@@ -7,7 +7,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 	"path"
 
@@ -95,14 +94,7 @@ func ImportAuthorization(repoName string, urlString string) (*Client, *repositor
 		return nil, nil, fmt.Errorf("repository creation failure (%s)", err)
 	}
 
-	u, err := url.Parse(urlString)
-	if err != nil {
-		return nil, nil, fmt.Errorf("unparsable url (%s)", err)
-	}
-	authURL, err := parseAuthURL(u)
-	if err != nil {
-		return nil, nil, fmt.Errorf("unable to extract authorization information (%s)", err)
-	}
+	authURL, err := parseAuthURLString(urlString)
 
 	sc, err := repo.StateConfig()
 	if err != nil {
@@ -110,7 +102,7 @@ func ImportAuthorization(repoName string, urlString string) (*Client, *repositor
 	}
 
 	defaultServer := sc.DefaultServer
-	defaultServer.URL = "https://" + u.Host + path.Dir(path.Dir(u.Path))
+	defaultServer.URL = "https://" + authURL.URL.Host + path.Dir(path.Dir(authURL.URL.Path))
 	defaultServer.Fingerprint = authURL.Fingerprint
 	err = sc.Save()
 	if err != nil {
@@ -119,26 +111,9 @@ func ImportAuthorization(repoName string, urlString string) (*Client, *repositor
 
 	c := New(defaultServer.URL, defaultServer.Fingerprint, nil)
 
-	reader, err := c.getAuthorization(authURL.URL.String(), authURL.SignKey)
+	auth, err := c.getDecryptedAuthorization(authURL)
 	if err != nil {
-		return nil, nil, fmt.Errorf("server communication failure (%s)", err)
-	}
-
-	enc, err := ioutil.ReadAll(reader)
-	if err != nil {
-		return nil, nil, fmt.Errorf("server data retrieval failed (%s)", err)
-	}
-
-	box := crypto.NewBox(authURL.EncKey)
-	data, err := box.DecryptContent(enc)
-	if err != nil {
-		return nil, nil, fmt.Errorf("response decryption failure (%s)", err)
-	}
-
-	auth := &repository.Authorization{}
-	_, err = auth.ReadFrom(bytes.NewBuffer(data))
-	if err != nil {
-		return nil, nil, fmt.Errorf("authorization data read failure (%s)", err)
+		return nil, nil, fmt.Errorf("unable to retrieve decrypted authorization (%s)", err)
 	}
 
 	err = repo.SetKeysFromAuth(auth)
@@ -153,4 +128,31 @@ func ImportAuthorization(repoName string, urlString string) (*Client, *repositor
 	c.SetSigningPrivateKey(privKey)
 
 	return c, repo, nil
+}
+
+// getDecryptedAuthorization downloads and decrypt the authorization information
+// from the given (parsed) URL.
+func (c *Client) getDecryptedAuthorization(authURL *AuthorizationURL) (*repository.Authorization, error) {
+	reader, err := c.getAuthorization(authURL.URL.String(), authURL.SignKey)
+	if err != nil {
+		return nil, fmt.Errorf("server communication failure (%s)", err)
+	}
+
+	enc, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return nil, fmt.Errorf("server data retrieval failed (%s)", err)
+	}
+
+	box := crypto.NewBox(authURL.EncKey)
+	data, err := box.DecryptContent(enc)
+	if err != nil {
+		return nil, fmt.Errorf("response decryption failure (%s)", err)
+	}
+
+	auth := &repository.Authorization{}
+	_, err = auth.ReadFrom(bytes.NewBuffer(data))
+	if err != nil {
+		return nil, fmt.Errorf("authorization data read failure (%s)", err)
+	}
+	return auth, nil
 }

@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"crypto/rand"
@@ -9,10 +9,11 @@ import (
 	. "gopkg.in/check.v1"
 
 	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
+	"github.com/hoffie/larasync/repository"
 )
 
 type AuthorizationURLTests struct {
-	encKey      [EncryptionKeySize]byte
+	encKey      [repository.EncryptionKeySize]byte
 	signKey     [PrivateKeySize]byte
 	pubKey      [PublicKeySize]byte
 	fingerprint string
@@ -31,7 +32,7 @@ func (t *AuthorizationURLTests) SetUpTest(c *C) {
 }
 
 func (t *AuthorizationURLTests) getAuthURL() *AuthorizationURL {
-	auth, _ := newAuthURL(t.baseURL, &t.signKey, &t.encKey, t.fingerprint)
+	auth, _ := NewAuthURL(t.baseURL, &t.signKey, &t.encKey, t.fingerprint)
 	return auth
 }
 
@@ -74,7 +75,7 @@ func (t *AuthorizationURLTests) TestParse(c *C) {
 }
 
 func (t *AuthorizationURLTests) TestGenerateUrl(c *C) {
-	_, err := newAuthURL("%(asdf", &t.signKey, &t.encKey, t.fingerprint)
+	_, err := NewAuthURL("%(asdf", &t.signKey, &t.encKey, t.fingerprint)
 	c.Assert(err, NotNil)
 }
 

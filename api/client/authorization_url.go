@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"encoding/hex"
@@ -8,6 +8,7 @@ import (
 	"regexp"
 
 	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
+	"github.com/hoffie/larasync/repository"
 )
 
 var (
@@ -21,7 +22,7 @@ var (
 type AuthorizationURL struct {
 	URL         *url.URL
 	SignKey     [PrivateKeySize]byte
-	EncKey      [EncryptionKeySize]byte
+	EncKey      [repository.EncryptionKeySize]byte
 	Fingerprint string
 }
 
@@ -36,11 +37,11 @@ func parseAuthURL(URL *url.URL) (*AuthorizationURL, error) {
 	return authURL, nil
 }
 
-// newAuthURL generates a new authorization URL with the passed
+// NewAuthURL generates a new authorization URL with the passed
 // arguments.
-func newAuthURL(repositoryBaseURL string,
+func NewAuthURL(repositoryBaseURL string,
 	signingPrivKey *[PrivateKeySize]byte,
-	encryptionKey *[EncryptionKeySize]byte,
+	encryptionKey *[repository.EncryptionKeySize]byte,
 	fingerprint string) (*AuthorizationURL, error) {
 
 	pubKey := edhelpers.GetPublicKeyFromPrivate(*signingPrivKey)
@@ -104,13 +105,13 @@ func (a *AuthorizationURL) parse(URL *url.URL) error {
 }
 
 // parseForEncKey tries to extract the encryption key.
-func (a *AuthorizationURL) parseForEncKey(data string) ([EncryptionKeySize]byte, error) {
+func (a *AuthorizationURL) parseForEncKey(data string) ([repository.EncryptionKeySize]byte, error) {
 	encKeySlice, err := a.parseForKey(data, encKeyRegexp)
-	encKey := [EncryptionKeySize]byte{}
+	encKey := [repository.EncryptionKeySize]byte{}
 	if err != nil {
 		return encKey, errors.New("Could not retrieve encryption key.")
 	}
-	if len(encKeySlice) != EncryptionKeySize {
+	if len(encKeySlice) != repository.EncryptionKeySize {
 		return encKey, errors.New("Invalid encryption key size.")
 	}
 

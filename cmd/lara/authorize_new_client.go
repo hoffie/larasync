@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"fmt"
 
+	apiclient "github.com/hoffie/larasync/api/client"
 	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
 	"github.com/hoffie/larasync/repository"
 )
@@ -51,7 +52,7 @@ func (d *Dispatcher) authorizeNewClientAction() int {
 	}
 
 	defaultServer := d.sc.DefaultServer
-	authURL, err := newAuthURL(client.BaseURL, signingPrivKey, &encryptionKey,
+	authURL, err := apiclient.NewAuthURL(client.BaseURL, signingPrivKey, &encryptionKey,
 		defaultServer.Fingerprint)
 	if err != nil {
 		fmt.Fprintln(d.stderr, "Error: authorization url could not be generated.")

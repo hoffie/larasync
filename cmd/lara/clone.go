@@ -1,15 +1,10 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"io/ioutil"
-	"net/url"
 	"os"
-	"path"
 
-	"github.com/hoffie/larasync/helpers/crypto"
-	"github.com/hoffie/larasync/repository"
+	apiclient "github.com/hoffie/larasync/api/client"
 )
 
 // syncAction implements the "lara clone" command.
@@ -23,79 +18,11 @@ func (d *Dispatcher) cloneAction() int {
 
 	urlString := args[0]
 	repoName := args[1]
-	repo := repository.NewClient(repoName)
-	err := repo.Create()
-	if err != nil && !os.IsExist(err) {
-		fmt.Fprintf(d.stderr, "Error: Could not create repository: %s\n", err)
-		return 1
-	}
-
-	u, err := url.Parse(urlString)
+	client, repo, err := apiclient.ImportAuthorization(repoName, urlString)
 	if err != nil {
-		fmt.Fprintf(d.stderr, "Error: Could not parse url. (%s)\n", err)
+		fmt.Fprintf(d.stderr, "Error: Unable to import authorization (%s)\n", err)
 		return 1
 	}
-	authURL, err := parseAuthURL(u)
-	if err != nil {
-		fmt.Fprintf(d.stderr, "Error: Could not extract authorization information. (%s)\n", err)
-		return 1
-	}
-
-	sc, err := repo.StateConfig()
-	if err != nil {
-		fmt.Fprintf(d.stderr, "unable to load state config (%s)\n", err)
-		return 1
-	}
-	defaultServer := sc.DefaultServer
-	defaultServer.URL = "https://" + u.Host + path.Dir(path.Dir(u.Path))
-	defaultServer.Fingerprint = authURL.Fingerprint
-	err = sc.Save()
-	if err != nil {
-		fmt.Fprintf(d.stderr, "unable to save state config (%s)\n", err)
-		return 1
-	}
-
-	client := d.clientForState(sc)
-
-	reader, err := client.GetAuthorization(authURL.URL.String(), authURL.SignKey)
-	if err != nil {
-		fmt.Fprintf(d.stderr, "Error: Communication with server failed. (%s)\n", err)
-		return 1
-	}
-
-	enc, err := ioutil.ReadAll(reader)
-	if err != nil {
-		fmt.Fprintf(d.stderr, "Error: Could not get data from server. (%s)\n", err)
-		return 1
-	}
-
-	box := crypto.NewBox(authURL.EncKey)
-	data, err := box.DecryptContent(enc)
-	if err != nil {
-		fmt.Fprintf(d.stderr, "Error: Decryption of response failed. (%s)\n", err)
-		return 1
-	}
-
-	auth := &repository.Authorization{}
-	_, err = auth.ReadFrom(bytes.NewBuffer(data))
-	if err != nil {
-		fmt.Fprintf(d.stderr, "Error: Authorization data could not be read. (%s)\n", err)
-		return 1
-	}
-
-	err = repo.SetKeysFromAuth(auth)
-	if err != nil {
-		fmt.Fprintf(d.stderr, "Error: Failed to store key data for the repository. (%s)\n", err)
-		return 1
-	}
-
-	privKey, err := repo.GetSigningPrivateKey()
-	if err != nil {
-		fmt.Fprintf(d.stderr, "unable to get signing private key (%s)\n", err)
-		return 1
-	}
-	client.SetSigningPrivateKey(privKey)
-
 	dl := client.Downloader(repo)
 	err = dl.GetAll()
 	if err != nil {

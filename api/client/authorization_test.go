@@ -43,7 +43,7 @@ func (t *AuthorizationClientTest) pubKeyToString() string {
 }
 
 func (t *AuthorizationClientTest) doAuthorization(c *C) (io.Reader, error) {
-	return t.client.GetAuthorization(t.getAuthorizationURL(c), t.privateKey)
+	return t.client.getAuthorization(t.getAuthorizationURL(c), t.privateKey)
 }
 
 func (t *AuthorizationClientTest) TestGet(c *C) {

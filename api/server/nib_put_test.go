@@ -5,7 +5,6 @@ import (
 
 	"github.com/hoffie/larasync/repository/nib"
 
-	. "github.com/hoffie/larasync/api/common"
 	. "gopkg.in/check.v1"
 )
 

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	. "github.com/hoffie/larasync/api/common"
+	"github.com/hoffie/larasync/api/common"
 
 	. "gopkg.in/check.v1"
 )
@@ -42,13 +42,13 @@ func (t *RepoListTests) TestRepoListUnauthorized(c *C) {
 }
 
 func (t *RepoListTests) TestRepoListAdmin(c *C) {
-	SignWithPassphrase(t.req, adminSecret)
+	common.SignWithPassphrase(t.req, adminSecret)
 	resp := t.getResponse(t.req)
 	c.Assert(resp.Code, Equals, http.StatusOK)
 }
 
 func (t *RepoListTests) TestRepoListContentType(c *C) {
-	SignWithPassphrase(t.req, adminSecret)
+	common.SignWithPassphrase(t.req, adminSecret)
 	resp := t.getResponse(t.req)
 
 	contentType := resp.Header().Get("Content-Type")
@@ -61,7 +61,7 @@ func (t *RepoListTests) TestRepoListContentType(c *C) {
 }
 
 func (t *RepoListTests) TestRepoListOutput(c *C) {
-	SignWithPassphrase(t.req, adminSecret)
+	common.SignWithPassphrase(t.req, adminSecret)
 	resp := t.getResponse(t.req)
 	//FIXME test repo list output
 	c.Assert(resp.Code, Equals, 200)
@@ -73,7 +73,7 @@ func (t *RepoListTests) TestRepoListOutputExcludeFiles(c *C) {
 	f, err := os.Create(filepath.Join(t.repos, "somefile"))
 	c.Assert(err, IsNil)
 	f.Close()
-	SignWithPassphrase(t.req, adminSecret)
+	common.SignWithPassphrase(t.req, adminSecret)
 	resp := t.getResponse(t.req)
 	c.Assert(resp.Code, Equals, 200)
 	c.Assert(resp.Body.String(), Equals, "[]")
@@ -81,7 +81,7 @@ func (t *RepoListTests) TestRepoListOutputExcludeFiles(c *C) {
 }
 
 func (t *RepoListTests) TestRepoListMangled(c *C) {
-	SignWithPassphrase(t.req, adminSecret)
+	common.SignWithPassphrase(t.req, adminSecret)
 	t.req.Header.Set("Mangled", "Yes")
 	resp := t.getResponse(t.req)
 	c.Assert(resp.Code, Equals, http.StatusUnauthorized)

@@ -6,7 +6,8 @@ import (
 	"net/url"
 	"os"
 
-	. "github.com/hoffie/larasync/api/common"
+	"github.com/hoffie/larasync/api/common"
+
 	. "gopkg.in/check.v1"
 )
 
@@ -97,5 +98,5 @@ func (t *AuthorizationGetTests) TestPublicKeyExtractionFailure(c *C) {
 }
 
 func (t *AuthorizationGetTests) signRequestWithAuthKey() {
-	SignWithKey(t.req, t.authPrivateKey)
+	common.SignWithKey(t.req, t.authPrivateKey)
 }

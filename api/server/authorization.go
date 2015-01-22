@@ -6,7 +6,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	. "github.com/hoffie/larasync/api/common"
+
+	"github.com/hoffie/larasync/api/common"
 )
 
 // extractAuthorizationPubKey returns a public key which has been passed to the
@@ -41,7 +42,7 @@ func (s *Server) authorizationGet(rw http.ResponseWriter, req *http.Request) {
 		reader, readerErr = repository.GetAuthorizationReader(publicKey)
 	}
 
-	if !ValidateRequest(req, publicKey, s.maxRequestAge) || err != nil || readerErr != nil {
+	if !common.ValidateRequest(req, publicKey, s.maxRequestAge) || err != nil || readerErr != nil {
 		http.Error(rw, "Unauthorized", http.StatusUnauthorized)
 		return
 	}

@@ -11,11 +11,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/inconshreveable/log15"
 
+	"github.com/hoffie/larasync/api/common"
 	"github.com/hoffie/larasync/helpers/lock"
 	"github.com/hoffie/larasync/helpers/x509"
 	"github.com/hoffie/larasync/repository"
-
-	. "github.com/hoffie/larasync/api/common"
 )
 
 const (
@@ -102,7 +101,7 @@ func (s *Server) setupRoutes() {
 // valid admin auth header
 func (s *Server) requireAdminAuth(f http.HandlerFunc) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
-		if !ValidateRequest(req, s.adminPubkey, s.maxRequestAge) {
+		if !common.ValidateRequest(req, s.adminPubkey, s.maxRequestAge) {
 			http.Error(rw, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -140,7 +139,7 @@ func (s *Server) requireRepositoryAuth(f http.HandlerFunc) http.HandlerFunc {
 		copy(pubKeyArray[0:PublicKeySize], pubKey[:PublicKeySize])
 		// TODO: Find if there is a better way for this.
 
-		if !ValidateRequest(req, pubKeyArray, s.maxRequestAge) {
+		if !common.ValidateRequest(req, pubKeyArray, s.maxRequestAge) {
 			http.Error(rw, "Unauthorized", http.StatusUnauthorized)
 			return
 		}

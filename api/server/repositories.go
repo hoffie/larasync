@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/hoffie/larasync/api"
-	. "github.com/hoffie/larasync/api/common"
 )
 
 // repositoryList returns a list of all configured repositories.

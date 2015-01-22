@@ -8,17 +8,16 @@ import (
 
 	. "gopkg.in/check.v1"
 
+	"github.com/hoffie/larasync/api/common"
 	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
 	"github.com/hoffie/larasync/repository"
-
-	. "github.com/hoffie/larasync/api/common"
 )
 
 type AuthorizationTests struct {
 	BaseTests
 	encryptionKey  [repository.EncryptionKeySize]byte
-	authPrivateKey [repository.PrivateKeySize]byte
-	authPublicKey  [repository.PublicKeySize]byte
+	authPrivateKey [PrivateKeySize]byte
+	authPublicKey  [PublicKeySize]byte
 }
 
 func getAuthorizationTest() AuthorizationTests {
@@ -36,7 +35,7 @@ func (t *AuthorizationTests) SetUpTest(c *C) {
 	byteArray := make([]byte, 200)
 	rand.Read(byteArray)
 	var err error
-	t.authPrivateKey, err = PassphraseToKey(byteArray)
+	t.authPrivateKey, err = common.PassphraseToKey(byteArray)
 	c.Assert(err, IsNil)
 	t.authPublicKey = edhelpers.GetPublicKeyFromPrivate(t.authPrivateKey)
 

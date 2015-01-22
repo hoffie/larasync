@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"time"
 
-	. "github.com/hoffie/larasync/api/common"
+	"github.com/hoffie/larasync/api/common"
 	edhelpers "github.com/hoffie/larasync/helpers/ed25519"
 	"github.com/hoffie/larasync/helpers/x509"
 	"github.com/hoffie/larasync/repository"
@@ -60,7 +60,7 @@ func (t *BaseTests) SetUpSuite(c *C) {
 	byteArray := make([]byte, PrivateKeySize)
 	_, err := rand.Read(byteArray)
 	c.Assert(err, IsNil)
-	t.privateKey, err = PassphraseToKey(byteArray)
+	t.privateKey, err = common.PassphraseToKey(byteArray)
 	c.Assert(err, IsNil)
 	t.pubKey = edhelpers.GetPublicKeyFromPrivate(t.privateKey)
 	t.createServerCert(c)
@@ -108,7 +108,7 @@ func (t *BaseTests) requestWithReader(c *C, httpBody io.Reader) *http.Request {
 }
 
 func (t *BaseTests) signRequest() {
-	SignWithKey(t.req, t.privateKey)
+	common.SignWithKey(t.req, t.privateKey)
 }
 
 func (t *BaseTests) createRepoManager(c *C) {

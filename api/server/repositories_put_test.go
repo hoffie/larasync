@@ -12,7 +12,7 @@ import (
 
 	"github.com/hoffie/larasync/api"
 
-	. "github.com/hoffie/larasync/api/common"
+	"github.com/hoffie/larasync/api/common"
 
 	. "gopkg.in/check.v1"
 )
@@ -89,14 +89,14 @@ func (t *RepoListCreateTests) TestRepoCreateUnauthorized(c *C) {
 
 func (t *RepoListCreateTests) TestRepoCreateAdmin(c *C) {
 	t.addPubKey(c)
-	SignWithPassphrase(t.req, adminSecret)
+	common.SignWithPassphrase(t.req, adminSecret)
 	resp := t.getResponse(t.req)
 	c.Assert(resp.Code, Equals, http.StatusCreated)
 }
 
 func (t *RepoListCreateTests) TestRepoCreateContentType(c *C) {
 	t.addPubKey(c)
-	SignWithPassphrase(t.req, adminSecret)
+	common.SignWithPassphrase(t.req, adminSecret)
 	resp := t.getResponse(t.req)
 
 	contentType := resp.Header().Get("Content-Type")
@@ -109,7 +109,7 @@ func (t *RepoListCreateTests) TestRepoCreateContentType(c *C) {
 }
 
 func (t *RepoListCreateTests) TestRepoCreateMangled(c *C) {
-	SignWithPassphrase(t.req, adminSecret)
+	common.SignWithPassphrase(t.req, adminSecret)
 	t.req.Header.Set("Mangled", "Yes")
 	resp := t.getResponse(t.req)
 	c.Assert(resp.Code, Equals, http.StatusUnauthorized)
@@ -117,7 +117,7 @@ func (t *RepoListCreateTests) TestRepoCreateMangled(c *C) {
 
 func (t *RepoListCreateTests) TestRepositoryCreate(c *C) {
 	t.addPubKey(c)
-	SignWithPassphrase(t.req, adminSecret)
+	common.SignWithPassphrase(t.req, adminSecret)
 	t.getResponse(t.req)
 	c.Assert(
 		t.rm.Exists(t.repositoryName),
@@ -129,7 +129,7 @@ func (t *RepoListCreateTests) TestRepositoryCreate(c *C) {
 func (t *RepoListCreateTests) TestWrongPubKeySize(c *C) {
 	t.pubKey = make([]byte, 5)
 	t.addPubKey(c)
-	SignWithPassphrase(t.req, adminSecret)
+	common.SignWithPassphrase(t.req, adminSecret)
 	c.Assert(
 		t.getResponse(t.req).Code,
 		Equals,
@@ -140,7 +140,7 @@ func (t *RepoListCreateTests) TestWrongPubKeySize(c *C) {
 func (t *RepoListCreateTests) TestRepoAlreadyExists(c *C) {
 	t.rm.Create(t.repositoryName, t.pubKey)
 	t.addPubKey(c)
-	SignWithPassphrase(t.req, adminSecret)
+	common.SignWithPassphrase(t.req, adminSecret)
 	c.Assert(
 		t.getResponse(t.req).Code,
 		Equals,
@@ -151,7 +151,7 @@ func (t *RepoListCreateTests) TestRepoAlreadyExists(c *C) {
 func (t *RepoListCreateTests) TestMangledJson(c *C) {
 	jsonBytes := bytes.NewBufferString("{'hello':'world'}").Bytes()
 	t.req = t.requestWithBytes(c, jsonBytes)
-	SignWithPassphrase(t.req, adminSecret)
+	common.SignWithPassphrase(t.req, adminSecret)
 	c.Assert(
 		t.getResponse(t.req).Code,
 		Equals,
@@ -162,7 +162,7 @@ func (t *RepoListCreateTests) TestMangledJson(c *C) {
 func (t *RepoListCreateTests) TestRepositoryError(c *C) {
 	os.RemoveAll(t.repos)
 	t.addPubKey(c)
-	SignWithPassphrase(t.req, adminSecret)
+	common.SignWithPassphrase(t.req, adminSecret)
 	c.Assert(
 		t.getResponse(t.req).Code,
 		Equals,

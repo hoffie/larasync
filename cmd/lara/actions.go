@@ -65,6 +65,11 @@ func (d *Dispatcher) cmdActions() []cli.Command {
 			Action: d.wrapAction(d.registerAction),
 		},
 		{
+			Name:   "reset-fingerprint",
+			Usage:  "resets the stored server fingerprint",
+			Action: d.wrapAction(d.resetFingerprintAction),
+		},
+		{
 			Name:   "server",
 			Usage:  "run in server mode.",
 			Action: d.wrapAction(d.serverAction),

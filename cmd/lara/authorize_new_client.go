@@ -56,6 +56,7 @@ func (d *Dispatcher) authorizeNewClientAction() int {
 		defaultServer.Fingerprint)
 	if err != nil {
 		fmt.Fprintln(d.stderr, "Error: authorization url could not be generated.")
+		return 1
 	}
 
 	err = client.PutAuthorization(signingPubKey, bytes.NewBuffer(authorizationBytes))

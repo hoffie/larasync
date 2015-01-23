@@ -32,7 +32,7 @@ func (d *Dispatcher) authorizeNewClientAction() int {
 		fmt.Fprintf(d.stderr, "Error: Signature key generating error: %s\n", err)
 	}
 	r := repository.NewClient(root)
-	auth, err := r.CurrentAuthorization()
+	auth, err := r.NewAuthorization()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: Could not fetch current authorization from repository: %s\n", err)
 		return 1

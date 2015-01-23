@@ -80,7 +80,7 @@ func (t *RepositoryTests) TestCurrentAuthorization(c *C) {
 	c.Assert(err, IsNil)
 
 	keyStore := r.keys
-	auth, err := r.CurrentAuthorization()
+	auth, err := r.NewAuthorization()
 	c.Assert(err, IsNil)
 
 	encrpytionKey, err := keyStore.EncryptionKey()

@@ -434,10 +434,10 @@ func (r *Repository) SetAuthorization(
 	return r.authorizationManager.Set(publicKey, encKey, authorization)
 }
 
-// CurrentAuthorization returns the currently valid Authorization object
+// NewAuthorization returns the currently valid Authorization object
 // for this repository. If the privateKeys necessary for this are not
 // stored in the keyStore an error is returned.
-func (r *Repository) CurrentAuthorization() (*Authorization, error) {
+func (r *Repository) NewAuthorization() (*Authorization, error) {
 	encryptionKey, err := r.keys.EncryptionKey()
 	if err != nil {
 		return nil, errors.New("Could not load encryption key.")

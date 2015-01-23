@@ -355,6 +355,12 @@ func (r *ClientRepository) AddItem(absPath string) error {
 	if stat.IsDir() {
 		return r.addDirectory(absPath)
 	}
+	return r.addFile(absPath)
+}
+
+// addFile adds the given file from the working directory
+// to the repository
+func (r *ClientRepository) addFile(absPath string) error {
 	metadataID, err := r.writeMetadata(absPath)
 	if err != nil {
 		return err

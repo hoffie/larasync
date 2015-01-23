@@ -30,6 +30,7 @@ func (d *Dispatcher) authorizeNewClientAction() int {
 
 	if err != nil || signingPubKey == nil || signingPrivKey == nil {
 		fmt.Fprintf(d.stderr, "Error: Signature key generating error: %s\n", err)
+		return 1
 	}
 	r := repository.NewClient(root)
 	auth, err := r.NewAuthorization()

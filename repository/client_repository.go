@@ -438,18 +438,17 @@ func (r *Repository) SetAuthorization(
 // for this repository. If the privateKeys necessary for this are not
 // stored in the keyStore an error is returned.
 func (r *Repository) CurrentAuthorization() (*Authorization, error) {
-	keys := r.keys
-	encryptionKey, err := keys.EncryptionKey()
+	encryptionKey, err := r.keys.EncryptionKey()
 	if err != nil {
 		return nil, errors.New("Could not load encryption key.")
 	}
 
-	hashingKey, err := keys.HashingKey()
+	hashingKey, err := r.keys.HashingKey()
 	if err != nil {
 		return nil, errors.New("Could not load hashing key.")
 	}
 
-	signatureKey, err := keys.SigningPrivateKey()
+	signatureKey, err := r.keys.SigningPrivateKey()
 	if err != nil {
 		return nil, errors.New("Could not load private signing key.")
 	}

@@ -29,13 +29,13 @@ func (d *Dispatcher) authorizeNewClientAction() int {
 	signingPubKey, signingPrivKey, err := edhelpers.GenerateKey()
 
 	if err != nil || signingPubKey == nil || signingPrivKey == nil {
-		fmt.Fprintf(d.stderr, "Error: Signature key generating error: %s\n", err)
+		fmt.Fprintf(d.stderr, "Error: Signature key generation error: %s\n", err)
 		return 1
 	}
 	r := repository.NewClient(root)
 	auth, err := r.NewAuthorization()
 	if err != nil {
-		fmt.Fprintf(d.stderr, "Error: Could not fetch current authorization from repository: %s\n", err)
+		fmt.Fprintf(d.stderr, "Error: Could not create authorization package: %s\n", err)
 		return 1
 	}
 

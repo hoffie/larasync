@@ -33,20 +33,13 @@ func (d *Dispatcher) authorizeNewClientAction() int {
 		return 1
 	}
 	r := repository.NewClient(root)
-	auth, err := r.NewAuthorization()
+	authorizationBytes, err := r.SerializedAuthorization(encryptionKey)
 	if err != nil {
-		fmt.Fprintf(d.stderr, "Error: Could not create authorization package: %s\n", err)
-		return 1
-	}
-
-	authorizationBytes, err := r.SerializeAuthorization(encryptionKey, auth)
-	if err != nil {
-		fmt.Fprintf(d.stderr, "Error: Could not encrypt authorization information: %s\n", err)
+		fmt.Fprintf(d.stderr, "Error: %s\n", err)
 		return 1
 	}
 
 	client, err := d.clientFor(r)
-
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: %s\n", err)
 		return 1

@@ -3,6 +3,7 @@ package repository
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -460,4 +461,18 @@ func (r *Repository) NewAuthorization() (*Authorization, error) {
 	}
 
 	return auth, nil
+}
+
+// SerializedAuthorization returns a new, serialized authorization package.
+func (r *ClientRepository) SerializedAuthorization(encryptionKey [EncryptionKeySize]byte) ([]byte, error) {
+	auth, err := r.NewAuthorization()
+	if err != nil {
+		return nil, fmt.Errorf("authorization creation error (%s)", err)
+	}
+
+	authorizationBytes, err := r.SerializeAuthorization(encryptionKey, auth)
+	if err != nil {
+		return nil, fmt.Errorf("authorization encryption failure (%s)", err)
+	}
+	return authorizationBytes, nil
 }

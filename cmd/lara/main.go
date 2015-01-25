@@ -63,9 +63,9 @@ func (d *Dispatcher) initApp() {
 // returns the exit code.
 func (d *Dispatcher) run(args []string) int {
 	passArgs := []string{"lara"}
-
 	passArgs = append(passArgs, args...)
 
+	d.setupLogging()
 	d.initApp()
 	if len(args) == 0 {
 		d.exitCode = 1

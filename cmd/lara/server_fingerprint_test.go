@@ -13,6 +13,11 @@ func (t *ServerFingerprintTests) TestFail(c *C) {
 }
 
 func (t *ServerFingerprintTests) Test(c *C) {
+	// usually, setupLogging is called by Dispatcher.run(); as we have to call an
+	// internal dispatcher function here, the logging setup is not done automatically;
+	// we do it here so that no messages leak to stderr which can confuse the test
+	// output.
+	t.d.setupLogging()
 	err := t.d.needServerCert()
 	c.Assert(err, IsNil)
 	c.Assert(t.d.run([]string{"server-fingerprint"}), Equals, 0)

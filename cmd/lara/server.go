@@ -19,7 +19,6 @@ const (
 
 // serverAction starts the server process.
 func (d *Dispatcher) serverAction() int {
-	d.setupLogging()
 	cfg, err := d.loadServerConfig()
 	if err != nil {
 		log.Error("unable to load server config", log15.Ctx{"error": err})

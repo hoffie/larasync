@@ -38,31 +38,57 @@ func (t *NIBClientTest) AddDataWith(c *C, content []byte) {
 	c.Assert(err, IsNil)
 }
 
-func (t *NIBClientTest) TestGet(c *C) {
+func (t *NIBClientTest) getGETResponse(c *C) *NIBGetResponse {
 	t.AddTestData(c)
-	channel, err := t.client.GetNIBs()
+
+	response, err := t.client.GetNIBs()
 	c.Assert(err, IsNil)
+	return response
+}
+
+func (t *NIBClientTest) TestGet(c *C) {
+	response := t.getGETResponse(c)
 	i := 0
-	for _ = range channel {
+	for _ = range response.NIBData {
 		i++
 	}
 	c.Assert(i, Equals, 1)
 }
 
-func (t *NIBClientTest) TestGetFromTransactionID(c *C) {
+func (t *NIBClientTest) TestGetTransactionIDResponse(c *C) {
+	repository := t.getClientRepository(c)
+	transaction, err := repository.CurrentTransaction()
+	c.Assert(err, IsNil)
+	response := t.getGETResponse(c)
+	c.Assert(response.ServerTransactionID, Equals, transaction.ID)
+}
+
+func (t *NIBClientTest) getFromTransactionIDResponse(c *C) *NIBGetResponse {
 	t.AddTestData(c)
 	t.AddDataWith(c, []byte("Hello world"))
 	repository := t.getClientRepository(c)
 	transaction, err := repository.CurrentTransaction()
 	c.Assert(err, IsNil)
-	channel, err := t.client.GetNIBsFromTransactionID(transaction.ID - 1)
+	response, err := t.client.GetNIBsFromTransactionID(transaction.ID - 1)
 	c.Assert(err, IsNil)
+	return response
+}
+
+func (t *NIBClientTest) TestGetFromTransactionID(c *C) {
+	response := t.getFromTransactionIDResponse(c)
 	i := 0
-	for _ = range channel {
+	for _ = range response.NIBData {
 		i++
 	}
 	c.Assert(i, Equals, 1)
+}
 
+func (t *NIBClientTest) TestGetFromTransactionIDResponse(c *C) {
+	response := t.getFromTransactionIDResponse(c)
+	repository := t.getRepository(c)
+	transaction, err := repository.CurrentTransaction()
+	c.Assert(err, IsNil)
+	c.Assert(response.ServerTransactionID, Equals, transaction.ID)
 }
 
 func (t *NIBClientTest) TestConnError(c *C) {

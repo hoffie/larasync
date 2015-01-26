@@ -31,6 +31,12 @@ func (c *Client) PutNIB(nibID string, nibReader io.Reader) error {
 	return err
 }
 
+// NIBGetResponse encapsulates the response given from a NIB GET request.
+type NIBGetResponse struct {
+	NIBData             <-chan []byte
+	ServerTransactionID int64
+}
+
 // getNIBsRequest builds a request for getting a NIB list
 func (c *Client) getNIBsRequest() (*http.Request, error) {
 	return c.getNIBsFromTransactionRequest(0)
@@ -55,7 +61,7 @@ func (c *Client) getNIBsFromTransactionRequest(lastTransactionID int64) (*http.R
 }
 
 // GetNIBsFromTransactionID returns the list of all nibs from the passed server transaction.
-func (c *Client) GetNIBsFromTransactionID(lastTransactionID int64) (<-chan []byte, error) {
+func (c *Client) GetNIBsFromTransactionID(lastTransactionID int64) (*NIBGetResponse, error) {
 	req, err := c.getNIBsFromTransactionRequest(lastTransactionID)
 	if err != nil {
 		return nil, err
@@ -64,7 +70,7 @@ func (c *Client) GetNIBsFromTransactionID(lastTransactionID int64) (<-chan []byt
 }
 
 // GetNIBs returns the list of all nib byte representations.
-func (c *Client) GetNIBs() (<-chan []byte, error) {
+func (c *Client) GetNIBs() (*NIBGetResponse, error) {
 	req, err := c.getNIBsRequest()
 	if err != nil {
 		return nil, err
@@ -74,7 +80,7 @@ func (c *Client) GetNIBs() (<-chan []byte, error) {
 
 // processNibGetRequest takes a request and processes the NIB GET request. Returns the
 // parsed bytes from the entry.
-func (c *Client) processNibGetRequest(req *http.Request) (<-chan []byte, error) {
+func (c *Client) processNibGetRequest(req *http.Request) (*NIBGetResponse, error) {
 	resp, err := c.doRequest(req, http.StatusOK)
 	if err != nil {
 		return nil, err
@@ -95,5 +101,21 @@ func (c *Client) processNibGetRequest(req *http.Request) (<-chan []byte, error) 
 		}
 		close(res)
 	}()
-	return res, nil
+	nibResponse := &NIBGetResponse{
+		NIBData:             res,
+		ServerTransactionID: parseTransactionID(resp),
+	}
+	return nibResponse, nil
+}
+
+// parseTransactionID tries to get the current server Transaction ID from the
+// passed response. Returns "0" if no transaction ID could be extracted.
+func parseTransactionID(resp *http.Response) int64 {
+	currentTransactionIDString := resp.Header.Get("X-Current-Transaction-Id")
+
+	currentTransactionID, err := strconv.ParseInt(currentTransactionIDString, 10, 64)
+	if err != nil {
+		return 0
+	}
+	return currentTransactionID
 }

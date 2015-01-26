@@ -56,10 +56,11 @@ func (t *NIBClientTest) TestGet(c *C) {
 }
 
 func (t *NIBClientTest) TestGetTransactionIDResponse(c *C) {
+	t.AddTestData(c)
 	repository := t.getClientRepository(c)
+	response := t.getGETResponse(c)
 	transaction, err := repository.CurrentTransaction()
 	c.Assert(err, IsNil)
-	response := t.getGETResponse(c)
 	c.Assert(response.ServerTransactionID, Equals, transaction.ID)
 }
 

@@ -3,6 +3,7 @@ package client
 import (
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/hoffie/larasync/api/common"
 	"github.com/hoffie/larasync/helpers/bincontainer"
@@ -32,20 +33,48 @@ func (c *Client) PutNIB(nibID string, nibReader io.Reader) error {
 
 // getNIBsRequest builds a request for getting a NIB list
 func (c *Client) getNIBsRequest() (*http.Request, error) {
+	return c.getNIBsFromTransactionRequest(0)
+}
+
+// getNIBsFromTransactionRequest builds a request and requests all data
+// from the passed Transaction ID.
+func (c *Client) getNIBsFromTransactionRequest(lastTransactionID int64) (*http.Request, error) {
 	req, err := http.NewRequest("GET", c.BaseURL+"/nibs", nil)
 	if err != nil {
 		return nil, err
 	}
+
+	if lastTransactionID != 0 {
+		query := req.URL.Query()
+		query.Add("from-transaction-id", strconv.FormatInt(lastTransactionID, 10))
+		req.URL.RawQuery = query.Encode()
+	}
+
 	common.SignWithKey(req, c.signingPrivateKey)
 	return req, nil
 }
 
-// GetNIBs returns the list of all nibs
+// GetNIBsFromTransactionID returns the list of all nibs from the passed server transaction.
+func (c *Client) GetNIBsFromTransactionID(lastTransactionID int64) (<-chan []byte, error) {
+	req, err := c.getNIBsFromTransactionRequest(lastTransactionID)
+	if err != nil {
+		return nil, err
+	}
+	return c.processNibGetRequest(req)
+}
+
+// GetNIBs returns the list of all nib byte representations.
 func (c *Client) GetNIBs() (<-chan []byte, error) {
 	req, err := c.getNIBsRequest()
 	if err != nil {
 		return nil, err
 	}
+	return c.processNibGetRequest(req)
+}
+
+// processNibGetRequest takes a request and processes the NIB GET request. Returns the
+// parsed bytes from the entry.
+func (c *Client) processNibGetRequest(req *http.Request) (<-chan []byte, error) {
 	resp, err := c.doRequest(req, http.StatusOK)
 	if err != nil {
 		return nil, err

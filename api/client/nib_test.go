@@ -25,9 +25,13 @@ func (t *NIBClientTest) SetUpTest(c *C) {
 }
 
 func (t *NIBClientTest) AddTestData(c *C) {
+	t.AddDataWith(c, t.data)
+}
+
+func (t *NIBClientTest) AddDataWith(c *C, content []byte) {
 	repository := t.getClientRepository(c)
 	path := filepath.Join(t.repositoryPath(c), "test.txt")
-	err := ioutil.WriteFile(path, t.data, 0600)
+	err := ioutil.WriteFile(path, content, 0600)
 	c.Assert(err, IsNil)
 
 	err = repository.AddItem(path)
@@ -43,6 +47,22 @@ func (t *NIBClientTest) TestGet(c *C) {
 		i++
 	}
 	c.Assert(i, Equals, 1)
+}
+
+func (t *NIBClientTest) TestGetFromTransactionID(c *C) {
+	t.AddTestData(c)
+	t.AddDataWith(c, []byte("Hello world"))
+	repository := t.getClientRepository(c)
+	transaction, err := repository.CurrentTransaction()
+	c.Assert(err, IsNil)
+	channel, err := t.client.GetNIBsFromTransactionID(transaction.ID - 1)
+	c.Assert(err, IsNil)
+	i := 0
+	for _ = range channel {
+		i++
+	}
+	c.Assert(i, Equals, 1)
+
 }
 
 func (t *NIBClientTest) TestConnError(c *C) {

@@ -26,7 +26,12 @@ func (d *Dispatcher) pushAction() int {
 	}
 
 	ul := client.Uploader(r)
-	err = ul.PushAll()
+
+	if d.context.Bool("full") {
+		err = ul.PushAll()
+	} else {
+		err = ul.PushDelta()
+	}
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: %s\n",
 			err)

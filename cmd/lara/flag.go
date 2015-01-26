@@ -22,3 +22,15 @@ func (d *Dispatcher) serverFlags() []cli.Flag {
 		},
 	}
 }
+
+// pushFlags returns the flags that should be
+// registered as flags available in the "push"
+// subcommand.
+func (d *Dispatcher) pushFlags() []cli.Flag {
+	return []cli.Flag{
+		cli.BoolFlag{
+			Name:  "full",
+			Usage: "forces a full synchronization to the server",
+		},
+	}
+}

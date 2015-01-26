@@ -58,6 +58,7 @@ func (d *Dispatcher) cmdActions() []cli.Command {
 			Name:   "push",
 			Usage:  "uploads the current state to the server.",
 			Action: d.wrapAction(d.pushAction),
+			Flags:  d.pushFlags(),
 		},
 		{
 			Name:   "register",

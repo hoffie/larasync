@@ -29,7 +29,7 @@ func (ul *Uploader) PushAll() error {
 	if err != nil {
 		return err
 	}
-	err := ul.PushAll()
+	err = ul.uploadNIBs()
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,12 @@ func (ul *Uploader) PushDelta() error {
 	}
 
 	defaultServer := s.DefaultServer
-	return ul.pushFromTransactionID(defaultServer.LocalTransactionID)
+	if defaultServer.LocalTransactionID != 0 {
+		err = ul.pushFromTransactionID(defaultServer.LocalTransactionID)
+	} else {
+		err = ul.PushAll()
+	}
+	return err
 }
 
 // PushFromTransactionID pushes all NIBs which have been entered after
@@ -79,11 +84,12 @@ func (ul *Uploader) pushFromTransactionID(transactionID int64) error {
 // saveLastUploadedTransaction takes the given transaction and configures it to the
 // state config to store it as the last transaction.
 func (ul *Uploader) saveLastUploadedTransaction(transaction *repository.Transaction) error {
+	r := ul.r
 	s, err := r.StateConfig()
 	if err != nil {
 		return nil
 	}
-	s.DefaultServer.LocalTransactionID = lastTransaction.ID
+	s.DefaultServer.LocalTransactionID = transaction.ID
 	err = s.Save()
 	if err != nil {
 		return err

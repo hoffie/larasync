@@ -23,7 +23,14 @@ func (d *Dispatcher) pullAction() int {
 		return 1
 	}
 	dl := client.Downloader(r)
-	err = dl.GetAll()
+
+	if d.context.Bool("full") {
+		log.Info("Full download requested.")
+		err = dl.GetAll()
+	} else {
+		log.Info("Delta download requested.")
+		err = dl.GetDelta()
+	}
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: pull failed (%s)\n", err)
 		return 1

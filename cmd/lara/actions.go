@@ -53,6 +53,7 @@ func (d *Dispatcher) cmdActions() []cli.Command {
 			Name:   "pull",
 			Usage:  "downlodas the current state from the server.",
 			Action: d.wrapAction(d.pullAction),
+			Flags:  d.pullFlags(),
 		},
 		{
 			Name:   "push",

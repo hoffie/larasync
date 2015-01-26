@@ -28,8 +28,10 @@ func (d *Dispatcher) pushAction() int {
 	ul := client.Uploader(r)
 
 	if d.context.Bool("full") {
+		log.Info("Full upload requested.")
 		err = ul.PushAll()
 	} else {
+		log.Info("Delta upload requested.")
 		err = ul.PushDelta()
 	}
 	if err != nil {

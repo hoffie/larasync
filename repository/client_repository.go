@@ -476,3 +476,8 @@ func (r *ClientRepository) SerializedAuthorization(encryptionKey [EncryptionKeyS
 	}
 	return authorizationBytes, nil
 }
+
+// TransactionsFrom returns all transactions which have been added since the given transactionID.
+func (r *ClientRepository) TransactionsFrom(transactionID int64) ([]*Transaction, error) {
+	return r.transactionManager.From(transactionID)
+}

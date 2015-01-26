@@ -114,3 +114,24 @@ func (t *RepositoryTests) TestGetSigningKey(c *C) {
 
 	c.Assert(data, DeepEquals, keyData)
 }
+
+func (t *RepositoryTests) TestTransactionsFrom(c *C) {
+	r := NewClient(t.dir)
+
+	err := r.CreateManagementDir()
+	c.Assert(err, IsNil)
+
+	count := 2
+	nibIDs := []string{"a", "b"}
+	transactions := make([]*Transaction, count)
+	for i := 1; i <= count; i++ {
+		transaction := &Transaction{
+			ID:     int64(i),
+			NIBIDs: nibIDs}
+		transactions[i-1] = transaction
+		r.transactionManager.Add(transaction)
+	}
+
+	transactions, err = r.TransactionsFrom(1)
+	c.Assert(len(transactions), Equals, 1)
+}

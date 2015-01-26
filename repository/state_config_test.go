@@ -26,8 +26,8 @@ func (t *StateConfigTests) getStateConfig() *StateConfig {
 	stateConfig.DefaultServer = &ServerStateConfig{
 		URL:                 "default_server",
 		Fingerprint:         "fp",
-		RemoteTransactionID: "remotetransid",
-		LocalTransactionID:  "localtransid",
+		RemoteTransactionID: 1,
+		LocalTransactionID:  64,
 	}
 	return stateConfig
 }
@@ -63,8 +63,8 @@ func (t *StateConfigTests) TestLoad(c *C) {
 	defaultServer := stateConfig.DefaultServer
 	c.Assert(defaultServer.URL, Equals, "default_server")
 	c.Assert(defaultServer.Fingerprint, Equals, "fp")
-	c.Assert(defaultServer.LocalTransactionID, Equals, "localtransid")
-	c.Assert(defaultServer.RemoteTransactionID, Equals, "remotetransid")
+	c.Assert(defaultServer.LocalTransactionID, Equals, int64(64))
+	c.Assert(defaultServer.RemoteTransactionID, Equals, int64(1))
 }
 
 func (t *StateConfigTests) TestLoadNotExists(c *C) {

@@ -17,8 +17,8 @@ type StateConfig struct {
 type ServerStateConfig struct {
 	URL                 string `json:"url"`
 	Fingerprint         string `json:"fingerprint"`
-	RemoteTransactionID string `json:"remote_transaction_id"`
-	LocalTransactionID  string `json:"local_transaction_id"`
+	RemoteTransactionID int64  `json:"remote_transaction_id"`
+	LocalTransactionID  int64  `json:"local_transaction_id"`
 }
 
 // NewStateConfig creates a new StateConfig instance for the given path.

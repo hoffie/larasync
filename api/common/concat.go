@@ -20,21 +20,37 @@ type concatenator struct {
 
 // concatenateTo writes all elementary request parts to the given writer.
 // parts are: method, URL, headers, body
-func concatenateTo(req *http.Request, w io.Writer) {
+func concatenateTo(req *http.Request, w io.Writer) error {
 	c := &concatenator{
 		req: req,
 		w:   w,
 	}
-	c.writeDelimitedString(c.req.Method)
-	c.URL()
+	err := c.writeDelimitedString(c.req.Method)
+	if err != nil {
+		return err
+	}
+
+	err = c.URL()
+	if err != nil {
+		return err
+	}
+
 	c.Headers()
+	if err != nil {
+		return err
+	}
+
 	// Body() must be last, as it does not use the length-limited bincontainer;
 	// instead, it writes its data verbatim
 	c.Body()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // URL (re)constructs the URL and appends it
-func (c *concatenator) URL() {
+func (c *concatenator) URL() error {
 	var url url.URL
 	url = *c.req.URL
 	// we do not know the scheme for all cases, so ignore it:
@@ -43,7 +59,7 @@ func (c *concatenator) URL() {
 		url.Host = c.req.Host
 	}
 
-	c.writeDelimitedString(url.String())
+	return c.writeDelimitedString(url.String())
 }
 
 // ignoreHeaders is a list of all headers which are not part of the
@@ -63,7 +79,7 @@ var ignoreHeaders = map[string]bool{
 }
 
 // Headers concatenate the headers.
-func (c *concatenator) Headers() {
+func (c *concatenator) Headers() error {
 	headers := make([]string, len(c.req.Header))
 	i := 0
 	for header := range c.req.Header {
@@ -76,11 +92,18 @@ func (c *concatenator) Headers() {
 		if isIgnored {
 			continue
 		}
-		c.writeDelimitedString(header)
+		err := c.writeDelimitedString(header)
+		if err != nil {
+			return err
+		}
 		for _, value := range c.req.Header[header] {
-			c.writeDelimitedString(value)
+			err = c.writeDelimitedString(value)
+			if err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 // Body concatenates the body.

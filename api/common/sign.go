@@ -104,21 +104,34 @@ func youngerThan(req *http.Request, maxAge time.Duration) bool {
 // getSignature uses public key cryptography to sign the request
 // and return the resulting signature.
 func getSignature(req *http.Request, key [PrivateKeySize]byte) []byte {
-	mac := sha512.New()
-	concatenateTo(req, mac)
-	hash := mac.Sum(nil)
+	hash := getRequestHash(req)
 	sig := ed25519.Sign(&key, hash)
 	slSig := make([]byte, len(sig))
 	copy(slSig, sig[0:len(sig)])
 	return slSig
 }
 
+// getRequestHash returns the whole request's SHA512 hash.
+func getRequestHash(req *http.Request) []byte {
+	mac := sha512.New()
+	err := concatenateTo(req, mac)
+	if err != nil {
+		// we use panic here as concatenateTo can only fail due to problems
+		// writing to the output writer; as our writer is a Hash instance which
+		// is not supposed to fail either, this is (hopefully) just a hypothetical
+		// just-in-case error check.
+		// returning the error here would just clobber the getSignature and the
+		// whole resulting method chain.
+		panic("concatenateTo failed")
+	}
+	hash := mac.Sum(nil)
+	return hash
+}
+
 // verifySig checks if the signature matches the provided
 // public key and is valid for the given request.
 func verifySig(req *http.Request, pubkey [PublicKeySize]byte, sig [SignatureSize]byte) bool {
-	mac := sha512.New()
-	concatenateTo(req, mac)
-	hash := mac.Sum(nil)
+	hash := getRequestHash(req)
 	return ed25519.Verify(&pubkey, hash, &sig)
 }
 

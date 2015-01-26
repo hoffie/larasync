@@ -15,7 +15,7 @@ func (aw *Writer) closeHook() error {
 	// This is however expected behaviour in the application. Thus the necessity
 	// to remove the item in Windows first.
 
-	_, err = os.Stat(aw.path)
+	_, err := os.Stat(aw.path)
 	if err == nil {
 		err = os.Remove(aw.path)
 		if err != nil {

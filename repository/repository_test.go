@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/hoffie/larasync/helpers"
 	"github.com/hoffie/larasync/repository/nib"
 
 	. "gopkg.in/check.v1"
@@ -157,4 +158,40 @@ func (t *RepositoryAddItemTests) TestAddNIBContentConflict(c *C) {
 	c.Assert(err, IsNil)
 	err = r.AddNIBContent(buffer1)
 	c.Assert(err, Equals, ErrNIBConflict)
+}
+
+func (t *RepositoryAddItemTests) TestAddNIBContentObjNotExisting(c *C) {
+	n := &nib.NIB{
+		ID: "asdf",
+		Revisions: []*nib.Revision{
+			&nib.Revision{
+				MetadataID: "metadata1",
+				ContentIDs: []string{"content1", "content2", "content3"},
+			},
+		},
+	}
+	r := New(t.dir)
+	err := r.CreateManagementDir()
+	c.Assert(err, IsNil)
+
+	err = r.AddObject("content2", bytes.NewBufferString("x"))
+	c.Assert(err, IsNil)
+
+	err = r.nibStore.Add(n)
+	c.Assert(err, IsNil)
+
+	reader, err := r.nibStore.getReader(n.ID)
+	c.Assert(err, IsNil)
+
+	err = r.AddNIBContent(reader)
+	c.Assert(err, NotNil)
+
+	c.Assert(IsNIBContentMissing(err), Equals, true)
+	nibContentMissing := err.(*NIBContentMissing)
+	missingIDs := nibContentMissing.MissingContentIDs()
+
+	c.Assert(helpers.SliceContainsString(missingIDs, "metadata1"), Equals, true)
+	c.Assert(helpers.SliceContainsString(missingIDs, "content1"), Equals, true)
+	c.Assert(helpers.SliceContainsString(missingIDs, "content2"), Equals, false)
+	c.Assert(helpers.SliceContainsString(missingIDs, "content3"), Equals, true)
 }

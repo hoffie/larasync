@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 var (
@@ -30,14 +31,23 @@ var (
 	ErrRefusingWorkOnDotLara = errors.New("will not work on .lara")
 )
 
-// errorString is a trivial implementation of error.
-type nibContentMissing struct {
-	contentID string
+// NIBContentMissing is returned to
+type NIBContentMissing struct {
+	contentIDs []string
 }
 
 // Error returns the error message which encodes the not found content ID.
-func (e *nibContentMissing) Error() string {
-	return fmt.Sprintf("Content of passed NIB is not stored yet. Missing contentID: %s", e.contentID)
+func (e *NIBContentMissing) Error() string {
+	return fmt.Sprintf(
+		"Content of passed NIB is not stored yet. Missing contentIDs: %s",
+		strings.Join(e.contentIDs, ", "),
+	)
+}
+
+// MissingContentIDs returns all ids which couldn't be resolved in the
+// repository.
+func (e *NIBContentMissing) MissingContentIDs() []string {
+	return e.contentIDs
 }
 
 // IsNIBContentMissing checks if the passed error is a nibContentMissing error.
@@ -45,7 +55,7 @@ func IsNIBContentMissing(err error) bool {
 	switch err.(type) {
 	case nil:
 		return false
-	case *nibContentMissing:
+	case *NIBContentMissing:
 		return true
 	default:
 		return false

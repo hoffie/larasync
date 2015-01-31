@@ -156,10 +156,15 @@ func (r *Repository) AddNIBContent(nibReader io.Reader) error {
 		return err
 	}
 
+	missingObjectIDs := []string{}
 	for _, objectID := range nib.AllObjectIDs() {
 		if !r.HasObject(objectID) {
-			return &nibContentMissing{contentID: objectID}
+			missingObjectIDs = append(missingObjectIDs, objectID)
 		}
+	}
+
+	if len(missingObjectIDs) > 0 {
+		return &NIBContentMissing{contentIDs: missingObjectIDs}
 	}
 
 	err = r.ensureConflictFreeNIBImport(nib)

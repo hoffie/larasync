@@ -1,27 +1,21 @@
 package helpers
 
 import (
-	"testing"
-
 	. "gopkg.in/check.v1"
 )
 
-type Tests struct{}
+type CompareTests struct{}
 
-var _ = Suite(&Tests{})
+var _ = Suite(&CompareTests{})
 
-func TestCompare(t *testing.T) {
-	TestingT(t)
-}
-
-func (t *Tests) TestConstantTimeBytesEqualDiff(c *C) {
+func (t *CompareTests) TestConstantTimeBytesEqualDiff(c *C) {
 	c.Assert(ConstantTimeBytesEqual([]byte("a"), []byte("b")), Equals, false)
 }
 
-func (t *Tests) TestConstantTimeBytesEqualLengthDiff(c *C) {
+func (t *CompareTests) TestConstantTimeBytesEqualLengthDiff(c *C) {
 	c.Assert(ConstantTimeBytesEqual([]byte("a"), []byte("aa")), Equals, false)
 }
 
-func (t *Tests) TestConstantTimeBytesEqualOk(c *C) {
+func (t *CompareTests) TestConstantTimeBytesEqualOk(c *C) {
 	c.Assert(ConstantTimeBytesEqual([]byte("a"), []byte("a")), Equals, true)
 }

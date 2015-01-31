@@ -8,13 +8,18 @@ import (
 	"github.com/hoffie/larasync/api"
 )
 
-func errorJSON(w http.ResponseWriter, error string, code int) {
+func errorJSONMessage(w http.ResponseWriter, error string, code int) {
+	errorObj := &api.JSONError{
+		Error: error,
+		Type:  "generic",
+	}
+	errorJSON(w, errorObj, code)
+}
+
+func errorJSON(w http.ResponseWriter, jsonError interface{}, code int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	errorObj := api.JSONError{
-		Error: error,
-	}
-	data, _ := json.Marshal(errorObj)
+	data, _ := json.Marshal(jsonError)
 	w.Write(data)
 }
 

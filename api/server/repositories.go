@@ -17,12 +17,12 @@ func (s *Server) repositoryList(rw http.ResponseWriter, req *http.Request) {
 	jsonHeader(rw)
 	names, err := s.rm.ListNames()
 	if err != nil {
-		errorJSON(rw, "Internal Server Error", http.StatusInternalServerError)
+		errorJSONMessage(rw, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	out, err := json.Marshal(names)
 	if err != nil {
-		errorJSON(rw, "Internal Server Error", http.StatusInternalServerError)
+		errorJSONMessage(rw, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	rw.Write(out)
@@ -33,19 +33,19 @@ func (s *Server) repositoryCreate(rw http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	repositoryName := vars["repository"]
 	if s.rm.Exists(repositoryName) {
-		errorJSON(rw, "Repository exists", http.StatusConflict)
+		errorJSONMessage(rw, "Repository exists", http.StatusConflict)
 		return
 	}
 	var repository api.JSONRepository
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		errorJSON(rw, "Internal Server Error", http.StatusInternalServerError)
+		errorJSONMessage(rw, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	err = json.Unmarshal(body, &repository)
 	if err != nil {
-		errorJSON(rw, "Bad Request", http.StatusBadRequest)
+		errorJSONMessage(rw, "Bad Request", http.StatusBadRequest)
 		return
 	}
 
@@ -54,14 +54,15 @@ func (s *Server) repositoryCreate(rw http.ResponseWriter, req *http.Request) {
 			"Public key has to be of length %d got %d",
 			PublicKeySize,
 			len(repository.PubKey))
-		errorJSON(rw,
+		errorJSONMessage(
+			rw,
 			errorMessage,
 			http.StatusBadRequest)
 	}
 
 	err = s.rm.Create(repositoryName, repository.PubKey)
 	if err != nil {
-		errorJSON(rw, "Internal Server Error", http.StatusInternalServerError)
+		errorJSONMessage(rw, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 

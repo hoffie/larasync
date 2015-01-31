@@ -1,8 +1,12 @@
 package server
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 
+	"github.com/hoffie/larasync/api"
+	"github.com/hoffie/larasync/helpers"
 	"github.com/hoffie/larasync/repository/nib"
 
 	. "gopkg.in/check.v1"
@@ -182,7 +186,21 @@ func (t *NIBPutTest) normalPut(c *C) *nib.NIB {
 }
 
 func (t *NIBPutTest) TestPutReferencedContentMissing(c *C) {
+	n := t.addTestNIB(c)
+	n = t.changeNIBForPut(c, n)
+
+	t.req = t.requestWithNib(c, n)
 	t.signRequest()
+
 	resp := t.getResponse(t.req)
 	c.Assert(resp.Code, Equals, http.StatusPreconditionFailed)
+	data, err := ioutil.ReadAll(resp.Body)
+	c.Assert(err, IsNil)
+
+	jsonError := &api.ContentIDsJSONError{}
+	err = json.Unmarshal(data, jsonError)
+	c.Assert(err, IsNil)
+	for _, objectID := range n.AllObjectIDs() {
+		helpers.SliceContainsString(jsonError.MissingContentIDs, objectID)
+	}
 }

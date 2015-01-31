@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/hoffie/larasync/api"
 	"github.com/hoffie/larasync/helpers/bincontainer"
 	repositoryModule "github.com/hoffie/larasync/repository"
 )
@@ -20,7 +21,7 @@ func (s *Server) nibGet(rw http.ResponseWriter, req *http.Request) {
 
 	repository, err := s.rm.Open(repositoryName)
 	if err != nil {
-		errorJSON(rw, "Internal Error", http.StatusInternalServerError)
+		errorJSONMessage(rw, "Internal Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -53,7 +54,7 @@ func (s *Server) nibPut(rw http.ResponseWriter, req *http.Request) {
 
 	repository, err := s.rm.Open(repositoryName)
 	if err != nil {
-		errorJSON(rw, "Internal Error", http.StatusInternalServerError)
+		errorJSONMessage(rw, "Internal Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -74,9 +75,15 @@ func (s *Server) nibPut(rw http.ResponseWriter, req *http.Request) {
 		} else if err == repositoryModule.ErrNIBConflict {
 			errorText(rw, "NIB conflict", http.StatusConflict)
 		} else if repositoryModule.IsNIBContentMissing(err) {
-			errorText(rw, err.Error(), http.StatusPreconditionFailed)
+			nibError := err.(*repositoryModule.NIBContentMissing)
+			jsonError := &api.ContentIDsJSONError{}
+			jsonError.Error = nibError.Error()
+			jsonError.Type = "missing_content_ids"
+			jsonError.MissingContentIDs = nibError.MissingContentIDs()
+			errorJSON(rw, jsonError, http.StatusPreconditionFailed)
+		} else {
+			errorText(rw, "Internal Error", http.StatusInternalServerError)
 		}
-		errorText(rw, "Internal Error", http.StatusInternalServerError)
 		return
 	}
 

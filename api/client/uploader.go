@@ -146,12 +146,12 @@ func (ul *Uploader) uploadNIB(n *nib.NIB) error {
 	var objectIDs []string
 	if err == nil {
 		return nil
-	} else if repository.IsNIBContentMissing(err) {
-		nibContentMissing := err.(*repository.ErrNIBContentMissing)
-		objectIDs = nibContentMissing.MissingContentIDs()
-	} else {
+	}
+	if !repository.IsNIBContentMissing(err) {
 		return fmt.Errorf("uploading nib %s failed (%s)", n.ID, err)
 	}
+	nibContentMissing := err.(*repository.ErrNIBContentMissing)
+	objectIDs = nibContentMissing.MissingContentIDs()
 	for _, objectID := range objectIDs {
 		err = ul.uploadObject(objectID)
 		if err != nil {

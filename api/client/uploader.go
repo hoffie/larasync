@@ -181,9 +181,6 @@ func (ul *Uploader) uploadObject(objectID string) error {
 		return fmt.Errorf("unable to load object %s (%s)\n", objectID, err)
 	}
 	defer object.Close()
-	//FIXME We currently upload all objects, even multiple times
-	// in some cases and even although they may already exist on
-	// the server. This is not as well performing as it might be.
 	err = client.PutObject(objectID, object)
 	if err != nil {
 		return fmt.Errorf("uploading object %s failed (%s)", objectID, err)

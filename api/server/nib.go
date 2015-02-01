@@ -75,7 +75,7 @@ func (s *Server) nibPut(rw http.ResponseWriter, req *http.Request) {
 		} else if err == repositoryModule.ErrNIBConflict {
 			errorText(rw, "NIB conflict", http.StatusConflict)
 		} else if repositoryModule.IsNIBContentMissing(err) {
-			nibError := err.(*repositoryModule.NIBContentMissing)
+			nibError := err.(*repositoryModule.ErrNIBContentMissing)
 			jsonError := &api.ContentIDsJSONError{}
 			jsonError.Error = nibError.Error()
 			jsonError.Type = "missing_content_ids"

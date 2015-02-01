@@ -5,6 +5,11 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
+	"github.com/hoffie/larasync/helpers"
+	"github.com/hoffie/larasync/helpers/crypto"
+	repositoryModule "github.com/hoffie/larasync/repository"
+	"github.com/hoffie/larasync/repository/nib"
+
 	. "gopkg.in/check.v1"
 )
 
@@ -120,6 +125,36 @@ func (t *NIBClientTest) TestAdd(c *C) {
 
 	err := t.client.PutNIB(ID, bytes.NewReader(data))
 	c.Assert(err, IsNil)
+}
+
+func (t *NIBClientTest) TestAddNIBContentMissing(c *C) {
+	privateKey := t.privateKey
+	ID := "1"
+	n := &nib.NIB{
+		ID: ID,
+		Revisions: []*nib.Revision{
+			{
+				MetadataID:   "meta1",
+				ContentIDs:   []string{"content1", "content2"},
+				UTCTimestamp: 100,
+				DeviceID:     "",
+			},
+		},
+	}
+	buffer := &bytes.Buffer{}
+	writer := crypto.NewSigningWriter(privateKey, buffer)
+	_, err := n.WriteTo(writer)
+	c.Assert(err, IsNil)
+	err = writer.Finalize()
+	c.Assert(err, IsNil)
+
+	err = t.client.PutNIB(ID, buffer)
+	c.Assert(repositoryModule.IsNIBContentMissing(err), Equals, true)
+
+	nibContentMissing := err.(*repositoryModule.ErrNIBContentMissing)
+	for _, str := range n.AllObjectIDs() {
+		c.Assert(helpers.SliceContainsString(nibContentMissing.MissingContentIDs(), str), Equals, true)
+	}
 }
 
 func (t *NIBClientTest) TestAddConnError(c *C) {

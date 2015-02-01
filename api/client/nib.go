@@ -1,12 +1,16 @@
 package client
 
 import (
+	"encoding/json"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
+	"github.com/hoffie/larasync/api"
 	"github.com/hoffie/larasync/api/common"
 	"github.com/hoffie/larasync/helpers/bincontainer"
+	"github.com/hoffie/larasync/repository"
 )
 
 // putNIBRequest builds a request for uploading NIB
@@ -21,13 +25,38 @@ func (c *Client) putNIBRequest(nibID string, nibReader io.Reader) (*http.Request
 	return req, nil
 }
 
+// handleNIBPreconditionError tries to get additional data from the precondition failed
+// error and returns the extracted error information.
+func handleNIBPreconditionError(resp *http.Response) error {
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	jsonError := &api.ContentIDsJSONError{}
+	err = json.Unmarshal(data, jsonError)
+	if err != nil {
+		return ErrUnexpectedStatus
+	}
+	return repository.NewErrNIBContentMissing(jsonError.MissingContentIDs)
+}
+
 // PutNIB uploads a NIB to the server
 func (c *Client) PutNIB(nibID string, nibReader io.Reader) error {
 	req, err := c.putNIBRequest(nibID, nibReader)
 	if err != nil {
 		return err
 	}
-	_, err = c.doRequest(req, http.StatusCreated, http.StatusOK)
+	resp, err := c.doRequest(
+		req,
+		http.StatusCreated, http.StatusOK, http.StatusPreconditionFailed,
+	)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode == http.StatusPreconditionFailed {
+		err = handleNIBPreconditionError(resp)
+	}
 	return err
 }
 

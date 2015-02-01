@@ -164,7 +164,7 @@ func (r *Repository) AddNIBContent(nibReader io.Reader) error {
 	}
 
 	if len(missingObjectIDs) > 0 {
-		return &NIBContentMissing{contentIDs: missingObjectIDs}
+		return NewErrNIBContentMissing(missingObjectIDs)
 	}
 
 	err = r.ensureConflictFreeNIBImport(nib)

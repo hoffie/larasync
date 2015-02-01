@@ -187,7 +187,7 @@ func (t *RepositoryAddItemTests) TestAddNIBContentObjNotExisting(c *C) {
 	c.Assert(err, NotNil)
 
 	c.Assert(IsNIBContentMissing(err), Equals, true)
-	nibContentMissing := err.(*NIBContentMissing)
+	nibContentMissing := err.(*ErrNIBContentMissing)
 	missingIDs := nibContentMissing.MissingContentIDs()
 
 	c.Assert(helpers.SliceContainsString(missingIDs, "metadata1"), Equals, true)

@@ -31,13 +31,21 @@ var (
 	ErrRefusingWorkOnDotLara = errors.New("will not work on .lara")
 )
 
-// NIBContentMissing is returned to
-type NIBContentMissing struct {
+// NewNIBContentMissing returns a new NIBContentMissing Error.
+func NewErrNIBContentMissing(contentIDs []string) *ErrNIBContentMissing {
+	return &ErrNIBContentMissing{
+		contentIDs: contentIDs,
+	}
+}
+
+// ErrNIBContentMissing is returned when trying to add a NIB to the repository and
+// content IDs are missing.
+type ErrNIBContentMissing struct {
 	contentIDs []string
 }
 
 // Error returns the error message which encodes the not found content ID.
-func (e *NIBContentMissing) Error() string {
+func (e *ErrNIBContentMissing) Error() string {
 	return fmt.Sprintf(
 		"Content of passed NIB is not stored yet. Missing contentIDs: %s",
 		strings.Join(e.contentIDs, ", "),
@@ -46,7 +54,7 @@ func (e *NIBContentMissing) Error() string {
 
 // MissingContentIDs returns all ids which couldn't be resolved in the
 // repository.
-func (e *NIBContentMissing) MissingContentIDs() []string {
+func (e *ErrNIBContentMissing) MissingContentIDs() []string {
 	return e.contentIDs
 }
 
@@ -55,7 +63,7 @@ func IsNIBContentMissing(err error) bool {
 	switch err.(type) {
 	case nil:
 		return false
-	case *NIBContentMissing:
+	case *ErrNIBContentMissing:
 		return true
 	default:
 		return false

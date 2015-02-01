@@ -31,7 +31,8 @@ var (
 	ErrRefusingWorkOnDotLara = errors.New("will not work on .lara")
 )
 
-// NewNIBContentMissing returns a new NIBContentMissing Error.
+// NewErrNIBContentMissing returns a new ErrNIBContentMissing Error with the passed
+// content IDs marked as missing.
 func NewErrNIBContentMissing(contentIDs []string) *ErrNIBContentMissing {
 	return &ErrNIBContentMissing{
 		contentIDs: contentIDs,

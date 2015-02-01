@@ -29,14 +29,22 @@ func (d *Dispatcher) syncAction() int {
 		return 1
 	}
 	dl := client.Downloader(r)
-	err = dl.GetAll()
+	ul := client.Uploader(r)
+	if d.context.Bool("full") {
+		err = dl.GetAll()
+	} else {
+		err = dl.GetDelta()
+	}
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: syncing data from server failed (%s)\n", err)
 		return 1
 	}
 
-	ul := client.Uploader(r)
-	err = ul.PushAll()
+	if d.context.Bool("full") {
+		err = ul.PushAll()
+	} else {
+		err = ul.PushDelta()
+	}
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: uploading data to the server failed (%s)\n", err)
 		return 1

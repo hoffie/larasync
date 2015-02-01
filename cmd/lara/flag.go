@@ -36,10 +36,19 @@ func (d *Dispatcher) pushFlags() []cli.Flag {
 }
 
 // pullFlags returns the flags that should be
-// registered as flags availabgle in the "pull
+// registered as flags available in the "pull"
 // subcommand.
 func (d *Dispatcher) pullFlags() []cli.Flag {
 	// At the moment this has the same flags as
 	// push action.
+	return d.pushFlags()
+}
+
+// syncFlags returns the flags that should be
+// registered as flags available in the "sync"
+// subcommand.
+func (d *Dispatcher) syncFlags() []cli.Flag {
+	// At the moment this has the same flags as
+	// the push action.
 	return d.pushFlags()
 }

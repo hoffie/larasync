@@ -12,18 +12,25 @@ import (
 
 type SyncTests struct {
 	BaseTests
+	repoName string
 }
 
-var _ = Suite(&SyncTests{BaseTests{}})
+var _ = Suite(&SyncTests{
+	BaseTests: BaseTests{},
+})
+
+func (t *SyncTests) SetUpTest(c *C) {
+	t.BaseTests.SetUpTest(c)
+	t.repoName = "example"
+}
 
 func (t *SyncTests) TestTooManyArgs(c *C) {
-	c.Assert(t.d.run([]string{"push", "foo"}), Equals, 1)
+	c.Assert(t.d.run([]string{"sync", "foo"}), Equals, 1)
 }
 
-func (t *SyncTests) TestSync(c *C) {
+func (t *SyncTests) prepareForSync(c *C) {
 	t.initRepo(c)
 	t.registerServerInRepo(c)
-	repoName := "example"
 
 	uploadedTestFile := "foo2.txt"
 	err := ioutil.WriteFile(uploadedTestFile, []byte("Sync works downwards"), 0600)
@@ -40,9 +47,10 @@ func (t *SyncTests) TestSync(c *C) {
 	testFile := "foo.txt"
 	err = ioutil.WriteFile(testFile, []byte("Sync works upwards"), 0600)
 	c.Assert(err, IsNil)
+}
 
-	t.runAndExpectCode(c, []string{"sync"}, 0)
-
+func (t *SyncTests) verifyAfterSync(c *C) {
+	repoName := t.repoName
 	num, err := path.NumFilesInDir(filepath.Join(t.ts.basePath,
 		repoName, ".lara", "nibs"))
 	c.Assert(err, IsNil)
@@ -52,6 +60,19 @@ func (t *SyncTests) TestSync(c *C) {
 		repoName, ".lara", "objects"))
 	c.Assert(err, IsNil)
 	c.Assert(num, Equals, 4)
+}
+
+func (t *SyncTests) TestFullSync(c *C) {
+	t.prepareForSync(c)
+	t.runAndExpectCode(c, []string{"sync", "--full"}, 0)
+	t.verifyAfterSync(c)
+}
+
+func (t *SyncTests) TestSync(c *C) {
+	t.prepareForSync(c)
+	t.runAndExpectCode(c, []string{"sync"}, 0)
+	t.verifyAfterSync(c)
+
 }
 
 func (t *SyncTests) breakLocalFingerprint(c *C) {

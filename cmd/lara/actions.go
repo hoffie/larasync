@@ -86,6 +86,7 @@ func (d *Dispatcher) cmdActions() []cli.Command {
 			Name:   "sync",
 			Usage:  "uploads and downloads all files from and to the repository.",
 			Action: d.wrapAction(d.syncAction),
+			Flags:  d.syncFlags(),
 		},
 	}
 }

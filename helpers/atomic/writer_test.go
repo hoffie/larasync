@@ -31,7 +31,7 @@ func (t *WriterTests) TearDownTest(c *C) {
 func (t *WriterTests) TestTmpFileCreation(c *C) {
 	testFilePath := filepath.Join(t.dir, "testfile")
 	writer, err := NewWriter(testFilePath, "testprefix", defaultFilePerms)
-    defer writer.Close()
+	defer writer.Close()
 	c.Assert(err, IsNil)
 
 	_, err = os.Stat(writer.tmpPath())
@@ -46,7 +46,7 @@ func (t *WriterTests) TestErrorOnInit(c *C) {
 	writerErrorHook = errors.New("Test")
 
 	writer, err := NewWriter(testFilePath, "testprefix", defaultFilePerms)
-    defer writer.Close()
+	defer writer.Close()
 	c.Assert(err, NotNil)
 }
 
@@ -68,7 +68,7 @@ func (t *WriterTests) TestClose(c *C) {
 func (t *WriterTests) TestWrite(c *C) {
 	testFilePath := filepath.Join(t.dir, "testfile")
 	writer, err := NewWriter(testFilePath, "testprefix", defaultFilePerms)
-    defer writer.Close()
+	defer writer.Close()
 	c.Assert(err, IsNil)
 
 	testBytes := []byte("This is a small test")
@@ -88,7 +88,7 @@ func (t *WriterTests) TestAbort(c *C) {
 	testFilePath := filepath.Join(t.dir, "testfile")
 	writer, err := NewStandardWriter(testFilePath, 0770)
 	c.Assert(err, IsNil)
-    defer writer.Close()
+	defer writer.Close()
 	writer.Write([]byte("this is a testfile"))
 	writer.Abort()
 	err = writer.Close()
@@ -105,7 +105,7 @@ func (t *WriterTests) TestAbortNoOverwrite(c *C) {
 	c.Assert(err, IsNil)
 	writer, err := NewStandardWriter(testFilePath, 0770)
 	c.Assert(err, IsNil)
-    defer writer.Close()
+	defer writer.Close()
 
 	writer.Write([]byte("newfiledata"))
 	writer.Abort()

@@ -136,7 +136,7 @@ func (ul *Uploader) uploadNIBs() error {
 func (ul *Uploader) uploadNIB(n *nib.NIB) error {
 	r := ul.r
 	client := ul.client
-    Log.Debug(fmt.Sprintf("Uploading nib with ID %s", n.ID))
+	Log.Debug(fmt.Sprintf("Uploading nib with ID %s", n.ID))
 	nibReader, err := r.GetNIBReader(n.ID)
 	if err != nil {
 		return err
@@ -177,7 +177,7 @@ func (ul *Uploader) uploadObject(objectID string) error {
 	r := ul.r
 	client := ul.client
 
-    Log.Debug(fmt.Sprintf("Uploading object with ID %s", objectID))
+	Log.Debug(fmt.Sprintf("Uploading object with ID %s", objectID))
 	object, err := r.GetObjectData(objectID)
 	if err != nil {
 		return fmt.Errorf("unable to load object %s (%s)\n", objectID, err)

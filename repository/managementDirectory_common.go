@@ -8,5 +8,5 @@ var rootInitializationError error
 // specific functionality which is needed after the Root
 // management directory has been initialized.
 func (md *managementDirectory) afterRootInitialization() error {
-    return rootInitializationError
+	return rootInitializationError
 }

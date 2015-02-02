@@ -45,7 +45,7 @@ type Repository struct {
 func New(path string) *Repository {
 	r := &Repository{Path: path}
 
-    r.managementDir = newManagementDirectory(r)
+	r.managementDir = newManagementDirectory(r)
 
 	r.objectStorage = content.NewFileStorage(r.subPathFor(objectsDirName))
 
@@ -75,7 +75,7 @@ func (r *Repository) subPathFor(name string) string {
 // CreateManagementDir ensures that this repository's management
 // directory exists.
 func (r *Repository) CreateManagementDir() error {
-    return r.managementDir.create()
+	return r.managementDir.create()
 }
 
 // GetManagementDir returns the path to the management directory.

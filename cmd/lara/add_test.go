@@ -1,8 +1,8 @@
 package main
 
 import (
-    "fmt"
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -66,17 +66,17 @@ func (t *AddTests) TestAddDir(c *C) {
 }
 
 func (t *AddTests) TestAddMultipleTimes(c *C) {
-    repoDir := filepath.Join(t.dir, "repo")
-    c.Assert(t.d.run([]string{"init", repoDir}), Equals, 0)
-    dir := filepath.Join(repoDir, "subdir")
-    err := os.Mkdir(dir, 0700)
+	repoDir := filepath.Join(t.dir, "repo")
+	c.Assert(t.d.run([]string{"init", repoDir}), Equals, 0)
+	dir := filepath.Join(repoDir, "subdir")
+	err := os.Mkdir(dir, 0700)
 
-    for i := 0; i < 10; i++ {
-        file := filepath.Join(dir, fmt.Sprintf("foo%s.txt", i))
-        realContent := []byte("test")
-        err = ioutil.WriteFile(file, realContent, 0600)
-        c.Assert(err, IsNil)
+	for i := 0; i < 10; i++ {
+		file := filepath.Join(dir, fmt.Sprintf("foo%s.txt", i))
+		realContent := []byte("test")
+		err = ioutil.WriteFile(file, realContent, 0600)
+		c.Assert(err, IsNil)
 
-        c.Assert(t.d.run([]string{"add", repoDir}), Equals, 0)
-    }
+		c.Assert(t.d.run([]string{"add", repoDir}), Equals, 0)
+	}
 }

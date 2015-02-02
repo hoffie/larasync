@@ -6,7 +6,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 
 	"github.com/hoffie/larasync/repository/content"
 	"github.com/hoffie/larasync/repository/nib"
@@ -39,19 +38,20 @@ type Repository struct {
 	nibStore             *NIBStore
 	transactionManager   *TransactionManager
 	authorizationManager *AuthorizationManager
-	managementDirPath    string
+	managementDir        *managementDirectory
 }
 
 // New returns a new repository instance with the given base path
 func New(path string) *Repository {
 	r := &Repository{Path: path}
-	r.setupPaths()
+
+    r.managementDir = newManagementDirectory(r)
 
 	r.objectStorage = content.NewFileStorage(r.subPathFor(objectsDirName))
 
 	r.transactionManager = newTransactionManager(
 		content.NewFileStorage(r.subPathFor(transactionsDirName)),
-		r.GetManagementDir(),
+		r.managementDir.getDir(),
 	)
 	r.authorizationManager = newAuthorizationManager(
 		content.NewFileStorage(r.subPathFor(authorizationsDirName)),
@@ -69,45 +69,18 @@ func New(path string) *Repository {
 
 // subPathFor returns the full path for the given entry.
 func (r *Repository) subPathFor(name string) string {
-	return filepath.Join(r.GetManagementDir(), name)
-}
-
-// setupPaths initializes several attributes referring to internal repository paths
-// such as encryption key paths.
-func (r *Repository) setupPaths() {
-	base := filepath.Join(r.Path, managementDirName)
-	r.managementDirPath = base
+	return r.managementDir.subPathFor(name)
 }
 
 // CreateManagementDir ensures that this repository's management
 // directory exists.
 func (r *Repository) CreateManagementDir() error {
-	err := os.Mkdir(r.GetManagementDir(), defaultDirPerms)
-	if err != nil && !os.IsExist(err) {
-		return err
-	}
-
-	storages := []*content.FileStorage{
-		content.NewFileStorage(r.subPathFor(authorizationsDirName)),
-		content.NewFileStorage(r.subPathFor(nibsDirName)),
-		content.NewFileStorage(r.subPathFor(transactionsDirName)),
-		content.NewFileStorage(r.subPathFor(objectsDirName)),
-		content.NewFileStorage(r.subPathFor(keysDirName)),
-	}
-
-	for _, fileStorage := range storages {
-		err = fileStorage.CreateDir()
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+    return r.managementDir.create()
 }
 
 // GetManagementDir returns the path to the management directory.
 func (r *Repository) GetManagementDir() string {
-	return filepath.Join(r.Path, managementDirName)
+	return r.managementDir.getDir()
 }
 
 // Create initially creates the repository directory structure.

@@ -1,6 +1,7 @@
 package server
 
 import (
+    "fmt"
 	"io"
 	"net/http"
 	"os"
@@ -22,12 +23,15 @@ func (s *Server) blobGet(rw http.ResponseWriter, req *http.Request) {
 
 	blobID := vars["blobID"]
 
+    Log.Debug(fmt.Sprintf("Repository %s: Requesting blob ID %s", repositoryName, blobID))
 	reader, err := repository.GetObjectData(blobID)
 
 	if err != nil {
 		if os.IsNotExist(err) {
+            Log.Debug(fmt.Sprintf("Repository %s: Could not find blob ID %s", repositoryName, blobID))
 			errorText(rw, "Not found", http.StatusNotFound)
 		} else {
+            Log.Warn(fmt.Sprintf("Repository %s: Could not request blob ID %s", repositoryName, blobID))
 			errorText(rw, "Internal Error", http.StatusInternalServerError)
 		}
 		return
@@ -53,9 +57,16 @@ func (s *Server) blobPut(rw http.ResponseWriter, req *http.Request) {
 
 	blobID := vars["blobID"]
 
+    Log.Debug(fmt.Sprintf("Repository: %s, Adding blob with ID %s", repositoryName, blobID))
 	err = repository.AddObject(blobID, req.Body)
 
 	if err != nil {
+        Log.Warn(
+            fmt.Sprintf(
+                "Repository: %s, Could not add blob with ID %s. Error: %s",
+                repositoryName, blobID, err.Error(),
+            ),
+        )
 		errorText(rw, "Internal Error", http.StatusInternalServerError)
 		return
 	}

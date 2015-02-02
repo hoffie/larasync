@@ -27,6 +27,7 @@ func (s *Server) nibGet(rw http.ResponseWriter, req *http.Request) {
 
 	nibID := vars["nibID"]
 
+    Log.Debug(fmt.Sprintf("Repository %s: Requesting NIB with ID %s", repositoryName, nibID))
 	reader, err := repository.GetNIBReader(nibID)
 
 	if err != nil {
@@ -65,16 +66,21 @@ func (s *Server) nibPut(rw http.ResponseWriter, req *http.Request) {
 		successReturnStatus = http.StatusCreated
 	}
 
+    Log.Debug(fmt.Sprintf("Repository %s: Adding NIB with ID %s", repositoryName, nibID))
 	err = repository.AddNIBContent(req.Body)
 
 	if err != nil {
 		if err == repositoryModule.ErrSignatureVerification {
+            Log.Debug(fmt.Sprintf("Repository %s: Signature Verification failed when trying to add NIB with ID %s", repositoryName, nibID))
 			errorText(rw, "Signature could not be verified", http.StatusUnauthorized)
 		} else if err == repositoryModule.ErrUnMarshalling {
+            Log.Debug(fmt.Sprintf("Repository %s: Unmarshalling failed when trying to add NIB with ID %s", repositoryName, nibID))
 			errorText(rw, "Could not extract NIB", http.StatusBadRequest)
 		} else if err == repositoryModule.ErrNIBConflict {
+            Log.Debug(fmt.Sprintf("Repository %s: Conflict when trying to add NIB with ID %s", repositoryName, nibID))
 			errorText(rw, "NIB conflict", http.StatusConflict)
 		} else if repositoryModule.IsNIBContentMissing(err) {
+            Log.Debug(fmt.Sprintf("Repository %s: Contents of NIB not in Server when trying to add NIB with ID %s", repositoryName, nibID))
 			nibError := err.(*repositoryModule.ErrNIBContentMissing)
 			jsonError := &api.ContentIDsJSONError{}
 			jsonError.Error = nibError.Error()
@@ -82,6 +88,7 @@ func (s *Server) nibPut(rw http.ResponseWriter, req *http.Request) {
 			jsonError.MissingContentIDs = nibError.MissingContentIDs()
 			errorJSON(rw, jsonError, http.StatusPreconditionFailed)
 		} else {
+            Log.Warn(fmt.Sprintf("Repository %s: Internal Error when trying to add NIB with ID %s. %s", repositoryName, nibID, err.Error()))
 			errorText(rw, "Internal Error", http.StatusInternalServerError)
 		}
 		return
@@ -107,9 +114,10 @@ func (s *Server) nibList(rw http.ResponseWriter, req *http.Request) {
 
 	var nibChannel <-chan []byte
 	if !ok {
+        Log.Debug(fmt.Sprintf("Repository %s:, Requesting complete NIB list", repositoryName))
 		nibChannel, err = repository.GetAllNIBBytes()
 	} else {
-		fromRepositoryID, err := strconv.ParseInt(fromRepositoryIDString[0], 10, 64)
+		afterTransactionID, err := strconv.ParseInt(fromRepositoryIDString[0], 10, 64)
 		if err != nil {
 			errorText(
 				rw,
@@ -119,12 +127,15 @@ func (s *Server) nibList(rw http.ResponseWriter, req *http.Request) {
 				),
 				http.StatusBadRequest,
 			)
+            Log.Debug(fmt.Sprintf("Repository %s: Error while trying to extract transaction id of %s", repositoryName, fromRepositoryIDString[0]))
 			return
 		}
-		nibChannel, err = repository.GetNIBBytesFrom(fromRepositoryID)
+        Log.Debug(fmt.Sprintf("Repository %s: Requesting NIB list after transaction id %s", repositoryName, afterTransactionID))
+		nibChannel, err = repository.GetNIBBytesFrom(afterTransactionID)
 	}
 
 	if err != nil {
+        Log.Warn(fmt.Sprintf("Repository %s: "))
 		errorText(rw, "Could not extract data", http.StatusInternalServerError)
 		return
 	}

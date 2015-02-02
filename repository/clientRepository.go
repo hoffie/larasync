@@ -160,6 +160,7 @@ func (r *ClientRepository) readEncryptedObject(id string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+    defer reader.Close()
 	encryptedContent, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return nil, err

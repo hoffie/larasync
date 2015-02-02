@@ -72,7 +72,7 @@ func (t *AddTests) TestAddMultipleTimes(c *C) {
 	err := os.Mkdir(dir, 0700)
 
 	for i := 0; i < 10; i++ {
-		file := filepath.Join(dir, fmt.Sprintf("foo%s.txt", i))
+		file := filepath.Join(dir, fmt.Sprintf("foo%d.txt", i))
 		realContent := []byte("test")
 		err = ioutil.WriteFile(file, realContent, 0600)
 		c.Assert(err, IsNil)

@@ -130,12 +130,12 @@ func (s *Server) nibList(rw http.ResponseWriter, req *http.Request) {
 			Log.Debug(fmt.Sprintf("Repository %s: Error while trying to extract transaction id of %s", repositoryName, fromRepositoryIDString[0]))
 			return
 		}
-		Log.Debug(fmt.Sprintf("Repository %s: Requesting NIB list after transaction id %s", repositoryName, afterTransactionID))
+		Log.Debug(fmt.Sprintf("Repository %s: Requesting NIB list after transaction id %d", repositoryName, afterTransactionID))
 		nibChannel, err = repository.GetNIBBytesFrom(afterTransactionID)
 	}
 
 	if err != nil {
-		Log.Warn(fmt.Sprintf("Repository %s: "))
+		Log.Warn(fmt.Sprintf("Repository %s: Could not extract nib data.", repositoryName))
 		errorText(rw, "Could not extract data", http.StatusInternalServerError)
 		return
 	}

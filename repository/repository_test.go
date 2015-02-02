@@ -83,6 +83,7 @@ func (t *RepositoryTests) TestGetObject(c *C) {
 	r.AddObject(objectID, objectReader)
 
 	reader, err := r.GetObjectData(objectID)
+	defer reader.Close()
 	c.Assert(err, IsNil)
 
 	data, err := ioutil.ReadAll(reader)
@@ -181,6 +182,7 @@ func (t *RepositoryAddItemTests) TestAddNIBContentObjNotExisting(c *C) {
 	c.Assert(err, IsNil)
 
 	reader, err := r.nibStore.getReader(n.ID)
+	defer reader.Close()
 	c.Assert(err, IsNil)
 
 	err = r.AddNIBContent(reader)

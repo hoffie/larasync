@@ -15,6 +15,8 @@ import (
 	"github.com/hoffie/larasync/repository/nib"
 )
 
+
+
 // ClientRepository is a Repository from a client-side view; it has all the keys
 // and a work dir (comapred to the base Repository)
 type ClientRepository struct {
@@ -293,51 +295,61 @@ func (r *ClientRepository) checkoutNIB(nib *nib.NIB) error {
 		return err
 	}
 
-	metadata, err := r.metadataByID(rev.MetadataID)
-	if err != nil {
-		return err
-	}
+    return r.checkoutRevision(nib, rev)
+}
 
-	relPath := metadata.RepoRelativePath
-	if relPath == "" {
-		return errors.New("metadata lacks path")
-	}
-	absPath := filepath.Join(r.Path, relPath)
+// checkoutRevision checks out the provided Revision into the working directory.
+func (r *ClientRepository) checkoutRevision(nib *nib.NIB, rev *nib.Revision) error {
+    metadata, err := r.metadataByID(rev.MetadataID)
+    if err != nil {
+        return err
+    }
 
-	targetDir := filepath.Dir(absPath)
+    relPath := metadata.RepoRelativePath
+    if relPath == "" {
+        return errors.New("metadata lacks path")
+    }
+    absPath := filepath.Join(r.Path, relPath)
 
-	err = os.MkdirAll(targetDir, defaultDirPerms)
-	if err != nil && !os.IsExist(err) {
-		return err
-	}
+    targetDir := filepath.Dir(absPath)
 
-	writer, err := atomic.NewWriter(absPath, ".lara.checkout.", defaultFilePerms)
-	defer writer.Close()
-	if err != nil {
-		writer.Abort()
-		return err
-	}
+    err = os.MkdirAll(targetDir, defaultDirPerms)
+    if err != nil && !os.IsExist(err) {
+        return err
+    }
+    err = nil
 
-	for _, contentID := range rev.ContentIDs {
-		content, err := r.readEncryptedObject(contentID)
-		_, err = writer.Write(content)
-		if err != nil {
-			writer.Abort()
-			return err
-		}
-	}
+    if len(rev.ContentIDs) > 0 {
+        writer, err := atomic.NewWriter(absPath, ".lara.checkout.", defaultFilePerms)
+        defer writer.Close()
+        if err != nil {
+            writer.Abort()
+            return err
+        }
 
-	hasChanges, err := r.pathHasConflictingChanges(nib, absPath)
-	if err != nil {
-		writer.Abort()
-		return err
-	}
-	if hasChanges {
-		writer.Abort()
-		return errors.New("workdir conflict")
-	}
+        for _, contentID := range rev.ContentIDs {
+            content, err := r.readEncryptedObject(contentID)
+            _, err = writer.Write(content)
+            if err != nil {
+                writer.Abort()
+                return err
+            }
+        }
 
-	return nil
+        hasChanges, err := r.pathHasConflictingChanges(nib, absPath)
+        if err != nil {
+            writer.Abort()
+            return err
+        }
+        if hasChanges {
+            writer.Abort()
+            return ErrWorkDirConflict
+        }
+    } else if _, errExistCheck := os.Stat(absPath); errExistCheck == nil {
+        err = os.Remove(absPath)
+    }
+
+    return err
 }
 
 // AddItem adds a new file or directory to the repository.

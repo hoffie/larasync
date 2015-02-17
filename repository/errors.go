@@ -29,6 +29,8 @@ var (
 	// ErrRefusingWorkOnDotLara is thrown when an attempt is made to add the
 	// management directory or some content to the repository.
 	ErrRefusingWorkOnDotLara = errors.New("will not work on .lara")
+    // ErrWorkDirConflict is being returned if a checkout path has changed data.
+    ErrWorkDirConflict = errors.New("workdir conflict")
 )
 
 // NewErrNIBContentMissing returns a new ErrNIBContentMissing Error with the passed

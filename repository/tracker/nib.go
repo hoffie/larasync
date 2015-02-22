@@ -11,5 +11,5 @@ type NIBTracker interface {
 	Get(path string) (*NIBSearchResponse, error)
 	// SearchPrefix returns all nibIDs with the given path.
 	// The map being returned has the paths
-	SearchPrefix(prefix string) (*NIBSearchResponse, error)
+	SearchPrefix(prefix string) ([]*NIBSearchResponse, error)
 }

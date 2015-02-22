@@ -1,8 +1,8 @@
 package tracker
 
-// NibTracker enables a client repository to have a path
+// NIBTracker enables a client repository to have a path
 // to nib lookup.
-type NibTracker interface {
+type NIBTracker interface {
 	// Add registers the given nibID for the given path.
 	Add(path string, nibID string) error
 	// Remove removes the given path from being tracked.

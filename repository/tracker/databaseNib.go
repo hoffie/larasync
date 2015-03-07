@@ -8,20 +8,24 @@ import (
 
 	"github.com/jinzhu/gorm"
 
+	// Needed for sqlite gorm support.
 	_ "github.com/mattn/go-sqlite3"
 )
 
 // NIBLookup struct is used to represent entries in the database.
 type NIBLookup struct {
-	Id    int64
-	NIBID string `sql:"size:256;unique",gorm:"column:nib_id"`
+	ID    int64
+	NIBID string `sql:"size:256;unique" gorm:"column:nib_id"`
 	Path  string `sql:"size:4096;unique"`
 }
 
+// TableName returns the name of the SQLite NIB table.
 func (n NIBLookup) TableName() string {
 	return "nib_lookups"
 }
 
+// NewDatabaseNIBTracker initializes a new object which uses a database
+// to track NIB changes and implements the NIBTracker repository.
 func NewDatabaseNIBTracker(dbLocation string) (NIBTracker, error) {
 	nibTracker := &DatabaseNIBTracker{
 		dbLocation: dbLocation,
@@ -37,6 +41,8 @@ func NewDatabaseNIBTracker(dbLocation string) (NIBTracker, error) {
 	return nibTracker, err
 }
 
+// DatabaseNIBTracker implements the NIBTracker interface and utilizes
+// a sqlite database backend for persistence.
 type DatabaseNIBTracker struct {
 	dbLocation string
 	db         *gorm.DB

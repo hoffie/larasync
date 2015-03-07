@@ -51,6 +51,18 @@ func (t *DatabaseNIBTrackerTests) TestAdd(c *C) {
 	c.Assert(err, IsNil)
 }
 
+func (t *DatabaseNIBTrackerTests) TestDoubleAdd(c *C) {
+	tracker := t.getVerifiedTracker(c)
+	err := tracker.Add("/test", "123")
+	c.Assert(err, IsNil)
+	err = tracker.Add("/test", "123")
+	c.Assert(err, IsNil)
+
+	responses, err := tracker.SearchPrefix("/test")
+	c.Assert(err, IsNil)
+	c.Assert(len(responses), Equals, 1)
+}
+
 func (t *DatabaseNIBTrackerTests) TestAddOverlength(c *C) {
 	tracker := t.getVerifiedTracker(c)
 	err := tracker.Add("/"+strings.Repeat("5", 8000), "123")

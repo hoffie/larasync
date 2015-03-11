@@ -37,3 +37,28 @@ func (t *RevisionTests) TestIsDeleteNegative(c *C) {
 	rev := &Revision{MetadataID: "123", ContentIDs: []string{"34", "45"}}
 	c.Assert(rev.IsDelete(), Equals, false)
 }
+
+func (t *RevisionTests) TestCopy(c *C) {
+	rev := &Revision{
+		MetadataID: "123",
+		ContentIDs: []string{"34", "45"},
+		UTCTimestamp: 100,
+		DeviceID: "asdf",
+	}
+
+	rev2 := rev.Clone()
+
+	c.Assert(rev2.MetadataID, Equals, "123")
+	c.Assert(rev2.ContentIDs, DeepEquals, []string{"34", "45"})
+	c.Assert(rev2.UTCTimestamp, Equals, int64(100))
+	c.Assert(rev2.DeviceID, Equals, "asdf")
+}
+
+func (t *RevisionTests) TestCopyEmptyContentIDs(c *C) {
+	rev := &Revision{
+		ContentIDs: []string{},
+	}
+
+	rev2 := rev.Clone()
+	c.Assert(rev2.ContentIDs, DeepEquals, []string{})
+}

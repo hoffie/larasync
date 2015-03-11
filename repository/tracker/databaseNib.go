@@ -72,7 +72,6 @@ func (d *DatabaseNIBTracker) Add(path string, nibID string) error {
 			NIBID: nibID,
 			Path:  path,
 		}
-
 		db = tx.Create(res)
 	}
 

@@ -89,7 +89,8 @@ func (t *AuthorizationManagerTests) TestGetReaderString(c *C) {
 	auth := t.testAuthorization()
 	t.addAuthorization(c, auth)
 
-	_, err := t.am.GetReaderString(t.signaturePublicKeyString())
+	reader, err := t.am.GetReaderString(t.signaturePublicKeyString())
+	defer reader.Close()
 	c.Assert(err, IsNil)
 }
 

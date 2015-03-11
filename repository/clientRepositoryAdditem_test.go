@@ -45,6 +45,22 @@ func (t *RepositoryAddItemTests) TestWriteFileToChunks(c *C) {
 	c.Assert(numFiles, Equals, 2)
 }
 
+func (t *RepositoryAddItemTests) TestAddtoNIBStore(c *C) {
+	fullpath := filepath.Join(t.dir, "foo.txt")
+	err := ioutil.WriteFile(fullpath, []byte("foo"), 0600)
+	c.Assert(err, IsNil)
+	err = t.r.AddItem(fullpath)
+	c.Assert(err, IsNil)
+	tracker, err := t.r.NIBTracker()
+	c.Assert(err, IsNil)
+	d, err := tracker.Get("foo.txt")
+	c.Assert(err, IsNil)
+	c.Assert(d.Path, Equals, "foo.txt")
+	nibID, err := t.r.pathToNIBID("foo.txt")
+	c.Assert(err, IsNil)
+	c.Assert(d.NIBID, Equals, nibID)
+}
+
 // TestExistingFileNIBReuse ensures that pre-existing NIBs for a path are
 // re-used upon updates.
 func (t *RepositoryAddItemTests) TestExistingFileNIBReuse(c *C) {

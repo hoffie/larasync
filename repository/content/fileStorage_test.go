@@ -63,6 +63,7 @@ func (t *FileStorageTests) TestSet(c *C) {
 func (t *FileStorageTests) TestSetInputData(c *C) {
 	t.setData()
 	file, _ := os.Open(t.blobPath())
+	defer file.Close()
 	fileData, _ := ioutil.ReadAll(file)
 	c.Assert(fileData[:], DeepEquals, t.data[:])
 }

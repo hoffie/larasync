@@ -136,6 +136,7 @@ func (ul *Uploader) uploadNIBs() error {
 func (ul *Uploader) uploadNIB(n *nib.NIB) error {
 	r := ul.r
 	client := ul.client
+	Log.Debug(fmt.Sprintf("Uploading nib with ID %s", n.ID))
 	nibReader, err := r.GetNIBReader(n.ID)
 	if err != nil {
 		return err
@@ -146,12 +147,12 @@ func (ul *Uploader) uploadNIB(n *nib.NIB) error {
 	var objectIDs []string
 	if err == nil {
 		return nil
-	} else if repository.IsNIBContentMissing(err) {
-		nibContentMissing := err.(*repository.ErrNIBContentMissing)
-		objectIDs = nibContentMissing.MissingContentIDs()
-	} else {
+	}
+	if !repository.IsNIBContentMissing(err) {
 		return fmt.Errorf("uploading nib %s failed (%s)", n.ID, err)
 	}
+	nibContentMissing := err.(*repository.ErrNIBContentMissing)
+	objectIDs = nibContentMissing.MissingContentIDs()
 	for _, objectID := range objectIDs {
 		err = ul.uploadObject(objectID)
 		if err != nil {
@@ -176,6 +177,7 @@ func (ul *Uploader) uploadObject(objectID string) error {
 	r := ul.r
 	client := ul.client
 
+	Log.Debug(fmt.Sprintf("Uploading object with ID %s", objectID))
 	object, err := r.GetObjectData(objectID)
 	if err != nil {
 		return fmt.Errorf("unable to load object %s (%s)\n", objectID, err)

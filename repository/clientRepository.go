@@ -13,6 +13,7 @@ import (
 	"github.com/hoffie/larasync/helpers/crypto"
 	"github.com/hoffie/larasync/helpers/path"
 	"github.com/hoffie/larasync/repository/nib"
+	"github.com/hoffie/larasync/repository/tracker"
 )
 
 
@@ -22,11 +23,28 @@ import (
 type ClientRepository struct {
 	*Repository
 	stateConfig *StateConfig
+	nibTracker  tracker.NIBTracker
 }
 
 // NewClient returns a new ClientRepository instance
 func NewClient(path string) *ClientRepository {
-	return &ClientRepository{Repository: New(path)}
+	repo := New(path)
+	return &ClientRepository{
+		Repository: repo,
+	}
+}
+
+// NIBTracker returns the
+func (r *ClientRepository) NIBTracker() (tracker.NIBTracker, error) {
+	if r.nibTracker == nil {
+		repo := r.Repository
+		tracker, err := tracker.NewDatabaseNIBTracker(filepath.Join(repo.GetManagementDir(), "nib_tracker.db"))
+		if err != nil {
+			return nil, err
+		}
+		r.nibTracker = tracker
+	}
+	return r.nibTracker, nil
 }
 
 // StateConfig returns this repository's state config; it is currently used
@@ -162,6 +180,7 @@ func (r *ClientRepository) readEncryptedObject(id string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer reader.Close()
 	encryptedContent, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return nil, err
@@ -415,6 +434,15 @@ func (r *ClientRepository) addFile(absPath string) error {
 	if err == nib.ErrNoRevision || !latestRev.HasSameContent(rev) {
 		n.AppendRevision(rev)
 	}
+	tracker, err := r.NIBTracker()
+	if err != nil {
+		return err
+	}
+	err = tracker.Add(relPath, nibID)
+	if err != nil {
+		return err
+	}
+
 	return nibStore.Add(n)
 }
 

@@ -467,7 +467,7 @@ func (r *ClientRepository) addDirectory(absPath string) error {
 
 // SetAuthorization adds a authorization with the given publicKey and encrypts it with the
 // passed encryptionKey to this repository.
-func (r *Repository) SetAuthorization(
+func (r *ClientRepository) SetAuthorization(
 	publicKey [PublicKeySize]byte,
 	encKey [EncryptionKeySize]byte,
 	authorization *Authorization,
@@ -478,7 +478,7 @@ func (r *Repository) SetAuthorization(
 // NewAuthorization returns the currently valid Authorization object
 // for this repository. If the privateKeys necessary for this are not
 // stored in the keyStore an error is returned.
-func (r *Repository) NewAuthorization() (*Authorization, error) {
+func (r *ClientRepository) NewAuthorization() (*Authorization, error) {
 	encryptionKey, err := r.keys.EncryptionKey()
 	if err != nil {
 		return nil, errors.New("Could not load encryption key.")

@@ -21,7 +21,7 @@ func (t *DatabaseNIBTrackerTests) SetUpTest(c *C) {
 }
 
 func (t *DatabaseNIBTrackerTests) getTracker() (NIBTracker, error) {
-	return NewDatabaseNIBTracker(t.databasePath)
+	return NewDatabaseNIBTracker(t.databasePath, t.dirName)
 }
 
 func (t *DatabaseNIBTrackerTests) getVerifiedTracker(c *C) NIBTracker {

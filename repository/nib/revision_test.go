@@ -40,10 +40,10 @@ func (t *RevisionTests) TestIsDeleteNegative(c *C) {
 
 func (t *RevisionTests) TestCopy(c *C) {
 	rev := &Revision{
-		MetadataID: "123",
-		ContentIDs: []string{"34", "45"},
+		MetadataID:   "123",
+		ContentIDs:   []string{"34", "45"},
 		UTCTimestamp: 100,
-		DeviceID: "asdf",
+		DeviceID:     "asdf",
 	}
 
 	rev2 := rev.Clone()

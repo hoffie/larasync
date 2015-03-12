@@ -9,12 +9,12 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/hoffie/larasync/helpers"
 	"github.com/hoffie/larasync/helpers/atomic"
 	"github.com/hoffie/larasync/helpers/crypto"
 	"github.com/hoffie/larasync/helpers/path"
 	"github.com/hoffie/larasync/repository/nib"
 	"github.com/hoffie/larasync/repository/tracker"
-	"github.com/hoffie/larasync/helpers"
 )
 
 // ClientRepository is a Repository from a client-side view; it has all the keys
@@ -615,9 +615,8 @@ func (r *ClientRepository) revisionIsFile(absPath string, rev *nib.Revision) boo
 	if os.IsNotExist(err) {
 		if rev.IsDelete() {
 			return true
-		} else {
-			return false
 		}
+		return false
 	}
 
 	ids, err := r.fileToChunkIds(absPath)

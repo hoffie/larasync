@@ -28,7 +28,7 @@ func (n NIBLookup) TableName() string {
 // to track NIB changes and implements the NIBTracker repository.
 func NewDatabaseNIBTracker(dbLocation string, repositoryPath string) (NIBTracker, error) {
 	nibTracker := &DatabaseNIBTracker{
-		dbLocation: dbLocation,
+		dbLocation:     dbLocation,
 		repositoryPath: repositoryPath,
 	}
 	_, statErr := os.Stat(dbLocation)
@@ -45,8 +45,8 @@ func NewDatabaseNIBTracker(dbLocation string, repositoryPath string) (NIBTracker
 // DatabaseNIBTracker implements the NIBTracker interface and utilizes
 // a sqlite database backend for persistence.
 type DatabaseNIBTracker struct {
-	dbLocation string
-	db         *gorm.DB
+	dbLocation     string
+	db             *gorm.DB
 	repositoryPath string
 }
 

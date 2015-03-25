@@ -56,7 +56,7 @@ func (t *RepositoryDeleteItemTests) TestFileDeletion(c *C) {
 	rev, err := nib.LatestRevision()
 	c.Assert(err, IsNil)
 
-	c.Assert(rev.IsDelete(), Equals, true)
+	c.Assert(rev.IsDeletion(), Equals, true)
 }
 
 func (t *RepositoryDeleteItemTests) TestFileDeletionModified(c *C) {

@@ -520,7 +520,7 @@ func (r *ClientRepository) DeleteItem(absPath string) error {
 		return err
 	}
 
-	if !rev.IsDelete() {
+	if !rev.IsDeletion() {
 		err = r.deleteFile(absPath)
 	} else {
 		err = r.deleteDirectory(absPath)
@@ -574,7 +574,7 @@ func (r *ClientRepository) deleteFile(absPath string) error {
 	}
 
 	deleteFileIfExisting := func() error {
-		if r.revisionIsFile(absPath, latestRevision) && !latestRevision.IsDelete() {
+		if r.revisionIsFile(absPath, latestRevision) && !latestRevision.IsDeletion() {
 			os.Remove(absPath)
 		}
 
@@ -596,7 +596,7 @@ func (r *ClientRepository) deleteFile(absPath string) error {
 	}
 
 	if err == nil && latestRevision != nil {
-		if latestRevision.IsDelete() {
+		if latestRevision.IsDeletion() {
 			return deleteFileIfExisting()
 		}
 		deleteRevision := latestRevision.Clone()
@@ -619,7 +619,7 @@ func (r *ClientRepository) revisionIsFile(absPath string, rev *nib.Revision) boo
 	}
 
 	if os.IsNotExist(err) {
-		if rev.IsDelete() {
+		if rev.IsDeletion() {
 			return true
 		}
 		return false

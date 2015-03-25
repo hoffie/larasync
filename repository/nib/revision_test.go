@@ -30,12 +30,12 @@ func (t *RevisionTests) TestHasSameContentSelf(c *C) {
 
 func (t *RevisionTests) TestIsDeletePositive(c *C) {
 	rev := &Revision{MetadataID: "123", ContentIDs: []string{}}
-	c.Assert(rev.IsDelete(), Equals, true)
+	c.Assert(rev.IsDeletion(), Equals, true)
 }
 
 func (t *RevisionTests) TestIsDeleteNegative(c *C) {
 	rev := &Revision{MetadataID: "123", ContentIDs: []string{"34", "45"}}
-	c.Assert(rev.IsDelete(), Equals, false)
+	c.Assert(rev.IsDeletion(), Equals, false)
 }
 
 func (t *RevisionTests) TestCopy(c *C) {

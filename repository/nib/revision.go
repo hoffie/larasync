@@ -58,7 +58,7 @@ func (r *Revision) HasSameContent(other *Revision) bool {
 }
 
 // IsDelete returns if the revision marks the item as being deleted.
-func (r *Revision) IsDelete() bool {
+func (r *Revision) IsDeletion() bool {
 	return len(r.ContentIDs) == 0
 }
 

@@ -79,7 +79,8 @@ func (d *DatabaseNIBTracker) Add(path string, nibID string) error {
 	return db.Error
 }
 
-// whereFor returns a where statement for the
+// whereFor returns a where statement which requests entries from the database
+// for the passed path.
 func (d *DatabaseNIBTracker) whereFor(path string, db *gorm.DB) *gorm.DB {
 	return db.Where(map[string]interface{}{"path": path})
 }

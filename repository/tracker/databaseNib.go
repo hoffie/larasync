@@ -2,7 +2,6 @@ package tracker
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"strings"
 

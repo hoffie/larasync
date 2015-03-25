@@ -356,7 +356,7 @@ func (r *ClientRepository) checkoutNIB(nib *nib.NIB) error {
 		return errors.New("workdir conflict")
 	}
 
-	return nil
+	return r.notifyNIBTracker(nib.ID, relPath)
 }
 
 // AddItem adds a new file or directory to the repository.
@@ -422,16 +422,22 @@ func (r *ClientRepository) addFile(absPath string) error {
 	if err == nib.ErrNoRevision || !latestRev.HasSameContent(rev) {
 		n.AppendRevision(rev)
 	}
-	tracker, err := r.NIBTracker()
-	if err != nil {
-		return err
-	}
-	err = tracker.Add(relPath, nibID)
+	err = r.notifyNIBTracker(nibID, relPath)
 	if err != nil {
 		return err
 	}
 
 	return nibStore.Add(n)
+}
+
+// notifyNIBTracker checks adds the passed relative path to the NIBTracker of
+// this client repository.
+func (r *ClientRepository) notifyNIBTracker(nibID string, relPath string) error {
+	tracker, err := r.NIBTracker()
+	if err != nil {
+		return err
+	}
+	return tracker.Add(relPath, nibID)
 }
 
 // addDirectory walks the given directory and calls AddItem on each entry

@@ -60,7 +60,7 @@ func (d *DatabaseNIBTracker) Add(path string, nibID string) error {
 		return errors.New("Path longer than maximal allowed path.")
 	}
 	tx := d.db.Begin()
-	res, err := d.get(path, tx)
+	res, err := d.getLookup(path, tx)
 
 	var db *gorm.DB
 	if err == nil && res != nil {
@@ -94,7 +94,7 @@ func (d *DatabaseNIBTracker) lookupToNIB(nibLookup *NIBLookup) *NIBSearchRespons
 }
 
 // get returns the database object for the given path.
-func (d *DatabaseNIBTracker) get(path string, db *gorm.DB) (*NIBLookup, error) {
+func (d *DatabaseNIBTracker) getLookup(path string, db *gorm.DB) (*NIBLookup, error) {
 	stmt := d.whereFor(path, db)
 	data := &NIBLookup{}
 	res := stmt.First(data)
@@ -106,7 +106,7 @@ func (d *DatabaseNIBTracker) get(path string, db *gorm.DB) (*NIBLookup, error) {
 
 // Get returns the nibID for the given path.
 func (d *DatabaseNIBTracker) Get(path string) (*NIBSearchResponse, error) {
-	data, err := d.get(path, d.db)
+	data, err := d.getLookup(path, d.db)
 	if err != nil {
 		return nil, err
 	}

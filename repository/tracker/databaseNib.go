@@ -65,7 +65,6 @@ func (d *DatabaseNIBTracker) Add(path string, nibID string) error {
 	var db *gorm.DB
 	if err == nil && res != nil {
 		res.NIBID = nibID
-		fmt.Println("SAVE")
 		db = tx.Save(res)
 	} else {
 		res = &NIBLookup{

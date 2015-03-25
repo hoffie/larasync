@@ -13,6 +13,7 @@ import (
 	"github.com/hoffie/larasync/helpers/atomic"
 	"github.com/hoffie/larasync/helpers/crypto"
 	"github.com/hoffie/larasync/helpers/path"
+	"github.com/hoffie/larasync/repository/chunker"
 	"github.com/hoffie/larasync/repository/nib"
 	"github.com/hoffie/larasync/repository/tracker"
 )
@@ -79,7 +80,7 @@ func (r *ClientRepository) getFileChunkIDs(path string) ([]string, error) {
 // splitFileToChunks takes a file path and splits its contents into chunks
 // identified by their content ids.
 func (r *ClientRepository) splitFileToChunks(path string, handler func(string, []byte) error) ([]string, error) {
-	chunker, err := NewChunker(path, chunkSize)
+	chunker, err := chunker.New(path, chunkSize)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +110,7 @@ func (r *ClientRepository) splitFileToChunks(path string, handler func(string, [
 
 // fileToChunkIds returnes te current chunk hashes for the given path.
 func (r *ClientRepository) fileToChunkIds(path string) ([]string, error) {
-	chunker, err := NewChunker(path, chunkSize)
+	chunker, err := chunker.New(path, chunkSize)
 	if err != nil {
 		return nil, err
 	}

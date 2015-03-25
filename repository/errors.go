@@ -11,9 +11,6 @@ var (
 	// which couldn't be encoded to the correct size to pass it as a
 	// Public Key signature.
 	ErrInvalidPublicKeySize = errors.New("Invalid public key size.")
-	// ErrBadChunkSize will be thrown if a too little chunk size is requested.
-	// This is used by the Chunker implementation.
-	ErrBadChunkSize = errors.New("bad chunk size (must be >16 bytes)")
 	// ErrSignatureVerification gets returned if a signature of a signed NIB could
 	// not be verified.
 	ErrSignatureVerification = errors.New("Signature verification failed")

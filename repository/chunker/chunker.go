@@ -1,4 +1,4 @@
-package repository
+package chunker
 
 import (
 	"io"
@@ -13,9 +13,9 @@ type Chunker struct {
 	chunkSize uint64
 }
 
-// NewChunker returns a new chunker instance for the given file path
+// New returns a new chunker instance for the given file path
 // and the given chunk size.
-func NewChunker(path string, chunkSize uint64) (*Chunker, error) {
+func New(path string, chunkSize uint64) (*Chunker, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err

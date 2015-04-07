@@ -470,7 +470,7 @@ func (r *ClientRepository) addFile(absPath string) error {
 	return nibStore.Add(n)
 }
 
-// notifyNIBTracker checks adds the passed relative path to the NIBTracker of
+// notifyNIBTracker adds the passed relative path to the NIBTracker of
 // this client repository.
 func (r *ClientRepository) notifyNIBTracker(nibID string, relPath string) error {
 	tracker, err := r.NIBTracker()

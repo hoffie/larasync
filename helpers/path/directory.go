@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-// CleanUpEmptyDirs is used to searches all sub directories and removes
+// CleanUpEmptyDirs is used to search all sub directories and removes
 // the directories which are empty.
 func CleanUpEmptyDirs(absPath string) error {
 	stat, err := os.Stat(absPath)

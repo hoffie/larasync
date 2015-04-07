@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"reflect"
+
 	"crypto/subtle"
 )
 
@@ -12,4 +14,9 @@ func ConstantTimeBytesEqual(a, b []byte) bool {
 		return false
 	}
 	return subtle.ConstantTimeCompare(a, b) == 1
+}
+
+// StringsEqual returns if the slices of strings are now equal.
+func StringsEqual(a, b []string) bool {
+	return reflect.DeepEqual(a, b)
 }

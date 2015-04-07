@@ -9,9 +9,11 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/hoffie/larasync/helpers"
 	"github.com/hoffie/larasync/helpers/atomic"
 	"github.com/hoffie/larasync/helpers/crypto"
 	"github.com/hoffie/larasync/helpers/path"
+	"github.com/hoffie/larasync/repository/chunker"
 	"github.com/hoffie/larasync/repository/nib"
 	"github.com/hoffie/larasync/repository/tracker"
 )
@@ -36,7 +38,10 @@ func NewClient(path string) *ClientRepository {
 func (r *ClientRepository) NIBTracker() (tracker.NIBTracker, error) {
 	if r.nibTracker == nil {
 		repo := r.Repository
-		tracker, err := tracker.NewDatabaseNIBTracker(filepath.Join(repo.GetManagementDir(), "nib_tracker.db"))
+		tracker, err := tracker.NewDatabaseNIBTracker(
+			filepath.Join(repo.GetManagementDir(), "nib_tracker.db"),
+			repo.Path,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -75,7 +80,7 @@ func (r *ClientRepository) getFileChunkIDs(path string) ([]string, error) {
 // splitFileToChunks takes a file path and splits its contents into chunks
 // identified by their content ids.
 func (r *ClientRepository) splitFileToChunks(path string, handler func(string, []byte) error) ([]string, error) {
-	chunker, err := NewChunker(path, chunkSize)
+	chunker, err := chunker.New(path, chunkSize)
 	if err != nil {
 		return nil, err
 	}
@@ -99,6 +104,31 @@ func (r *ClientRepository) splitFileToChunks(path string, handler func(string, [
 		if err != nil {
 			return nil, err
 		}
+	}
+	return ids, nil
+}
+
+// fileToChunkIds returnes te current chunk hashes for the given path.
+func (r *ClientRepository) fileToChunkIds(path string) ([]string, error) {
+	chunker, err := chunker.New(path, chunkSize)
+	if err != nil {
+		return nil, err
+	}
+	defer chunker.Close()
+	var ids []string
+	for chunker.HasNext() {
+		chunk, err := chunker.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		// hash for content-addressing
+		hexHash, err := r.hashChunk(chunk)
+		if err != nil {
+			return nil, err
+		}
+
+		ids = append(ids, hexHash)
 	}
 	return ids, nil
 }
@@ -228,7 +258,7 @@ func (r *ClientRepository) writeMetadata(absPath string) (string, error) {
 	return hexHash, nil
 }
 
-// getFilesNIBUUID returns the NIB for the given relative path
+// pathToNIBID returns the NIB ID for the given relative path
 func (r *ClientRepository) pathToNIBID(relPath string) (string, error) {
 	return r.hashChunk([]byte(relPath))
 }
@@ -312,6 +342,11 @@ func (r *ClientRepository) checkoutNIB(nib *nib.NIB) error {
 		return err
 	}
 
+	return r.checkoutRevision(nib, rev)
+}
+
+// checkoutRevision checks out the provided Revision into the working directory.
+func (r *ClientRepository) checkoutRevision(nib *nib.NIB, rev *nib.Revision) error {
 	metadata, err := r.metadataByID(rev.MetadataID)
 	if err != nil {
 		return err
@@ -329,34 +364,39 @@ func (r *ClientRepository) checkoutNIB(nib *nib.NIB) error {
 	if err != nil && !os.IsExist(err) {
 		return err
 	}
+	err = nil
 
-	writer, err := atomic.NewWriter(absPath, ".lara.checkout.", defaultFilePerms)
-	defer writer.Close()
-	if err != nil {
-		writer.Abort()
-		return err
-	}
-
-	for _, contentID := range rev.ContentIDs {
-		content, err := r.readEncryptedObject(contentID)
-		_, err = writer.Write(content)
+	if len(rev.ContentIDs) > 0 {
+		writer, err := atomic.NewWriter(absPath, ".lara.checkout.", defaultFilePerms)
+		defer writer.Close()
 		if err != nil {
 			writer.Abort()
 			return err
 		}
+
+		for _, contentID := range rev.ContentIDs {
+			content, err := r.readEncryptedObject(contentID)
+			_, err = writer.Write(content)
+			if err != nil {
+				writer.Abort()
+				return err
+			}
+		}
+
+		hasChanges, err := r.pathHasConflictingChanges(nib, absPath)
+		if err != nil {
+			writer.Abort()
+			return err
+		}
+		if hasChanges {
+			writer.Abort()
+			return ErrWorkDirConflict
+		}
+	} else if _, errExistCheck := os.Stat(absPath); errExistCheck == nil {
+		err = os.Remove(absPath)
 	}
 
-	hasChanges, err := r.pathHasConflictingChanges(nib, absPath)
-	if err != nil {
-		writer.Abort()
-		return err
-	}
-	if hasChanges {
-		writer.Abort()
-		return errors.New("workdir conflict")
-	}
-
-	return r.notifyNIBTracker(nib.ID, relPath)
+	return err
 }
 
 // AddItem adds a new file or directory to the repository.
@@ -451,17 +491,152 @@ func (r *ClientRepository) addDirectory(absPath string) error {
 		err = r.AddItem(path)
 		if err == ErrRefusingWorkOnDotLara {
 			continue
-		}
-		if err != nil {
+		} else if err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
+// DeleteItem removes the given item with the passed absolute path.
+func (r *ClientRepository) DeleteItem(absPath string) error {
+	relPath, err := r.getRepoRelativePath(absPath)
+	if err != nil {
+		return err
+	}
+
+	nibID, err := r.pathToNIBID(relPath)
+	if err != nil {
+		return err
+	}
+
+	nib, err := r.nibStore.Get(nibID)
+	if os.IsNotExist(err) {
+		return r.deleteDirectory(absPath)
+	} else if err != nil {
+		return err
+	}
+	rev, err := nib.LatestRevision()
+	if err != nil {
+		return err
+	}
+
+	if !rev.IsDeletion() {
+		err = r.deleteFile(absPath)
+	} else {
+		err = r.deleteDirectory(absPath)
+	}
+	return err
+}
+
+// deleteDirectory checks the ClientRepositories path lookup and removes all
+// files and directories in the given path.
+func (r *ClientRepository) deleteDirectory(absPath string) error {
+	relPath, err := r.getRepoRelativePath(absPath)
+	if err != nil {
+		return err
+	}
+	paths, err := r.nibTracker.SearchPrefix(relPath)
+	if err != nil {
+		return err
+	}
+
+	for _, path := range paths {
+		err = r.DeleteItem(path.AbsPath())
+		if err != nil {
+			return err
+		}
+	}
+
+	return path.CleanUpEmptyDirs(absPath)
+}
+
+// deleteFile removes the specific file from the repository. Returns an error
+// if the file does not exist in the repository.
+func (r *ClientRepository) deleteFile(absPath string) error {
+	relPath, err := r.getRepoRelativePath(absPath)
+	if err != nil {
+		return err
+	}
+
+	nibID, err := r.pathToNIBID(relPath)
+	if err != nil {
+		return err
+	}
+
+	nibItem, err := r.nibStore.Get(nibID)
+	if err != nil {
+		return err
+	}
+
+	latestRevision, err := nibItem.LatestRevision()
+	if err != nil && err != nib.ErrNoRevision {
+		return err
+	}
+
+	deleteFileIfExisting := func() error {
+		if r.revisionIsFile(absPath, latestRevision) && !latestRevision.IsDeletion() {
+			os.Remove(absPath)
+		}
+
+		stat, fileErr := os.Stat(absPath)
+		if fileErr != nil {
+			return nil
+		}
+
+		if !stat.IsDir() && latestRevision != nil {
+			ids, err := r.fileToChunkIds(absPath)
+			if err != nil {
+				return err
+			}
+			if helpers.StringsEqual(ids, latestRevision.ContentIDs) {
+				return os.Remove(absPath)
+			}
+		}
+		return nil
+	}
+
+	if err == nil && latestRevision != nil {
+		if latestRevision.IsDeletion() {
+			return deleteFileIfExisting()
+		}
+		deleteRevision := latestRevision.Clone()
+		deleteRevision.ContentIDs = []string{}
+		nibItem.AppendRevision(deleteRevision)
+		err = r.nibStore.Add(nibItem)
+		if err != nil {
+			return err
+		}
+	}
+
+	return deleteFileIfExisting()
+}
+
+// revisionIsFile returns if the given revision is represented by the passed revision.
+func (r *ClientRepository) revisionIsFile(absPath string, rev *nib.Revision) bool {
+	stat, err := os.Stat(absPath)
+	if rev == nil || (err == nil && stat.IsDir()) {
+		return false
+	}
+
+	if os.IsNotExist(err) {
+		if rev.IsDeletion() {
+			return true
+		}
+		return false
+	}
+
+	ids, err := r.fileToChunkIds(absPath)
+	if err != nil {
+		return false
+	}
+
+	return helpers.StringsEqual(ids, rev.ContentIDs)
+}
+
 // SetAuthorization adds a authorization with the given publicKey and encrypts it with the
 // passed encryptionKey to this repository.
-func (r *Repository) SetAuthorization(
+func (r *ClientRepository) SetAuthorization(
 	publicKey [PublicKeySize]byte,
 	encKey [EncryptionKeySize]byte,
 	authorization *Authorization,
@@ -472,7 +647,7 @@ func (r *Repository) SetAuthorization(
 // NewAuthorization returns the currently valid Authorization object
 // for this repository. If the privateKeys necessary for this are not
 // stored in the keyStore an error is returned.
-func (r *Repository) NewAuthorization() (*Authorization, error) {
+func (r *ClientRepository) NewAuthorization() (*Authorization, error) {
 	encryptionKey, err := r.keys.EncryptionKey()
 	if err != nil {
 		return nil, errors.New("Could not load encryption key.")

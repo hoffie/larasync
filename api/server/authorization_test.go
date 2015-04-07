@@ -55,7 +55,7 @@ func (t *AuthorizationTests) testAuthorization(c *C) *repository.Authorization {
 }
 
 func (t *AuthorizationTests) addAuthorization(c *C, auth *repository.Authorization) {
-	repository := t.getRepository(c)
+	repository := t.getClientRepository(c)
 
 	err := repository.SetAuthorization(t.authPublicKey, t.encryptionKey, auth)
 	c.Assert(err, IsNil)

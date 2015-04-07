@@ -56,3 +56,24 @@ func (r *Revision) HasSameContent(other *Revision) bool {
 	}
 	return true
 }
+
+// IsDelete returns if the revision marks the item as being deleted.
+func (r *Revision) IsDeletion() bool {
+	return len(r.ContentIDs) == 0
+}
+
+// Clone returns an exact copy of the given revision.
+func (r *Revision) Clone() *Revision {
+	return &Revision{
+		MetadataID:   r.MetadataID,
+		ContentIDs:   r.cloneContentIDs(),
+		UTCTimestamp: r.UTCTimestamp,
+		DeviceID:     r.DeviceID,
+	}
+}
+
+// cloneContentIDs returns a new array populated with the current list
+// of contentIDs.
+func (r *Revision) cloneContentIDs() []string {
+	return append([]string{}, r.ContentIDs...)
+}

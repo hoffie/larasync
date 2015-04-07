@@ -25,9 +25,10 @@ func (n NIBLookup) TableName() string {
 
 // NewDatabaseNIBTracker initializes a new object which uses a database
 // to track NIB changes and implements the NIBTracker repository.
-func NewDatabaseNIBTracker(dbLocation string) (NIBTracker, error) {
+func NewDatabaseNIBTracker(dbLocation string, repositoryPath string) (NIBTracker, error) {
 	nibTracker := &DatabaseNIBTracker{
-		dbLocation: dbLocation,
+		dbLocation:     dbLocation,
+		repositoryPath: repositoryPath,
 	}
 	_, statErr := os.Stat(dbLocation)
 
@@ -43,8 +44,9 @@ func NewDatabaseNIBTracker(dbLocation string) (NIBTracker, error) {
 // DatabaseNIBTracker implements the NIBTracker interface and utilizes
 // a sqlite database backend for persistence.
 type DatabaseNIBTracker struct {
-	dbLocation string
-	db         *gorm.DB
+	dbLocation     string
+	db             *gorm.DB
+	repositoryPath string
 }
 
 // createDb initializes the tables in the database structure.
@@ -70,7 +72,6 @@ func (d *DatabaseNIBTracker) Add(path string, nibID string) error {
 			NIBID: nibID,
 			Path:  path,
 		}
-
 		db = tx.Create(res)
 	}
 
@@ -89,7 +90,7 @@ func (d *DatabaseNIBTracker) lookupToNIB(nibLookup *NIBLookup) *NIBSearchRespons
 	return &NIBSearchResponse{
 		NIBID:          nibLookup.NIBID,
 		Path:           nibLookup.Path,
-		repositoryPath: "",
+		repositoryPath: d.repositoryPath,
 	}
 }
 

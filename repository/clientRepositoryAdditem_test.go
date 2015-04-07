@@ -31,6 +31,24 @@ func (t *RepositoryAddItemTests) SetUpTest(c *C) {
 	c.Assert(err, IsNil)
 }
 
+func (t *RepositoryAddItemTests) TestWriteEmptyFile(c *C) {
+	fullpath := filepath.Join(t.dir, "foo.txt")
+	err := ioutil.WriteFile(fullpath, []byte{}, 0600)
+	c.Assert(err, IsNil)
+	err = t.r.AddItem(fullpath)
+	c.Assert(err, IsNil)
+	numFiles, err := path.NumFilesInDir(filepath.Join(t.dir, ".lara", "objects"))
+	c.Assert(err, IsNil)
+	c.Assert(numFiles, Equals, 2)
+	nibID, err := t.r.pathToNIBID("foo.txt")
+	c.Assert(err, IsNil)
+	nib, err := t.r.GetNIB(nibID)
+	c.Assert(err, IsNil)
+	rev, err := nib.LatestRevision()
+	c.Assert(err, IsNil)
+	c.Assert(len(rev.ContentIDs), Equals, 1)
+}
+
 func (t *RepositoryAddItemTests) TestWriteFileToChunks(c *C) {
 	fullpath := filepath.Join(t.dir, "foo.txt")
 	err := ioutil.WriteFile(fullpath, []byte("foo"), 0600)

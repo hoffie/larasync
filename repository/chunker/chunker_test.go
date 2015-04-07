@@ -1,4 +1,4 @@
-package repository
+package chunker
 
 import (
 	"io/ioutil"
@@ -18,12 +18,12 @@ func (t *ChunkerTests) SetUpTest(c *C) {
 }
 
 func (t *ChunkerTests) TestHandleError(c *C) {
-	_, err := NewChunker(filepath.Join(t.dir, "non-existing"), 16)
+	_, err := New(filepath.Join(t.dir, "non-existing"), 16)
 	c.Assert(err, NotNil)
 }
 
 func (t *ChunkerTests) TestHandleBadChunkSiez(c *C) {
-	_, err := NewChunker("test", 15)
+	_, err := New("test", 15)
 	c.Assert(err, NotNil)
 }
 
@@ -33,7 +33,7 @@ func (t *ChunkerTests) TestNormal(c *C) {
 		0600)
 	c.Assert(err, IsNil)
 
-	ch, err := NewChunker(path, 16)
+	ch, err := New(path, 16)
 	c.Assert(err, IsNil)
 	defer ch.Close()
 	c.Assert(ch.HasNext(), Equals, true)

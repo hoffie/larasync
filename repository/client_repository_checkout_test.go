@@ -20,16 +20,10 @@ type RepositoryCheckoutTests struct {
 
 func (t *RepositoryCheckoutTests) SetUpTest(c *C) {
 	t.dir = c.MkDir()
-	t.r = NewClient(t.dir)
-	err := t.r.CreateManagementDir()
+	var err error
+	t.r, err = NewClient(t.dir)
 	c.Assert(err, IsNil)
-	err = t.r.keys.CreateSigningKey()
-	c.Assert(err, IsNil)
-
-	err = t.r.keys.CreateEncryptionKey()
-	c.Assert(err, IsNil)
-
-	err = t.r.keys.CreateHashingKey()
+	err = t.r.Create()
 	c.Assert(err, IsNil)
 
 	t.testData = []byte("foo")

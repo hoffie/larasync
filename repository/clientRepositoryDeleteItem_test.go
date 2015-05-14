@@ -19,16 +19,9 @@ func (t *RepositoryDeleteItemTests) SetUpTest(c *C) {
 	var err error
 	t.dir, err = filepath.EvalSymlinks(c.MkDir())
 	c.Assert(err, IsNil)
-	t.r = NewClient(t.dir)
-	err = t.r.CreateManagementDir()
+	t.r, err = NewClient(t.dir)
 	c.Assert(err, IsNil)
-	err = t.r.keys.CreateSigningKey()
-	c.Assert(err, IsNil)
-
-	err = t.r.keys.CreateEncryptionKey()
-	c.Assert(err, IsNil)
-
-	err = t.r.keys.CreateHashingKey()
+	err = t.r.Create()
 	c.Assert(err, IsNil)
 }
 

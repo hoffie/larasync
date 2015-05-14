@@ -18,16 +18,10 @@ type RepositoryAddItemTests struct {
 
 func (t *RepositoryAddItemTests) SetUpTest(c *C) {
 	t.dir = c.MkDir()
-	t.r = NewClient(t.dir)
-	err := t.r.CreateManagementDir()
+	var err error
+	t.r, err = NewClient(t.dir)
 	c.Assert(err, IsNil)
-	err = t.r.keys.CreateSigningKey()
-	c.Assert(err, IsNil)
-
-	err = t.r.keys.CreateEncryptionKey()
-	c.Assert(err, IsNil)
-
-	err = t.r.keys.CreateHashingKey()
+	err = t.r.Create()
 	c.Assert(err, IsNil)
 }
 
@@ -69,7 +63,7 @@ func (t *RepositoryAddItemTests) TestAddtoNIBStore(c *C) {
 	c.Assert(err, IsNil)
 	err = t.r.AddItem(fullpath)
 	c.Assert(err, IsNil)
-	tracker, err := t.r.NIBTracker()
+	tracker := t.r.nibTracker
 	c.Assert(err, IsNil)
 	d, err := tracker.Get("foo.txt")
 	c.Assert(err, IsNil)

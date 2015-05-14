@@ -27,27 +27,18 @@ type ClientRepository struct {
 }
 
 // NewClient returns a new ClientRepository instance
-func NewClient(path string) *ClientRepository {
+func NewClient(path string) (*ClientRepository, error) {
 	repo := New(path)
-	return &ClientRepository{
+	repository := &ClientRepository{
 		Repository: repo,
 	}
-}
+	tracker, err := tracker.NewDatabaseNIBTracker(
+		filepath.Join(repo.GetManagementDir(), "nib_tracker.db"),
+		repo.Path,
+	)
+	repository.nibTracker = tracker
 
-// NIBTracker returns the
-func (r *ClientRepository) NIBTracker() (tracker.NIBTracker, error) {
-	if r.nibTracker == nil {
-		repo := r.Repository
-		tracker, err := tracker.NewDatabaseNIBTracker(
-			filepath.Join(repo.GetManagementDir(), "nib_tracker.db"),
-			repo.Path,
-		)
-		if err != nil {
-			return nil, err
-		}
-		r.nibTracker = tracker
-	}
-	return r.nibTracker, nil
+	return repository, err
 }
 
 // StateConfig returns this repository's state config; it is currently used
@@ -137,6 +128,25 @@ func (r *ClientRepository) fileToChunkIds(path string) ([]string, error) {
 // in foreign packages such as api.
 func (r *ClientRepository) GetSigningPrivateKey() ([PrivateKeySize]byte, error) {
 	return r.keys.SigningPrivateKey()
+}
+
+// Create initializes the repository with all necessary repository files.
+func (r *ClientRepository) Create() error {
+	err := r.Repository.Create()
+	if err != nil {
+		return err
+	}
+	err = r.CreateKeys()
+	if err != nil {
+		return err
+	}
+	return r.InitializeNIBTracker()
+}
+
+// InitializeNIBTracker initializes the database which is used to track the nibs to
+// its paths.
+func (r *ClientRepository) InitializeNIBTracker() error {
+	return r.nibTracker.Initialize()
 }
 
 // CreateKeys handles creation of all required cryptographic keys.
@@ -473,11 +483,7 @@ func (r *ClientRepository) addFile(absPath string) error {
 // notifyNIBTracker adds the passed relative path to the NIBTracker of
 // this client repository.
 func (r *ClientRepository) notifyNIBTracker(nibID string, relPath string) error {
-	tracker, err := r.NIBTracker()
-	if err != nil {
-		return err
-	}
-	return tracker.Add(relPath, nibID)
+	return r.nibTracker.Add(relPath, nibID)
 }
 
 // addDirectory walks the given directory and calls AddItem on each entry

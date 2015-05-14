@@ -16,8 +16,9 @@ var _ = Suite(&ClientRepositoryTests{})
 func (t *ClientRepositoryTests) TestStateConfig(c *C) {
 	exp := "example.org:14124"
 
-	r := NewClient(t.dir)
-	err := r.CreateManagementDir()
+	r, err := NewClient(t.dir)
+	c.Assert(err, IsNil)
+	err = r.CreateManagementDir()
 	c.Assert(err, IsNil)
 
 	sc, err := r.StateConfig()
@@ -25,15 +26,17 @@ func (t *ClientRepositoryTests) TestStateConfig(c *C) {
 	sc.DefaultServer.URL = exp
 	sc.Save()
 
-	r2 := NewClient(t.dir)
+	r2, err := NewClient(t.dir)
+	c.Assert(err, IsNil)
 	sc2, err := r2.StateConfig()
 	c.Assert(err, IsNil)
 	c.Assert(sc2.DefaultServer.URL, Equals, exp)
 }
 
 func (t *RepositoryTests) TestPathToNIBID(c *C) {
-	r := NewClient(t.dir)
-	err := r.CreateManagementDir()
+	r, err := NewClient(t.dir)
+	c.Assert(err, IsNil)
+	err = r.CreateManagementDir()
 	c.Assert(err, IsNil)
 
 	err = r.keys.CreateHashingKey()
@@ -50,8 +53,9 @@ func (t *RepositoryTests) TestPathToNIBID(c *C) {
 }
 
 func (t *RepositoryTests) TestGetFileChunkIDs(c *C) {
-	r := NewClient(t.dir)
-	err := r.CreateManagementDir()
+	r, err := NewClient(t.dir)
+	c.Assert(err, IsNil)
+	err = r.CreateManagementDir()
 	c.Assert(err, IsNil)
 
 	err = r.keys.CreateHashingKey()
@@ -72,8 +76,9 @@ func (t *RepositoryTests) TestGetFileChunkIDs(c *C) {
 }
 
 func (t *RepositoryTests) TestCurrentAuthorization(c *C) {
-	r := NewClient(t.dir)
-	err := r.CreateManagementDir()
+	r, err := NewClient(t.dir)
+	c.Assert(err, IsNil)
+	err = r.CreateManagementDir()
 	c.Assert(err, IsNil)
 
 	err = r.CreateKeys()
@@ -99,8 +104,9 @@ func (t *RepositoryTests) TestCurrentAuthorization(c *C) {
 }
 
 func (t *RepositoryTests) TestGetSigningKey(c *C) {
-	r := NewClient(t.dir)
-	err := r.CreateManagementDir()
+	r, err := NewClient(t.dir)
+	c.Assert(err, IsNil)
+	err = r.CreateManagementDir()
 	c.Assert(err, IsNil)
 
 	err = r.keys.CreateSigningKey()
@@ -116,9 +122,10 @@ func (t *RepositoryTests) TestGetSigningKey(c *C) {
 }
 
 func (t *RepositoryTests) TestTransactionsFrom(c *C) {
-	r := NewClient(t.dir)
+	r, err := NewClient(t.dir)
+	c.Assert(err, IsNil)
 
-	err := r.CreateManagementDir()
+	err = r.CreateManagementDir()
 	c.Assert(err, IsNil)
 
 	count := 2

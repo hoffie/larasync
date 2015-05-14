@@ -16,6 +16,7 @@ import (
 	"github.com/hoffie/larasync/repository/chunker"
 	"github.com/hoffie/larasync/repository/nib"
 	"github.com/hoffie/larasync/repository/tracker"
+	"github.com/hoffie/larasync/repository/watcher"
 )
 
 // ClientRepository is a Repository from a client-side view; it has all the keys
@@ -695,4 +696,16 @@ func (r *ClientRepository) SerializedAuthorization(encryptionKey [EncryptionKeyS
 // TransactionsFrom returns all transactions which have been added since the given transactionID.
 func (r *ClientRepository) TransactionsFrom(transactionID int64) ([]*Transaction, error) {
 	return r.transactionManager.From(transactionID)
+}
+
+// Watch begins checking the file system for changes adds and removes files from the
+// repository. It returns the watcher which enables the watching process to be
+// teared down.
+func (r *ClientRepository) Watch() (*watcher.Watcher, error) {
+	watcher, err := watcher.New(r.Path, r)
+	if err != nil {
+		return nil, err
+	}
+	err = watcher.Start()
+	return watcher, err
 }

@@ -13,7 +13,11 @@ func (d *Dispatcher) addAction() int {
 		fmt.Fprintf(d.stderr, "Error: %s\n", err)
 		return 1
 	}
-	r := repository.NewClient(root)
+	r, err := repository.NewClient(root)
+	if err != nil {
+		fmt.Fprintf(d.stderr, "Unable to add the item to the repository. Couldn't initialize repo (%s)\n", err)
+		return 1
+	}
 	err = r.AddItem(absPath)
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Unable to add the given item to the repository (%s)\n", err)

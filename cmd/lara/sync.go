@@ -17,7 +17,11 @@ func (d *Dispatcher) syncAction() int {
 	if err != nil {
 		return 1
 	}
-	r := repository.NewClient(root)
+	r, err := repository.NewClient(root)
+	if err != nil {
+		fmt.Fprint(d.stderr, err)
+		return 1
+	}
 	client, err := d.clientFor(r)
 	if err != nil {
 		fmt.Fprint(d.stderr, err)

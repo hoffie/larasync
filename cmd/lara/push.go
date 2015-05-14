@@ -16,7 +16,12 @@ func (d *Dispatcher) pushAction() int {
 	if err != nil {
 		return 1
 	}
-	r := repository.NewClient(root)
+	r, err := repository.NewClient(root)
+	if err != nil {
+		fmt.Fprintf(d.stderr, "Error: %s\n",
+			err)
+		return 1
+	}
 
 	client, err := d.clientFor(r)
 	if err != nil {

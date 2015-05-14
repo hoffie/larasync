@@ -27,15 +27,14 @@ func (d *Dispatcher) initAction() int {
 			return 1
 		}
 	}
-	repo := repository.NewClient(target)
-	err := repo.CreateManagementDir()
+	repo, err := repository.NewClient(target)
 	if err != nil {
-		fmt.Fprint(d.stderr, "Unable to create management directory\n")
+		fmt.Fprintf(d.stderr, "Unable to initialize repository\n")
 		return 1
 	}
-	err = repo.CreateKeys()
+	err = repo.Create()
 	if err != nil {
-		fmt.Fprintf(d.stderr, "Unable to generate encryption keys\n")
+		fmt.Fprint(d.stderr, "Unable to create management repository\n")
 		return 1
 	}
 	return 0

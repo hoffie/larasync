@@ -27,7 +27,11 @@ func (d *Dispatcher) registerAction() int {
 		fmt.Fprint(d.stderr, "Error: unable to read the admin secret\n")
 		return 1
 	}
-	r := repository.NewClient(root)
+	r, err := repository.NewClient(root)
+	if err != nil {
+		fmt.Fprintf(d.stderr, "Error: unable to initialize repository\n")
+		return 1
+	}
 	pubKey, err := r.GetSigningPublicKey()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: unable to retrieve local signing public key\n")

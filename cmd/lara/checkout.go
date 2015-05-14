@@ -27,7 +27,11 @@ func (d *Dispatcher) checkoutPathAction() int {
 		fmt.Fprintf(d.stderr, "Error: %s\n", err)
 		return 1
 	}
-	r := repository.NewClient(root)
+	r, err := repository.NewClient(root)
+	if err != nil {
+		fmt.Fprintf(d.stderr,
+			"Unable to checkout the given path from the repository. Initalization of repository failed (%s)\n", err)
+	}
 	err = r.CheckoutPath(absPath)
 	if err != nil {
 		fmt.Fprintf(d.stderr,
@@ -43,7 +47,11 @@ func (d *Dispatcher) checkoutAllPathsAction() int {
 	if err != nil {
 		return 1
 	}
-	r := repository.NewClient(root)
+	r, err := repository.NewClient(root)
+	if err != nil {
+		fmt.Fprintf(d.stderr,
+		"Unable to checkout the given path from the repository. Initalization of repository failed (%s)\n", err)
+	}
 	err = r.CheckoutAllPaths()
 	if err != nil {
 		fmt.Fprintf(d.stderr,

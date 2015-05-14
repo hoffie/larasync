@@ -32,7 +32,11 @@ func (d *Dispatcher) authorizeNewClientAction() int {
 		fmt.Fprintf(d.stderr, "Error: Signature key generation error: %s\n", err)
 		return 1
 	}
-	r := repository.NewClient(root)
+	r, err := repository.NewClient(root)
+	if err != nil {
+		fmt.Fprintf(d.stderr, "Error: Repository initialization failed: %s\n", err)
+		return 1
+	}
 	authorizationBytes, err := r.SerializedAuthorization(encryptionKey)
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: %s\n", err)

@@ -17,9 +17,9 @@ func (t *ResetFingerprintTests) SetUpTest(c *C) {
 	t.BaseTests.SetUpTest(c)
 	c.Assert(t.d.run([]string{"init"}), Equals, 0)
 
-	r := repository.NewClient(t.dir)
+	r, err := repository.NewClient(t.dir)
+	c.Assert(err, IsNil)
 	_ = r
-	var err error
 	t.sc, err = r.StateConfig()
 	c.Assert(err, IsNil)
 	t.sc.DefaultServer.Fingerprint = "123"

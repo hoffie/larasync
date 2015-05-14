@@ -23,7 +23,11 @@ func (d *Dispatcher) resetFingerprintAction() int {
 	if string(res) != "y" {
 		return 0
 	}
-	r := repository.NewClient(root)
+	r, err := repository.NewClient(root)
+	if err != nil {
+		fmt.Fprintf(d.stderr, "Error: Unable to initialize repository (%s)\n", err)
+		return 1
+	}
 	sc, err := r.StateConfig()
 	if err != nil {
 		fmt.Fprintf(d.stderr, "Error: Unable to load state config (%s)\n", err)

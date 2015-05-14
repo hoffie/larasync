@@ -85,7 +85,10 @@ func (r *Repository) GetManagementDir() string {
 
 // Create initially creates the repository directory structure.
 func (r *Repository) Create() error {
-	err := os.Mkdir(r.Path, defaultDirPerms)
+	_, err := os.Stat(r.Path)
+	if os.IsNotExist(err) {
+		err = os.Mkdir(r.Path, defaultDirPerms)
+	}
 	if err != nil {
 		return err
 	}

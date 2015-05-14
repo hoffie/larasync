@@ -12,4 +12,7 @@ type NIBTracker interface {
 	// SearchPrefix returns all nibIDs with the given path.
 	// The map being returned has the paths
 	SearchPrefix(prefix string) ([]*NIBSearchResponse, error)
+	// Initialize function gets called and initializes necessary
+	// components which enables the NIBTracking.
+	Initialize() error
 }

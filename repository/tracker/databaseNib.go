@@ -2,7 +2,6 @@ package tracker
 
 import (
 	"errors"
-	"os"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -30,15 +29,8 @@ func NewDatabaseNIBTracker(dbLocation string, repositoryPath string) (NIBTracker
 		dbLocation:     dbLocation,
 		repositoryPath: repositoryPath,
 	}
-	_, statErr := os.Stat(dbLocation)
 
-	db, err := gorm.Open("sqlite3", nibTracker.dbLocation)
-	nibTracker.db = &db
-	if err == nil && os.IsNotExist(statErr) {
-		err = nibTracker.createDb()
-	}
-
-	return nibTracker, err
+	return nibTracker, nil
 }
 
 // DatabaseNIBTracker implements the NIBTracker interface and utilizes
@@ -49,10 +41,32 @@ type DatabaseNIBTracker struct {
 	repositoryPath string
 }
 
-// createDb initializes the tables in the database structure.
+// Initialize function gets called and initializes necessary
+// components which enables the NIBTracking.
+func (d *DatabaseNIBTracker) Initialize() error {
+	return d.createDb()
+}
+
+// CreateDb initializes the tables in the database structure.
 func (d *DatabaseNIBTracker) createDb() error {
-	db := d.db.CreateTable(&NIBLookup{})
+	db, _ := d.getDb()
+	db = d.db.CreateTable(&NIBLookup{})
 	return db.Error
+}
+
+// getDb returns the database connection object.
+func (d *DatabaseNIBTracker) getDb() (*gorm.DB, error) {
+	var err error
+
+	db := d.db
+	if d.db == nil {
+		dbInit, err := gorm.Open("sqlite3", d.dbLocation)
+		db = &dbInit
+		if err == nil {
+			d.db = db
+		}
+	}
+	return db, err
 }
 
 // Add registers the given nibID for the given path.
@@ -60,10 +74,14 @@ func (d *DatabaseNIBTracker) Add(path string, nibID string) error {
 	if len(path) > MaxPathSize {
 		return errors.New("Path longer than maximal allowed path.")
 	}
+	db, err := d.getDb()
+	if err != nil {
+		return err
+	}
+
 	tx := d.db.Begin()
 	res, err := d.getLookup(path, tx)
 
-	var db *gorm.DB
 	if err == nil && res != nil {
 		res.NIBID = nibID
 		db = tx.Save(res)
@@ -122,7 +140,11 @@ func (d *DatabaseNIBTracker) SearchPrefix(prefix string) ([]*NIBSearchResponse, 
 
 	prefix = strings.TrimSuffix(prefix, "/")
 	directoryPrefix := prefix + "/"
-	db := d.db.Where("path LIKE ? or path = ?", directoryPrefix+"%", prefix).Find(&resp)
+	db, err := d.getDb()
+	if err != nil {
+		return nil, err
+	}
+	db = db.Where("path LIKE ? or path = ?", directoryPrefix+"%", prefix).Find(&resp)
 
 	searchResponse := []*NIBSearchResponse{}
 	for _, item := range resp {
@@ -134,8 +156,12 @@ func (d *DatabaseNIBTracker) SearchPrefix(prefix string) ([]*NIBSearchResponse, 
 
 // Remove removes the given path from being tracked.
 func (d *DatabaseNIBTracker) Remove(path string) error {
-	tx := d.db.Begin()
-	db := d.whereFor(path, tx).Delete(NIBLookup{})
+	db, err := d.getDb()
+	if err != nil {
+		return err
+	}
+	tx := db.Begin()
+	db = d.whereFor(path, tx).Delete(NIBLookup{})
 	if db.Error != nil {
 		tx.Rollback()
 	} else if db.Error == nil && db.RowsAffected < 1 {

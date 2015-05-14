@@ -39,7 +39,7 @@ func New(directoryPath string, handler RepositoryHandler) (*Watcher, error) {
 		close: make(chan struct{}),
 	}
 
-	return watcher
+	return watcher, nil
 }
 
 // Watcher is used to monitor item changes in larasync repositories
@@ -48,7 +48,7 @@ func New(directoryPath string, handler RepositoryHandler) (*Watcher, error) {
 type Watcher struct {
 	directoryPath string
 	handler RepositoryHandler
-	fileSystemWatcher fsmonitor.Watcher
+	fileSystemWatcher *fsmonitor.Watcher
 	// Errors which were emitted during processing the different
 	// file system events.
 	Errors chan error

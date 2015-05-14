@@ -36,7 +36,7 @@ func New(directoryPath string, handler RepositoryHandler) (*Watcher, error) {
 		handler: handler,
 		fileSystemWatcher: fsWatcher,
 		Errors: make(chan error),
-		close: make(chan struct{}),
+		Close: make(chan struct{}),
 	}
 
 	return watcher, nil
@@ -52,7 +52,7 @@ type Watcher struct {
 	// Errors which were emitted during processing the different
 	// file system events.
 	Errors chan error
-	close chan struct{}
+	Close chan struct{}
 }
 
 // Start initializes the internal filesystem watcher.
@@ -82,7 +82,7 @@ func (w *Watcher) startLoop() {
 				}
 			case err = <-w.fileSystemWatcher.Error:
 				// Handling done outside of select
-			case <-w.close:
+			case <-w.Close:
 				return
 		}
 
@@ -95,7 +95,7 @@ func (w *Watcher) startLoop() {
 // Stop shuts down the internal processing loop.
 func (w *Watcher) Stop() error {
 	if !w.fileSystemWatcher.IsClosed() {
-		close(w.close)
+		close(w.Close)
 	}
 	return w.fileSystemWatcher.Close()
 }

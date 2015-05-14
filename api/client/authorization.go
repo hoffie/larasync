@@ -88,8 +88,11 @@ func (c *Client) getAuthorization(authorizationURL string,
 // ImportAuthorization generates a new repository "repoName" and imports the
 // authorization information from the given URL.
 func ImportAuthorization(repoName string, urlString string) (*Client, *repository.ClientRepository, error) {
-	repo := repository.NewClient(repoName)
-	err := repo.Create()
+	repo, err := repository.NewClient(repoName)
+	if err != nil {
+		return nil, nil, err
+	}
+	err = repo.Create()
 	if err != nil && !os.IsExist(err) {
 		return nil, nil, fmt.Errorf("repository creation failure (%s)", err)
 	}

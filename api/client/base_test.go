@@ -78,13 +78,18 @@ func (t *BaseTest) repositoryPath(c *C) string {
 }
 
 func (t *BaseTest) getClientRepository(c *C) *repository.ClientRepository {
-	repo := repository.NewClient(t.repositoryPath(c))
-	err := repo.SetKeysFromAuth(&repository.Authorization{
+	repo, err := repository.NewClient(t.repositoryPath(c))
+	c.Assert(err, IsNil)
+	err = repo.SetKeysFromAuth(&repository.Authorization{
 		SigningKey:    t.privateKey,
 		EncryptionKey: t.encryptionKey,
 		HashingKey:    t.hashingKey,
 	})
 	c.Assert(err, IsNil)
+	_, err = os.Stat(filepath.Join(repo.GetManagementDir(), "nib_tracker.db"))
+	if os.IsNotExist(err) {
+		repo.InitializeNIBTracker()
+	}
 	return repo
 }
 

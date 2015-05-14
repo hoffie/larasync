@@ -27,7 +27,6 @@ func (t *RepoListTests) SetUpTest(c *C) {
 	t.req = req
 	t.createRepoManager(c)
 	t.createServer(c)
-	t.createRepository(c)
 }
 
 func (t *RepoListTests) getResponse(req *http.Request) *httptest.ResponseRecorder {

@@ -145,5 +145,7 @@ func (t *BaseTests) getRepository(c *C) *repository.Repository {
 }
 
 func (t *BaseTests) getClientRepository(c *C) *repository.ClientRepository {
-	return repository.NewClient(filepath.Join(t.repos, t.repositoryName))
+	client, err := repository.NewClient(filepath.Join(t.repos, t.repositoryName))
+	c.Assert(err, IsNil)
+	return client
 }

@@ -88,5 +88,10 @@ func (d *Dispatcher) cmdActions() []cli.Command {
 			Action: d.wrapAction(d.syncAction),
 			Flags:  d.syncFlags(),
 		},
+		{
+			Name: 	"watch",
+			Usage:  "watches for filesystem changes in the directory and adds them to the repository",
+			Action: d.wrapAction(d.watchAction),
+		},
 	}
 }

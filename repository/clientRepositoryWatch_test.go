@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"time"
 	"io/ioutil"
 	"path/filepath"
+	"time"
 
 	. "gopkg.in/check.v1"
 
@@ -12,7 +12,7 @@ import (
 
 type ClientRepositoryWatchTests struct {
 	RepositoryTests
-	repo *ClientRepository
+	repo    *ClientRepository
 	watcher *watcher.Watcher
 }
 

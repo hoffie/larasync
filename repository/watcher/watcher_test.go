@@ -17,17 +17,16 @@ const (
 )
 
 type WatcherTest struct {
-	Dir string
-	Watcher *Watcher
+	Dir             string
+	Watcher         *Watcher
 	RepositoryCheck *RepositoryCheck
 }
 
 var _ = Suite(&WatcherTest{})
 
-
 type RepositoryCheck struct {
-	c *C
-	addedItems []string
+	c            *C
+	addedItems   []string
 	removedItems []string
 }
 
@@ -61,12 +60,11 @@ func (rc *RepositoryCheck) ShouldHaveItemRemoved(absPath string) {
 	rc.c.Check(rc.HasItemRemoved(absPath), Equals, true)
 }
 
-
 func (t *WatcherTest) SetUpTest(c *C) {
 	t.Dir = c.MkDir()
 	t.RepositoryCheck = &RepositoryCheck{
-		c: c,
-		addedItems: []string{},
+		c:            c,
+		addedItems:   []string{},
 		removedItems: []string{},
 	}
 	watcher, err := New(t.Dir, t.RepositoryCheck)

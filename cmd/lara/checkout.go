@@ -50,7 +50,7 @@ func (d *Dispatcher) checkoutAllPathsAction() int {
 	r, err := repository.NewClient(root)
 	if err != nil {
 		fmt.Fprintf(d.stderr,
-		"Unable to checkout the given path from the repository. Initalization of repository failed (%s)\n", err)
+			"Unable to checkout the given path from the repository. Initalization of repository failed (%s)\n", err)
 	}
 	err = r.CheckoutAllPaths()
 	if err != nil {

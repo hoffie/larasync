@@ -35,14 +35,14 @@ func (d *Dispatcher) watchAction() int {
 	for {
 		exit := false
 		select {
-			case err = <- watcher.Errors:
-				fmt.Fprint(d.stderr, "Error while watching for file changes:\n")
-				fmt.Fprint(d.stderr, err)
-			case <-watcher.Close:
-				exit = true
-				break
-			case <-watchCancelChannel:
-				watcher.Stop()
+		case err = <-watcher.Errors:
+			fmt.Fprint(d.stderr, "Error while watching for file changes:\n")
+			fmt.Fprint(d.stderr, err)
+		case <-watcher.Close:
+			exit = true
+			break
+		case <-watchCancelChannel:
+			watcher.Stop()
 		}
 		if exit {
 			break

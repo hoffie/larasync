@@ -2,8 +2,8 @@ package main
 
 import (
 	"bytes"
-	"os"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -11,9 +11,9 @@ import (
 )
 
 type WatchTests struct {
-	dir 	string
-	out 	*bytes.Buffer
-	d   	*Dispatcher
+	dir     string
+	out     *bytes.Buffer
+	d       *Dispatcher
 	repoDir string
 }
 
@@ -33,7 +33,7 @@ func (t *WatchTests) waitForNIBExistence() {
 	nibPath := filepath.Join(t.repoDir, ".lara", "nibs")
 	i := 0
 	for {
-		time.Sleep(10*time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 		files, err := ioutil.ReadDir(nibPath)
 		if (err == nil && len(files) > 0) || i > 100 {
 			break

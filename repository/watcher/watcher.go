@@ -4,8 +4,8 @@ import (
 	"errors"
 	"os"
 
-	"gopkg.in/fsnotify.v1"
 	"github.com/cbrand/fsmonitor"
+	"gopkg.in/fsnotify.v1"
 )
 
 const (
@@ -32,11 +32,11 @@ func New(directoryPath string, handler RepositoryHandler) (*Watcher, error) {
 	}
 
 	watcher := &Watcher{
-		directoryPath: directoryPath,
-		handler: handler,
+		directoryPath:     directoryPath,
+		handler:           handler,
 		fileSystemWatcher: fsWatcher,
-		Errors: make(chan error),
-		Close: make(chan struct{}),
+		Errors:            make(chan error),
+		Close:             make(chan struct{}),
 	}
 
 	return watcher, nil
@@ -46,13 +46,13 @@ func New(directoryPath string, handler RepositoryHandler) (*Watcher, error) {
 // and automatically keeps data in sync with the local internal repository
 // state.
 type Watcher struct {
-	directoryPath string
-	handler RepositoryHandler
+	directoryPath     string
+	handler           RepositoryHandler
 	fileSystemWatcher *fsmonitor.Watcher
 	// Errors which were emitted during processing the different
 	// file system events.
 	Errors chan error
-	Close chan struct{}
+	Close  chan struct{}
 }
 
 // Start initializes the internal filesystem watcher.
@@ -74,16 +74,16 @@ func (w *Watcher) startLoop() {
 	for {
 		var err error
 		select {
-			case ev := <-w.fileSystemWatcher.Events:
-				if ev.Op == fsnotify.Write {
-					err = w.handler.AddItem(ev.Name)
-				} else if ev.Op == fsnotify.Remove {
-					err = w.handler.DeleteItem(ev.Name)
-				}
-			case err = <-w.fileSystemWatcher.Error:
-				// Handling done outside of select
-			case <-w.Close:
-				return
+		case ev := <-w.fileSystemWatcher.Events:
+			if ev.Op == fsnotify.Write {
+				err = w.handler.AddItem(ev.Name)
+			} else if ev.Op == fsnotify.Remove {
+				err = w.handler.DeleteItem(ev.Name)
+			}
+		case err = <-w.fileSystemWatcher.Error:
+			// Handling done outside of select
+		case <-w.Close:
+			return
 		}
 
 		if err != nil {

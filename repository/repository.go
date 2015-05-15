@@ -7,13 +7,14 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/hoffie/larasync/constants"
 	"github.com/hoffie/larasync/repository/content"
 	"github.com/hoffie/larasync/repository/nib"
 )
 
 const (
 	// internal directory names
-	managementDirName     = ".lara"
+	managementDirName     = constants.LaraManagementDirName
 	objectsDirName        = "objects"
 	nibsDirName           = "nibs"
 	transactionsDirName   = "transactions"

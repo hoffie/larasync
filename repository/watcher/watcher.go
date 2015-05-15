@@ -5,17 +5,18 @@ import (
 	"os"
 
 	"github.com/cbrand/fsmonitor"
+	"github.com/hoffie/larasync/constants"
 	"gopkg.in/fsnotify.v1"
 )
 
 const (
-	LARA_MANAGEMENT_DIR = ".lara"
+	laraManagementDir = constants.LaraManagementDirName
 )
 
 // New returns a new watcher initialized with the passed
 // configuration data.
 func New(directoryPath string, handler RepositoryHandler) (*Watcher, error) {
-	fsWatcher, err := fsmonitor.NewWatcherWithSkipFolders([]string{LARA_MANAGEMENT_DIR})
+	fsWatcher, err := fsmonitor.NewWatcherWithSkipFolders([]string{laraManagementDir})
 
 	if err != nil {
 		return nil, err

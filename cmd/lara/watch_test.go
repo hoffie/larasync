@@ -38,7 +38,7 @@ func (t *WatchTests) waitForNIBExistence() {
 		if (err == nil && len(files) > 0) || i > 100 {
 			break
 		}
-		i += 1
+		i++
 	}
 }
 

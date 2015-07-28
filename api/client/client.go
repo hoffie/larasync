@@ -58,5 +58,6 @@ func (c *Client) doRequest(req *http.Request, expStatus ...int) (*http.Response,
 			return resp, nil
 		}
 	}
+	Log.Error("unexpected status", "got", resp.StatusCode, "wanted", expStatus)
 	return nil, ErrUnexpectedStatus
 }

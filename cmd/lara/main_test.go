@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	. "gopkg.in/check.v1"
@@ -35,7 +36,8 @@ func (t *MainTests) TestPromptTwice(c *C) {
 
 func (t *MainTests) TestArgHandling(c *C) {
 	c.Assert(t.d.run([]string{"help", "sync"}), Equals, 0)
-	c.Assert(strings.Index(t.out.String(), "command sync"), Not(Equals), -1)
+	fmt.Println(t.out.String())
+	c.Assert(strings.Index(t.out.String(), "sync"), Not(Equals), -1)
 }
 
 func (t *MainTests) TestNoArg(c *C) {

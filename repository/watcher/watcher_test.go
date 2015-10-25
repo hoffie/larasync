@@ -1,13 +1,13 @@
 package watcher
 
 import (
+	"os"
 	"io/ioutil"
 	"path/filepath"
 
 	"github.com/hoffie/larasync/helpers"
 
 	. "gopkg.in/check.v1"
-	"os"
 )
 
 const (

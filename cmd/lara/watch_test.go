@@ -20,6 +20,7 @@ type WatchTests struct {
 var _ = Suite(&WatchTests{})
 
 func (t *WatchTests) SetUpTest(c *C) {
+	runningWatcher = nil
 	t.dir = c.MkDir()
 	t.out = new(bytes.Buffer)
 	t.d = &Dispatcher{stderr: t.out}
@@ -42,13 +43,25 @@ func (t *WatchTests) waitForNIBExistence() {
 	}
 }
 
-func (t *WatchTests) TestWatchAddition(c *C) {
-	file := filepath.Join(t.repoDir, "foo")
+func waitForWatcher() chan bool {
 	watchStarted := make(chan bool)
 	go func() {
-		go func() {
-			watchStarted <- true
-		}()
+		for {
+			time.Sleep(10 * time.Millisecond)
+			if(runningWatcher != nil && runningWatcher.Started == true) {
+				break
+			}
+		}
+		time.Sleep(100 * time.Millisecond)
+		watchStarted <- true
+	}()
+	return watchStarted
+}
+
+func (t *WatchTests) TestWatchAddition(c *C) {
+	file := filepath.Join(t.repoDir, "foo")
+	watchStarted := waitForWatcher()
+	go func() {
 		c.Assert(t.d.run([]string{"watch"}), Equals, 0)
 	}()
 
@@ -57,6 +70,32 @@ func (t *WatchTests) TestWatchAddition(c *C) {
 	realContent := []byte("This is test")
 	err := ioutil.WriteFile(file, realContent, 0600)
 	c.Assert(err, IsNil)
+
+	t.waitForNIBExistence()
+
+	close(watchCancelChannel)
+
+	os.Remove(file)
+
+	c.Assert(t.d.run([]string{"checkout", file}), Equals, 0)
+
+	content, err := ioutil.ReadFile(file)
+	c.Assert(err, IsNil)
+	c.Assert(content, DeepEquals, realContent)
+}
+
+func (t *WatchTests) TestAddBeforeWatch(c *C) {
+	file := filepath.Join(t.repoDir, "foo")
+	realContent := []byte("This is test")
+	err := ioutil.WriteFile(file, realContent, 0600)
+	c.Assert(err, IsNil)
+
+	watchStarted := waitForWatcher()
+	go func() {
+		c.Assert(t.d.run([]string{"watch"}), Equals, 0)
+	}()
+	_ = <-watchStarted
+	close(watchStarted)
 
 	t.waitForNIBExistence()
 

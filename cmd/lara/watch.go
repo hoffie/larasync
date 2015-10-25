@@ -4,11 +4,15 @@ import (
 	"fmt"
 
 	"github.com/hoffie/larasync/repository"
+	"github.com/hoffie/larasync/repository/watcher"
 )
 
 // watchCancel is used to cancel the watcher loop from outside.
 // Primarily used for testing purposes.
 var watchCancelChannel chan struct{}
+// runningWatcher is the reference to the currently active watcher
+// it is set for testing purposes.
+var runningWatcher *watcher.Watcher = nil
 
 // watchAction implements the "lara watch" command.
 func (d *Dispatcher) watchAction() int {
@@ -27,6 +31,7 @@ func (d *Dispatcher) watchAction() int {
 		return 1
 	}
 	watcher, err := r.Watch()
+	runningWatcher = watcher
 	if err != nil {
 		fmt.Fprint(d.stderr, "Error: Watching for file changes failed\n")
 	}
@@ -40,6 +45,7 @@ func (d *Dispatcher) watchAction() int {
 			fmt.Fprint(d.stderr, err)
 		case <-watcher.Close:
 			exit = true
+			runningWatcher = nil
 			break
 		case <-watchCancelChannel:
 			watcher.Stop()

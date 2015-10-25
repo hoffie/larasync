@@ -38,6 +38,7 @@ func New(directoryPath string, handler RepositoryHandler) (*Watcher, error) {
 		fileSystemWatcher: fsWatcher,
 		Errors:            make(chan error),
 		Close:             make(chan struct{}),
+		Started:           false,
 	}
 
 	return watcher, nil
@@ -54,6 +55,7 @@ type Watcher struct {
 	// file system events.
 	Errors chan error
 	Close  chan struct{}
+	Started bool
 }
 
 // Start initializes the internal filesystem watcher.
@@ -66,7 +68,10 @@ func (w *Watcher) Start() error {
 
 	go w.startLoop()
 
-	return nil
+	// Adding the file synchronization structure to
+	// verify that all current files are already in the
+	// system.
+	return w.handler.AddItem(w.directoryPath)
 }
 
 // startLoop checks for the event messages and starts the management of incoming file system
@@ -85,6 +90,10 @@ func (w *Watcher) startLoop() {
 			// Handling done outside of select
 		case <-w.Close:
 			return
+		default:
+			if(w.Started == false) {
+				w.Started = true
+			}
 		}
 
 		if err != nil {
